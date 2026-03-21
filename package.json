@@ -1,0 +1,65 @@
+{
+  "name": "vue-i18n-lint",
+  "version": "1.0.0",
+  "description": "Fast and accurate linting for Vue i18n.",
+  "keywords": [
+    "i18n",
+    "lint",
+    "vue"
+  ],
+  "license": "MIT",
+  "author": "Ruben Gees",
+  "repository": "rubengees/vue-i18n-lint",
+  "bin": {
+    "vue-i18n-lint": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "dev": "vitest",
+    "start": "node src/cli.ts",
+    "build": "tsdown",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "check": "tsgo --noEmit",
+    "test": "vitest run",
+    "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test"
+  },
+  "dependencies": {
+    "@babel/code-frame": "^7.29.0",
+    "@vue/compiler-core": "^3.5.30",
+    "@vue/compiler-sfc": "^3.5.30",
+    "citty": "^0.2.1",
+    "confbox": "^0.2.4",
+    "globby": "^16.1.1",
+    "oxc-parser": "^0.121.0",
+    "table": "^6.9.0"
+  },
+  "devDependencies": {
+    "@oxc-node/cli": "^0.0.35",
+    "@types/babel__code-frame": "^7.27.0",
+    "@types/node": "^24.12.0",
+    "@typescript/native-preview": "7.0.0-dev.20260321.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "oxlint-tsgolint": "^0.17.1",
+    "tsdown": "^0.21.4",
+    "vitest": "^4.1.0",
+    "vue-i18n": "^11.3.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
+}

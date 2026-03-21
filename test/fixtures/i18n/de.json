@@ -1,0 +1,9 @@
+{
+  "hello": "Hallo",
+  "nested": {
+    "world": "Welt",
+    "deep": {
+      "key": "Tief"
+    }
+  }
+}
