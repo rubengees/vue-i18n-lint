@@ -1,4 +1,4 @@
-export type I18nFile = {
+export type LocaleFile = {
   locale: string
   file: string
   keys: string[]

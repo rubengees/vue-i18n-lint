@@ -1,24 +1,24 @@
 import { basename } from "node:path"
 import { test, expect } from "vitest"
 import { processFiles } from "../src/processor.ts"
-import type { FileKey, I18nFile } from "../src/types.ts"
+import type { FileKey, LocaleFile } from "../src/types.ts"
 
 test("returns empty results when given no files and no keys", () => {
   expect(processFiles([], [])).toEqual({ missing: [], unused: [] })
 })
 
 test("returns empty results when all keys match", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello", "world"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "world"])]
   const srcKeys = [fileKey("hello"), fileKey("world")]
 
-  expect(processFiles(i18nFiles, srcKeys)).toEqual({ missing: [], unused: [] })
+  expect(processFiles(localeFiles, srcKeys)).toEqual({ missing: [], unused: [] })
 })
 
 test("finds missing keys used in source but not in any i18n file", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello"])]
   const srcKeys = [fileKey("hello"), fileKey("missing.key", "src/page.ts", 10, 4)]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.missing).toEqual([
     {
@@ -36,20 +36,20 @@ test("finds missing keys used in source but not in any i18n file", () => {
 })
 
 test("finds unused keys defined in i18n files but not used in source", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello", "orphan.key"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "orphan.key"])]
   const srcKeys = [fileKey("hello")]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.missing).toEqual([])
   expect(result.unused).toEqual([{ key: "orphan.key", files: [{ locale: "en", file: "i18n/en.json" }] }])
 })
 
 test("finds both missing and unused keys simultaneously", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["defined.key", "unused.key"])]
+  const localeFiles = [localeFile("i18n/en.json", ["defined.key", "unused.key"])]
   const srcKeys = [fileKey("defined.key"), fileKey("missing.key", "src/comp.vue", 3, 2)]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.missing).toEqual([
     {
@@ -67,10 +67,10 @@ test("finds both missing and unused keys simultaneously", () => {
 })
 
 test("a key missing from some locales reports only the locales that lack it", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello", "only.in.en"]), i18nFile("i18n/de.json", ["hello"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "only.in.en"]), localeFile("i18n/de.json", ["hello"])]
   const srcKeys = [fileKey("hello"), fileKey("only.in.en")]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.missing).toEqual([
     {
@@ -87,10 +87,10 @@ test("a key missing from some locales reports only the locales that lack it", ()
 })
 
 test("aggregates unused keys across all i18n files into a single entry", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello", "stale"]), i18nFile("i18n/de.json", ["hello", "stale"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "stale"]), localeFile("i18n/de.json", ["hello", "stale"])]
   const srcKeys = [fileKey("hello")]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.unused).toEqual([
     {
@@ -110,9 +110,9 @@ test("returns empty results when no i18n files are given", () => {
 })
 
 test("marks all i18n keys as unused if no src files given", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", ["hello", "world"])]
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "world"])]
 
-  const result = processFiles(i18nFiles, [])
+  const result = processFiles(localeFiles, [])
 
   expect(result.missing).toEqual([])
   expect(result.unused).toEqual([
@@ -122,17 +122,17 @@ test("marks all i18n keys as unused if no src files given", () => {
 })
 
 test("same key used multiple times in source is aggregated into one missing entry", () => {
-  const i18nFiles = [i18nFile("i18n/en.json", [])]
+  const localeFiles = [localeFile("i18n/en.json", [])]
   const srcKeys = [fileKey("shared.key", "src/a.ts", 1, 0), fileKey("shared.key", "src/b.ts", 2, 0)]
 
-  const result = processFiles(i18nFiles, srcKeys)
+  const result = processFiles(localeFiles, srcKeys)
 
   expect(result.missing).toHaveLength(1)
   expect(result.missing[0]?.key).toBe("shared.key")
   expect(result.missing[0]?.sources.map((s) => s.file)).toEqual(["src/a.ts", "src/b.ts"])
 })
 
-function i18nFile(file: string, keys: string[]): I18nFile {
+function localeFile(file: string, keys: string[]): LocaleFile {
   return { locale: basename(file, ".json"), file, keys }
 }
 

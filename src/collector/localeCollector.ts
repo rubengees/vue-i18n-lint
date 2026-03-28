@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs"
 import { basename, extname } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
-import type { I18nFile } from "../types.ts"
+import type { LocaleFile } from "../types.ts"
 
-export function collectI18nFile(filePath: string): I18nFile {
+export function collectLocaleFile(filePath: string): LocaleFile {
   const ext = extname(filePath)
   const locale = basename(filePath, ext)
 

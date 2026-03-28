@@ -3,7 +3,7 @@ import { styleText } from "node:util"
 import { defineCommand } from "citty"
 import { globby } from "globby"
 import { collectFileKeys } from "../collector/fileCollector.ts"
-import { collectI18nFile } from "../collector/jsonCollector.ts"
+import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 
@@ -18,9 +18,9 @@ export const mainCommand = defineCommand({
       description: "Working directory",
       default: process.cwd(),
     },
-    i18nPattern: {
+    localePattern: {
       type: "string",
-      description: "Glob pattern for i18n files",
+      description: "Glob pattern for i18n locale files",
       default: "**/locales/*.json",
     },
     srcPattern: {
@@ -42,13 +42,13 @@ export const mainCommand = defineCommand({
         ?.map((p) => p.trim())
         ?.filter((p) => p.length > 0) ?? []
 
-    const rawI18nFiles = await globby(args.i18nPattern, {
+    const rawLocaleFiles = await globby(args.localePattern, {
       cwd: args.path,
       ignore: ignorePatterns,
       gitignore: true,
     })
 
-    const i18nFiles = await Promise.all(rawI18nFiles.map((path) => collectI18nFile(resolve(args.path, path))))
+    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(args.path, path))))
 
     const rawSrcFiles = await globby(args.srcPattern, {
       cwd: args.path,
@@ -58,7 +58,7 @@ export const mainCommand = defineCommand({
 
     const srcKeys = await Promise.all(rawSrcFiles.flatMap((path) => collectFileKeys(resolve(args.path, path))))
 
-    const { missing, unused } = processFiles(i18nFiles, srcKeys)
+    const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
 
     if (missing.length > 0) {
@@ -73,7 +73,7 @@ export const mainCommand = defineCommand({
       `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
     )
 
-    console.log(`Processed ${rawI18nFiles.length} i18n files and ${rawSrcFiles.length} source files in ${elapsed}ms.`)
+    console.log(`Processed ${rawLocaleFiles.length} i18n files and ${rawSrcFiles.length} source files in ${elapsed}ms.`)
 
     process.exit(missing.length > 0 ? 1 : 0)
   },
