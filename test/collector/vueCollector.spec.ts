@@ -35,7 +35,7 @@ test("handles special formatting", () => {
   const result = collectVueKeys(templateAst!)
 
   expect(result).toEqual([
-    { key: "a", start: 68, end: 69 },
-    { key: "b", start: 88, end: 89 },
+    { key: "a", start: 297, end: 298 },
+    { key: "b", start: 315, end: 316 },
   ])
 })
