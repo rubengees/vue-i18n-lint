@@ -23,10 +23,14 @@ export function collectLocaleFile(filePath: string): LocaleFile {
 
   if (data == null || typeof data !== "object") throw new Error(`Language file ${filePath} is not an object`)
 
-  return {
-    locale,
-    file: filePath,
-    keys: flatten(data),
+  try {
+    return {
+      locale,
+      file: filePath,
+      keys: flatten(data),
+    }
+  } catch (e) {
+    throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`)
   }
 }
 

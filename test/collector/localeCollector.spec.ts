@@ -61,6 +61,6 @@ test("throws when file is not an object", () => {
 
 test("throws on unsupported value type", () => {
   expect(() => collectLocaleFile("test/fixtures/i18n/badtype.json")).toThrow(
-    'Unsupported value type "number" at key "count"',
+    'Invalid locale file test/fixtures/i18n/badtype.json: Unsupported value type "number" at key "count"',
   )
 })
