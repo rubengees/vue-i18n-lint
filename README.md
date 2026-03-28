@@ -20,7 +20,7 @@ npx vue-i18n-lint [options] [path]
 ### Options
 
 | Option             | Description                             | Default                            |
-|--------------------|-----------------------------------------|------------------------------------|
+| ------------------ | --------------------------------------- | ---------------------------------- |
 | `--localePattern`  | Glob pattern for i18n locale files      | `**/locales/*.json`                |
 | `--srcPattern`     | Glob pattern for source files           | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
 | `--ignorePatterns` | Comma-separated glob patterns to ignore |                                    |
