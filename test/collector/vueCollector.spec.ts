@@ -26,3 +26,16 @@ test("finds keys in template", () => {
     { key: "m", start: 398, end: 399 },
   ])
 })
+
+test("handles special formatting", () => {
+  const file = readFileSync("test/fixtures/vue/special.vue", { encoding: "utf-8" })
+  const parseResult = parse(file, { filename: "special.vue", templateParseOptions: { prefixIdentifiers: false } })
+  const templateAst = parseResult.descriptor.template?.ast
+
+  const result = collectVueKeys(templateAst!)
+
+  expect(result).toEqual([
+    { key: "a", start: 68, end: 69 },
+    { key: "b", start: 88, end: 89 },
+  ])
+})

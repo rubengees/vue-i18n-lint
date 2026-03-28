@@ -37,8 +37,8 @@ function walkVueNode(node: WalkableNode): SourceKey[] {
 }
 
 function collectFromExpression(node: SimpleExpressionNode) {
-  const content = node.content.trim()
-  if (!content) return []
+  const content = node.content
+  if (!content.trim()) return []
 
   const { program } = parseSync("", content)
 
