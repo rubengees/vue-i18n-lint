@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs"
+import { relative } from "node:path"
 import { styleText } from "node:util"
 import { codeFrameColumns } from "@babel/code-frame"
 import { table, type TableUserConfig } from "table"
@@ -14,7 +15,10 @@ export function outputMissingKeys(keys: MissingKey[]): void {
 
 function outputMissingKey(key: MissingKey) {
   for (const source of key.sources) {
-    console.log(`  file://${source.file}:${source.location.start.line}:${source.location.start.column}`)
+    const relativePath = relative(process.cwd(), source.file)
+    const displayPath = relativePath.startsWith("..") ? source.file : relativePath
+
+    console.log(`  ${displayPath}:${source.location.start.line}:${source.location.start.column}`)
 
     console.log(
       codeFrameColumns(readFileSync(source.file, { encoding: "utf-8" }), source.location, {
