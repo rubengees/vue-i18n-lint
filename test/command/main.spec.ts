@@ -1,4 +1,5 @@
 import { resolve } from "node:path"
+import { stripVTControlCharacters } from "node:util"
 import { runMain } from "citty"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { mainCommand } from "../../src/command/main.ts"
@@ -20,6 +21,12 @@ function run(path: string, extra: string[] = []) {
   return runMain(mainCommand, { rawArgs: [path, ...extra] })
 }
 
+function expectLogged(text: string) {
+  const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args[0]?.toString() ?? ""))
+
+  expect(lines).toEqual(expect.arrayContaining([expect.stringContaining(text)]))
+}
+
 test("reports no issues when all keys are present", async () => {
   await run(resolve(FIXTURES, "all-keys-present"), [
     "--localePattern",
@@ -28,7 +35,7 @@ test("reports no issues when all keys are present", async () => {
     DEFAULT_SRC_PATTERN,
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 0 missing and 0 unused keys."))
+  expectLogged("Found 0 missing and 0 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
@@ -40,9 +47,9 @@ test("exits 1 and reports missing key count when keys are missing", async () => 
     DEFAULT_SRC_PATTERN,
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Missing keys (1):"))
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("missing.key"))
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 1 missing and 0 unused keys."))
+  expectLogged("Missing keys (1):")
+  expectLogged("missing.key")
+  expectLogged("Found 1 missing and 0 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(1)
 })
 
@@ -54,8 +61,8 @@ test("reports unused key count when keys are unused", async () => {
     DEFAULT_SRC_PATTERN,
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Unused keys (1):"))
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 0 missing and 1 unused keys."))
+  expectLogged("Unused keys (1):")
+  expectLogged("Found 0 missing and 1 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
@@ -67,9 +74,9 @@ test("exits 1 and reports both counts when keys are missing and unused", async (
     DEFAULT_SRC_PATTERN,
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Missing keys (1):"))
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Unused keys (1):"))
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 1 missing and 1 unused keys."))
+  expectLogged("Missing keys (1):")
+  expectLogged("Unused keys (1):")
+  expectLogged("Found 1 missing and 1 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(1)
 })
 
@@ -83,14 +90,14 @@ test("respects ignorePatterns and skips excluded source files", async () => {
     "src/**",
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 0 missing"))
+  expectLogged("Found 0 missing")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
 test("respects srcPattern and only scans matching source files", async () => {
   await run(resolve(FIXTURES, "multi-src"), ["--localePattern", DEFAULT_LOCALE_PATTERN, "--srcPattern", "src/app.ts"])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 0 missing and 1 unused keys."))
+  expectLogged("Found 0 missing and 1 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
@@ -102,6 +109,6 @@ test("respects localePattern and reads only matching locale files", async () => 
     DEFAULT_SRC_PATTERN,
   ])
 
-  expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Found 0 missing and 0 unused keys."))
+  expectLogged("Found 0 missing and 0 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
