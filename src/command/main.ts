@@ -4,10 +4,18 @@ import { styleText } from "node:util"
 import { defineCommand } from "citty"
 import { globby } from "globby"
 import Tinypool from "tinypool"
+import { collectFileKeys } from "../collector/fileCollector.ts"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { FileKey } from "../types.ts"
+
+function chunkFiles(files: string[], count: number): string[][] {
+  const chunkSize = Math.ceil(files.length / count)
+  return Array.from({ length: count }, (_, i) => files.slice(i * chunkSize, (i + 1) * chunkSize)).filter(
+    (chunk) => chunk.length > 0,
+  )
+}
 
 export const mainCommand = defineCommand({
   meta: {
@@ -58,20 +66,23 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const workerUrl = new URL(
-      import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
-      import.meta.url,
-    )
-    const threadCount = availableParallelism()
-    const pool = new Tinypool({ filename: workerUrl.href, minThreads: threadCount })
     const resolvedSrcFiles = rawSrcFiles.map((path) => resolve(args.path, path))
-    const chunkSize = Math.ceil(resolvedSrcFiles.length / threadCount)
-    const chunks: string[][] = Array.from({ length: threadCount }, (_, i) =>
-      resolvedSrcFiles.slice(i * chunkSize, (i + 1) * chunkSize),
-    ).filter((chunk) => chunk.length > 0)
-    const srcKeyArrays = await Promise.all(chunks.map((chunk): Promise<FileKey[]> => pool.run(chunk)))
-    const srcKeys = srcKeyArrays.flat()
-    await pool.destroy()
+    const threadCount = availableParallelism()
+    let srcKeys: FileKey[]
+
+    if (resolvedSrcFiles.length < threadCount) {
+      srcKeys = resolvedSrcFiles.flatMap(collectFileKeys)
+    } else {
+      const workerUrl = new URL(
+        import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
+        import.meta.url,
+      )
+      const pool = new Tinypool({ filename: workerUrl.href, minThreads: threadCount })
+      const chunks = chunkFiles(resolvedSrcFiles, threadCount)
+      const srcKeyArrays = await Promise.all(chunks.map((chunk): Promise<FileKey[]> => pool.run(chunk)))
+      srcKeys = srcKeyArrays.flat()
+      await pool.destroy()
+    }
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
