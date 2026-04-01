@@ -1,3 +1,4 @@
+import { availableParallelism } from "node:os"
 import { resolve } from "node:path"
 import { styleText } from "node:util"
 import { defineCommand } from "citty"
@@ -61,10 +62,14 @@ export const mainCommand = defineCommand({
       import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
       import.meta.url,
     )
-    const pool = new Tinypool({ filename: workerUrl.href })
-    const srcKeyArrays = await Promise.all(
-      rawSrcFiles.map((path): Promise<FileKey[]> => pool.run(resolve(args.path, path))),
-    )
+    const threadCount = availableParallelism()
+    const pool = new Tinypool({ filename: workerUrl.href, minThreads: threadCount })
+    const resolvedSrcFiles = rawSrcFiles.map((path) => resolve(args.path, path))
+    const chunkSize = Math.ceil(resolvedSrcFiles.length / threadCount)
+    const chunks: string[][] = Array.from({ length: threadCount }, (_, i) =>
+      resolvedSrcFiles.slice(i * chunkSize, (i + 1) * chunkSize),
+    ).filter((chunk) => chunk.length > 0)
+    const srcKeyArrays = await Promise.all(chunks.map((chunk): Promise<FileKey[]> => pool.run(chunk)))
     const srcKeys = srcKeyArrays.flat()
     await pool.destroy()
 
