@@ -10,4 +10,8 @@ export default defineConfig([
     dts: false,
     banner: { js: "#!/usr/bin/env node" },
   },
+  {
+    entry: { "worker/fileWorker": "src/worker/fileWorker.ts" },
+    dts: false,
+  },
 ])

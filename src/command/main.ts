@@ -2,10 +2,11 @@ import { resolve } from "node:path"
 import { styleText } from "node:util"
 import { defineCommand } from "citty"
 import { globby } from "globby"
-import { collectFileKeys } from "../collector/fileCollector.ts"
+import Tinypool from "tinypool"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
+import type { FileKey } from "../types.ts"
 
 export const mainCommand = defineCommand({
   meta: {
@@ -56,7 +57,14 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const srcKeys = await Promise.all(rawSrcFiles.flatMap((path) => collectFileKeys(resolve(args.path, path))))
+    const workerUrl = new URL(
+      import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
+      import.meta.url,
+    )
+    const pool = new Tinypool({ filename: workerUrl.href })
+    const runWorker = (filePath: string): Promise<FileKey[]> => pool.run(filePath)
+    const srcKeys = (await Promise.all(rawSrcFiles.map((path) => runWorker(resolve(args.path, path))))).flat()
+    await pool.destroy()
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
