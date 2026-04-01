@@ -1,0 +1,5 @@
+export default {
+  localePattern: "custom/locales/**/*.json",
+  srcPattern: "custom/src/**/*.ts",
+  ignorePatterns: ["custom/node_modules/**"],
+}

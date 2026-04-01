@@ -4,6 +4,7 @@ import { defineCommand } from "citty"
 import { globby } from "globby"
 import { collectFileKeys } from "../collector/fileCollector.ts"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
+import { loadVueI18nLintConfig } from "../config/load.ts"
 import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 
@@ -16,17 +17,15 @@ export const mainCommand = defineCommand({
     path: {
       type: "positional",
       description: "Working directory",
-      default: process.cwd(),
+      required: false,
     },
     localePattern: {
       type: "string",
       description: "Glob pattern for i18n locale files",
-      default: "**/locales/*.json",
     },
     srcPattern: {
       type: "string",
       description: "Glob pattern for source files",
-      default: "**/*.{ts,cts,mts,js,cjs,mjs,vue}",
     },
     ignorePatterns: {
       type: "string",
@@ -36,27 +35,23 @@ export const mainCommand = defineCommand({
   async run({ args }) {
     const startTime = performance.now()
 
-    const ignorePatterns =
-      args.ignorePatterns
-        ?.split(",")
-        ?.map((p) => p.trim())
-        ?.filter((p) => p.length > 0) ?? []
+    const config = await loadVueI18nLintConfig(args)
 
-    const rawLocaleFiles = await globby(args.localePattern, {
-      cwd: args.path,
-      ignore: ignorePatterns,
+    const rawLocaleFiles = await globby(config.localePattern, {
+      cwd: config.path,
+      ignore: config.ignorePatterns,
       gitignore: true,
     })
 
-    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(args.path, path))))
+    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path))))
 
-    const rawSrcFiles = await globby(args.srcPattern, {
-      cwd: args.path,
-      ignore: ignorePatterns,
+    const rawSrcFiles = await globby(config.srcPattern, {
+      cwd: config.path,
+      ignore: config.ignorePatterns,
       gitignore: true,
     })
 
-    const srcKeys = await Promise.all(rawSrcFiles.flatMap((path) => collectFileKeys(resolve(args.path, path))))
+    const srcKeys = await Promise.all(rawSrcFiles.flatMap((path) => collectFileKeys(resolve(config.path, path))))
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
