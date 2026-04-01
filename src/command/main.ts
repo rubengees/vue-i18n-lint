@@ -62,8 +62,10 @@ export const mainCommand = defineCommand({
       import.meta.url,
     )
     const pool = new Tinypool({ filename: workerUrl.href })
-    const runWorker = (filePath: string): Promise<FileKey[]> => pool.run(filePath)
-    const srcKeys = (await Promise.all(rawSrcFiles.map((path) => runWorker(resolve(args.path, path))))).flat()
+    const srcKeyArrays = await Promise.all(
+      rawSrcFiles.map((path): Promise<FileKey[]> => pool.run(resolve(args.path, path))),
+    )
+    const srcKeys = srcKeyArrays.flat()
     await pool.destroy()
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
