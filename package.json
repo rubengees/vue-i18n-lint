@@ -46,7 +46,6 @@
     "table": "^6.9.0"
   },
   "devDependencies": {
-    "@oxc-node/cli": "0.0.35",
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "24.12.0",
     "@typescript/native-preview": "7.0.0-dev.20260331.1",
