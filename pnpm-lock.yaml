@@ -32,6 +32,9 @@ importers:
       table:
         specifier: ^6.9.0
         version: 6.9.0
+      tinypool:
+        specifier: ^2.1.0
+        version: 2.1.0
     devDependencies:
       '@oxc-node/cli':
         specifier: ^0.0.35
