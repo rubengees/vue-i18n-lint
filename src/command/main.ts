@@ -17,6 +17,23 @@ function chunkFiles(files: string[], count: number): string[][] {
   )
 }
 
+async function collectSrcKeys(files: string[], threadCount: number): Promise<FileKey[]> {
+  if (files.length < threadCount) {
+    return files.flatMap(collectFileKeys)
+  }
+
+  const workerUrl = new URL(
+    import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
+    import.meta.url,
+  )
+  const pool = new Tinypool({ filename: workerUrl.href, minThreads: threadCount })
+  const chunks = chunkFiles(files, threadCount)
+  const srcKeyArrays = await Promise.all(chunks.map((chunk): Promise<FileKey[]> => pool.run(chunk)))
+  await pool.destroy()
+
+  return srcKeyArrays.flat()
+}
+
 export const mainCommand = defineCommand({
   meta: {
     name: "vue-i18n-lint",
@@ -68,21 +85,7 @@ export const mainCommand = defineCommand({
 
     const resolvedSrcFiles = rawSrcFiles.map((path) => resolve(args.path, path))
     const threadCount = availableParallelism()
-    let srcKeys: FileKey[]
-
-    if (resolvedSrcFiles.length < threadCount) {
-      srcKeys = resolvedSrcFiles.flatMap(collectFileKeys)
-    } else {
-      const workerUrl = new URL(
-        import.meta.url.endsWith(".ts") ? "../worker/fileWorker.ts" : "../worker/fileWorker.mjs",
-        import.meta.url,
-      )
-      const pool = new Tinypool({ filename: workerUrl.href, minThreads: threadCount })
-      const chunks = chunkFiles(resolvedSrcFiles, threadCount)
-      const srcKeyArrays = await Promise.all(chunks.map((chunk): Promise<FileKey[]> => pool.run(chunk)))
-      srcKeys = srcKeyArrays.flat()
-      await pool.destroy()
-    }
+    const srcKeys = await collectSrcKeys(resolvedSrcFiles, threadCount)
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
