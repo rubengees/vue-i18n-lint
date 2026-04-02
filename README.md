@@ -3,6 +3,9 @@
 Fast and accurate linting for Vue i18n. Detects missing and unused translation keys across your locale files and source
 code.
 
+Intended for use in CI pipelines, pre-commit hooks, or as part of your development workflow to maintain translation
+integrity.
+
 ## Installation
 
 ```sh
@@ -30,6 +33,34 @@ npx vue-i18n-lint [options] [path]
 ```sh
 npx vue-i18n-lint --localePattern "**/i18n/*.{json}" ./my-project
 ```
+
+## Configuration file
+
+In addition to CLI options, vue-i18n-lint can be configured via a config file in your project root.
+[c12](https://github.com/unjs/c12) is used for config loading, so the following file names are supported:
+
+- `vue-i18n-lint.config.ts`
+- `vue-i18n-lint.config.js`
+- `vue-i18n-lint.config.json`
+- `vue-i18n-lint.config.yaml`
+
+```ts
+// vue-i18n-lint.config.ts
+import { defineConfig } from "vue-i18n-lint"
+
+export default defineConfig({
+  localePattern: "**/i18n/*.json",
+  srcPattern: "**/*.{ts,vue}",
+  ignorePatterns: ["**/fixtures/**"],
+})
+```
+
+Use the exported `defineConfig` helper for TypeScript autocompletion.
+
+### gitignore
+
+Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
+in addition to any `ignorePatterns` you configure.
 
 ## What it checks
 
