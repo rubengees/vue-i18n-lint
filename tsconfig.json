@@ -16,5 +16,5 @@
     "skipLibCheck": true,
     "declaration": true
   },
-  "exclude": ["tsdown.config.ts"]
+  "exclude": ["tsdown.config.ts", "test/fixtures", "bench/fixtures"]
 }

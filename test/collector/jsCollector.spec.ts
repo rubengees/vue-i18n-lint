@@ -13,6 +13,7 @@ test("finds keys in script", () => {
     { key: "a", start: 78, end: 79 },
     { key: "b", start: 101, end: 102 },
     { key: "c", start: 124, end: 125 },
+    { key: "d", start: 147, end: 148 },
   ])
 })
 

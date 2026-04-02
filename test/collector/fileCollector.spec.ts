@@ -32,6 +32,7 @@ test("finds keys in a ts file", () => {
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
     { key: "b", file: filePath, location: { start: { line: 6, column: 20 }, end: { line: 6, column: 21 } } },
     { key: "c", file: filePath, location: { start: { line: 7, column: 20 }, end: { line: 7, column: 21 } } },
+    { key: "d", file: filePath, location: { start: { line: 8, column: 20 }, end: { line: 8, column: 21 } } },
   ])
 })
 

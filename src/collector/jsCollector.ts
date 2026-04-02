@@ -1,7 +1,7 @@
 import { type Argument, type Program, Visitor } from "oxc-parser"
 import type { SourceKey } from "../types.ts"
 
-const TRANSLATION_FUNCTIONS = ["t", "te", "tm", "$t", "$te", "$tm"]
+const TRANSLATION_FUNCTIONS = ["t", "te", "tm", "tc", "$t", "$te", "$tm", "$tc"]
 
 export function collectJsKeys(program: Program, offset: number = 0): SourceKey[] {
   const result: SourceKey[] = []
