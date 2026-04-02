@@ -43,7 +43,7 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path))))
+    const localeFiles = rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path)))
 
     const rawSrcFiles = await globby(config.srcPattern, {
       cwd: config.path,
@@ -51,7 +51,7 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const srcKeys = await Promise.all(rawSrcFiles.flatMap((path) => collectFileKeys(resolve(config.path, path))))
+    const srcKeys = rawSrcFiles.flatMap((path) => collectFileKeys(resolve(config.path, path)))
 
     const { missing, unused } = processFiles(localeFiles, srcKeys)
     const elapsed = Math.round(performance.now() - startTime)
