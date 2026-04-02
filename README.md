@@ -6,12 +6,6 @@ code.
 Intended for use in CI pipelines, pre-commit hooks, or as part of your development workflow to maintain translation
 integrity.
 
-## Installation
-
-```sh
-npm install -D vue-i18n-lint
-```
-
 ## Usage
 
 ```sh
@@ -19,6 +13,74 @@ npx vue-i18n-lint [options] [path]
 ```
 
 `path` defaults to the current working directory.
+
+<details>
+<summary>pnpm</summary>
+
+```sh
+pnpm dlx vue-i18n-lint [options] [path]
+```
+
+</details>
+
+<details>
+<summary>yarn</summary>
+
+```sh
+yarn dlx vue-i18n-lint [options] [path]
+```
+
+</details>
+
+<details>
+<summary>Bun</summary>
+
+```sh
+bunx vue-i18n-lint [options] [path]
+```
+
+</details>
+
+## Installation
+
+The cli can also be installed and run locally in your project:
+
+```sh
+npm install -D vue-i18n-lint
+```
+
+<details>
+<summary>pnpm</summary>
+
+```sh
+pnpm add -D vue-i18n-lint [options] [path]
+```
+
+</details>
+
+<details>
+<summary>yarn</summary>
+
+```sh
+yarn add -D vue-i18n-lint [options] [path]
+```
+
+</details>
+
+<details>
+<summary>Bun</summary>
+
+```sh
+bun add -D vue-i18n-lint [options] [path]
+```
+
+</details>
+
+You can run it like this:
+
+```sh
+vue-i18n-lint [options] [path]
+```
 
 ### Options
 
