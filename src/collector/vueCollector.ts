@@ -1,6 +1,7 @@
 import {
   type AttributeNode,
   type DirectiveNode,
+  type ElementNode,
   type ExpressionNode,
   NodeTypes,
   type RootNode,
@@ -19,8 +20,13 @@ export function collectVueKeys(templateAst: RootNode): SourceKey[] {
 
 function walkVueNode(node: WalkableNode): SourceKey[] {
   switch (node.type) {
-    case NodeTypes.ELEMENT:
-      return [...node.children.flatMap(walkVueNode), ...node.props.flatMap(walkVueNode)]
+    case NodeTypes.ELEMENT: {
+      return [
+        ...node.children.flatMap(walkVueNode),
+        ...node.props.flatMap(walkVueNode),
+        ...collectFromElementNode(node),
+      ]
+    }
 
     case NodeTypes.INTERPOLATION:
       return walkVueNode(node.content)
@@ -34,6 +40,24 @@ function walkVueNode(node: WalkableNode): SourceKey[] {
     default:
       return []
   }
+}
+
+function collectFromElementNode(node: ElementNode): SourceKey[] {
+  if (node.tag === "i18n-t") {
+    for (const prop of node.props) {
+      if (prop.type === NodeTypes.ATTRIBUTE && prop.name === "keypath" && prop.value?.content) {
+        return [
+          {
+            key: prop.value.content,
+            start: prop.value.loc.start.offset + 1,
+            end: prop.value.loc.end.offset - 1,
+          },
+        ]
+      }
+    }
+  }
+
+  return []
 }
 
 function collectFromExpression(node: SimpleExpressionNode) {

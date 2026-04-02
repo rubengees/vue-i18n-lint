@@ -24,6 +24,7 @@ test("finds keys in template", () => {
     { key: "l", start: 354, end: 355 },
     { key: "k", start: 323, end: 324 },
     { key: "m", start: 398, end: 399 },
+    { key: "keypath", start: 430, end: 437 },
   ])
 })
 
