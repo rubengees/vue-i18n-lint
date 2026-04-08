@@ -129,10 +129,11 @@ in addition to any `ignorePatterns` you configure.
 - **Missing keys**: Translation keys used in source code but not defined in any locale file
 - **Unused keys**: Translation keys defined in locale files but never referenced in source code
 
-## Supported formats
+## Supported locale file formats
 
 - JSON, JSONC, JSON5
 - YAML
+- JS/TS modules (expecting a default export of an object)
 
 ## Exit codes
 
