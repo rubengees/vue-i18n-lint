@@ -1,25 +1,13 @@
 import { readFileSync } from "node:fs"
-import { basename, extname } from "node:path"
+import { basename, extname, resolve } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
+import { createJiti } from "jiti"
 import type { LocaleFile } from "../types.ts"
 
-export function collectLocaleFile(filePath: string): LocaleFile {
+export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   const ext = extname(filePath)
   const locale = basename(filePath, ext)
-
-  const parsers: Record<string, (content: string) => unknown> = {
-    ".json": parseJSON,
-    ".jsonc": parseJSONC,
-    ".json5": parseJSON5,
-    ".yaml": parseYAML,
-    ".yml": parseYAML,
-  }
-
-  const parse = parsers[ext]
-  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
-
-  const content = readFileSync(filePath, { encoding: "utf-8" })
-  const data = parse(content)
+  const data = await parseLocaleFile(filePath, ext)
 
   if (data == null || typeof data !== "object") throw new Error(`Language file ${filePath} is not an object`)
 
@@ -32,6 +20,33 @@ export function collectLocaleFile(filePath: string): LocaleFile {
   } catch (e) {
     throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`)
   }
+}
+
+const supportedExtensions = [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"]
+
+const parsers: Record<string, <T>(text: string) => T> = {
+  ".json": parseJSON,
+  ".jsonc": parseJSONC,
+  ".json5": parseJSON5,
+  ".yaml": parseYAML,
+  ".yml": parseYAML,
+}
+
+async function parseLocaleFile(filePath: string, ext: string): Promise<unknown> {
+  if (supportedExtensions.includes(ext)) {
+    const jiti = createJiti(import.meta.url)
+
+    try {
+      return await jiti.import(resolve(filePath), { default: true })
+    } catch {
+      return undefined
+    }
+  }
+
+  const parse = parsers[ext]
+  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
+
+  return parse(readFileSync(filePath, { encoding: "utf-8" }))
 }
 
 function flatten(data: object, prefix: string = ""): string[] {

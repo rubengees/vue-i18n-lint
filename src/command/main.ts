@@ -43,7 +43,7 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const localeFiles = rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path)))
+    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path))))
 
     const rawSrcFiles = await globby(config.srcPattern, {
       cwd: config.path,

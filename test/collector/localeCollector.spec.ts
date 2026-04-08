@@ -1,8 +1,8 @@
 import { test, expect } from "vitest"
 import { collectLocaleFile } from "../../src/collector/localeCollector.ts"
 
-test("collects keys from .json", () => {
-  const result = collectLocaleFile("test/fixtures/i18n/en.json")
+test("collects keys from .json", async () => {
+  const result = await collectLocaleFile("test/fixtures/i18n/en.json")
 
   expect(result).toEqual({
     locale: "en",
@@ -11,8 +11,8 @@ test("collects keys from .json", () => {
   })
 })
 
-test("collects keys from .jsonc", () => {
-  const result = collectLocaleFile("test/fixtures/i18n/en.jsonc")
+test("collects keys from .jsonc", async () => {
+  const result = await collectLocaleFile("test/fixtures/i18n/en.jsonc")
 
   expect(result).toEqual({
     locale: "en",
@@ -21,8 +21,8 @@ test("collects keys from .jsonc", () => {
   })
 })
 
-test("collects keys from .json5", () => {
-  const result = collectLocaleFile("test/fixtures/i18n/en.json5")
+test("collects keys from .json5", async () => {
+  const result = await collectLocaleFile("test/fixtures/i18n/en.json5")
 
   expect(result).toEqual({
     locale: "en",
@@ -31,8 +31,8 @@ test("collects keys from .json5", () => {
   })
 })
 
-test("collects keys from .yaml", () => {
-  const result = collectLocaleFile("test/fixtures/i18n/en.yaml")
+test("collects keys from .yaml", async () => {
+  const result = await collectLocaleFile("test/fixtures/i18n/en.yaml")
 
   expect(result).toEqual({
     locale: "en",
@@ -41,8 +41,8 @@ test("collects keys from .yaml", () => {
   })
 })
 
-test("collects keys from .yml", () => {
-  const result = collectLocaleFile("test/fixtures/i18n/en.yml")
+test("collects keys from .yml", async () => {
+  const result = await collectLocaleFile("test/fixtures/i18n/en.yml")
 
   expect(result).toEqual({
     locale: "en",
@@ -51,16 +51,32 @@ test("collects keys from .yml", () => {
   })
 })
 
-test("throws on unsupported file type", () => {
-  expect(() => collectLocaleFile("test/fixtures/i18n/en.toml")).toThrow("Unsupported file type: .toml")
+test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s", async (ext) => {
+  const result = await collectLocaleFile(`test/fixtures/i18n/en${ext}`)
+
+  expect(result).toEqual({
+    locale: "en",
+    file: `test/fixtures/i18n/en${ext}`,
+    keys: ["hello", "nested.world"],
+  })
 })
 
-test("throws when file is not an object", () => {
-  expect(() => collectLocaleFile("test/fixtures/i18n/invalid.json")).toThrow("is not an object")
+test("throws when .js file default export is not an object", async () => {
+  await expect(collectLocaleFile("test/fixtures/i18n/invalid.js")).rejects.toThrow(
+    "Language file test/fixtures/i18n/invalid.js is not an object",
+  )
 })
 
-test("throws on unsupported value type", () => {
-  expect(() => collectLocaleFile("test/fixtures/i18n/badtype.json")).toThrow(
+test("throws on unsupported file type", async () => {
+  await expect(collectLocaleFile("test/fixtures/i18n/en.toml")).rejects.toThrow("Unsupported file type: .toml")
+})
+
+test("throws when file is not an object", async () => {
+  await expect(collectLocaleFile("test/fixtures/i18n/invalid.json")).rejects.toThrow("is not an object")
+})
+
+test("throws on unsupported value type", async () => {
+  await expect(collectLocaleFile("test/fixtures/i18n/badtype.json")).rejects.toThrow(
     'Invalid locale file test/fixtures/i18n/badtype.json: Unsupported value type "number" at key "count"',
   )
 })
