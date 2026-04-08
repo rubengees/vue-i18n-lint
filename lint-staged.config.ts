@@ -1,4 +1,5 @@
 export default {
-  "*.{ts,js,vue}": ["oxfmt", "oxlint --fix"] as const,
+  "*": "oxfmt --no-error-on-unmatched-pattern",
+  "*.{ts,js,vue}": "oxlint --fix",
   "*.ts": () => "tsgo --noEmit",
 }
