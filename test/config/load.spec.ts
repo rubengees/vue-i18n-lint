@@ -15,7 +15,7 @@ describe("loadVueI18nLintConfig", () => {
     test("applies default localePattern, srcPattern, and ignorePatterns when no config file exists", async () => {
       const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "no-config") })
 
-      expect(config.localePattern).toEqual("locales/**/*.json")
+      expect(config.localePattern).toEqual("**/locales/*.json")
       expect(config.srcPattern).toEqual("**/*.{ts,cts,mts,js,cjs,mjs,vue}")
       expect(config.ignorePatterns).toEqual([])
     })
