@@ -1,50 +1,79 @@
-import type { FileKey, LocaleFile, MissingKey, ProcessResult, UnusedKey } from "./types.ts"
+import type { LocaleFile, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
 
-export function processFiles(localeFiles: LocaleFile[], srcKeys: FileKey[]): ProcessResult {
-  const srcKeyMap = Map.groupBy(srcKeys, (k) => k.key)
-
+export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
   return {
-    missing: calcMissingKeys(localeFiles, srcKeyMap),
-    unused: calcUnusedKeys(localeFiles, srcKeyMap),
+    missing: calcMissingKeys(localeFiles, sourceFiles),
+    unused: calcUnusedKeys(localeFiles, sourceFiles),
   }
 }
 
-function calcMissingKeys(localeFiles: LocaleFile[], srcKeyMap: Map<string, FileKey[]>): MissingKey[] {
-  const localeKeys = new Map(localeFiles.map((it) => [it.locale, new Set(it.keys)]))
+function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
+  const globalLocaleKeys = new Map(localeFiles.map((it) => [it.locale, new Set(it.keys)]))
+  const locales = new Set([
+    ...globalLocaleKeys.keys(),
+    ...sourceFiles.flatMap((it) => it.localeFiles.map((it) => it.locale)),
+  ])
 
-  const missing: MissingKey[] = []
-  for (const [key, fileKeys] of srcKeyMap) {
-    const missingLocales = localeKeys
-      .entries()
-      .filter(([, keys]) => !keys.has(key))
-      .map(([locale]) => locale)
-      .toArray()
+  const missingKeys = new Map<string, MissingKey>()
 
-    if (missingLocales.length > 0) {
-      missing.push({
-        key,
-        locales: missingLocales,
-        sources: fileKeys.map(({ file, location }) => ({ file, location: location })),
-      })
+  for (const sourceFile of sourceFiles) {
+    const localLocaleKeys = new Map(sourceFile.localeFiles.map((it) => [it.locale, new Set(it.keys)]))
+
+    for (const { key, file, location } of sourceFile.keys) {
+      const missingLocales = locales
+        .values()
+        .filter((locale) => !localLocaleKeys.get(locale)?.has(key) && !globalLocaleKeys.get(locale)?.has(key))
+        .map((locale) => locale)
+        .toArray()
+
+      if (missingLocales.length > 0) {
+        const missingKey = getOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
+
+        missingKey.sources.push({ file, location })
+      }
     }
   }
 
-  return missing
+  return missingKeys.values().toArray()
 }
 
-function calcUnusedKeys(localeFiles: LocaleFile[], srcKeyMap: Map<string, FileKey[]>): UnusedKey[] {
-  const localeKeyMap = new Map<string, { locale: string; file: string }[]>()
-  for (const { locale, file, keys } of localeFiles) {
-    for (const key of keys) {
-      let files = localeKeyMap.get(key)
-      if (!files) localeKeyMap.set(key, (files = []))
-      files.push({ locale, file })
+function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): UnusedKey[] {
+  const unusedKeys = new Map<string, UnusedKey>()
+  let sourceKeys = new Set<string>()
+
+  for (const sourceFile of sourceFiles) {
+    const sourceFileKeys = new Set(sourceFile.keys.map((k) => k.key))
+
+    for (const localeFile of sourceFile.localeFiles) {
+      for (let key of localeFile.keys) {
+        if (!sourceFileKeys.has(key)) {
+          const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
+
+          unusedKey.files.push({ locale: localeFile.locale, file: localeFile.file, scope: "local" })
+        }
+      }
+    }
+
+    sourceKeys = sourceKeys.union(sourceFileKeys)
+  }
+
+  for (const localeFile of localeFiles) {
+    for (let key of localeFile.keys) {
+      if (!sourceKeys.has(key)) {
+        const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
+
+        unusedKey.files.push({ locale: localeFile.locale, file: localeFile.file, scope: "global" })
+      }
     }
   }
 
-  return localeKeyMap
-    .entries()
-    .filter(([key]) => !srcKeyMap.has(key))
-    .map(([key, files]) => ({ key, files }))
-    .toArray()
+  return unusedKeys.values().toArray()
+}
+
+function getOrInsert<T>(map: Map<string, T>, key: string, defaultValue: T) {
+  if (!map.has(key)) {
+    map.set(key, defaultValue)
+  }
+
+  return map.get(key) as T
 }

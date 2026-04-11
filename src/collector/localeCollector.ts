@@ -1,8 +1,9 @@
-import { readFileSync } from "node:fs"
+import { readFile } from "node:fs/promises"
 import { basename, extname, resolve } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
 import { createJiti } from "jiti"
 import type { LocaleFile } from "../types.ts"
+import { flatten } from "../utils.ts"
 
 export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   const ext = extname(filePath)
@@ -16,24 +17,17 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
       locale,
       file: filePath,
       keys: flatten(data),
+      scope: "global",
     }
   } catch (e) {
     throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`)
   }
 }
 
-const supportedExtensions = [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"]
-
-const parsers: Record<string, <T>(text: string) => T> = {
-  ".json": parseJSON,
-  ".jsonc": parseJSONC,
-  ".json5": parseJSON5,
-  ".yaml": parseYAML,
-  ".yml": parseYAML,
-}
+const supportedJsExtensions = [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"]
 
 async function parseLocaleFile(filePath: string, ext: string): Promise<unknown> {
-  if (supportedExtensions.includes(ext)) {
+  if (supportedJsExtensions.includes(ext)) {
     const jiti = createJiti(import.meta.url)
 
     try {
@@ -43,16 +37,27 @@ async function parseLocaleFile(filePath: string, ext: string): Promise<unknown> 
     }
   }
 
-  const parse = parsers[ext]
-  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
-
-  return parse(readFileSync(filePath, { encoding: "utf-8" }))
+  return await parseLocale(readFile(filePath, { encoding: "utf-8" }), ext)
 }
 
-function flatten(data: object, prefix: string = ""): string[] {
-  return Object.entries(data).flatMap(([key, value]) => {
-    if (typeof value === "object") return flatten(value, `${prefix}${key}.`)
-    if (typeof value === "string") return [`${prefix}${key}`]
-    throw new Error(`Unsupported value type "${typeof value}" at key "${prefix}${key}"`)
-  })
+const fileParsers: Record<string, <T>(text: string) => T> = {
+  ".json": parseJSON,
+  ".jsonc": parseJSONC,
+  ".json5": parseJSON5,
+  ".yaml": parseYAML,
+  ".yml": parseYAML,
+}
+
+export async function parseLocale(content: string | Promise<string>, ext: string) {
+  const parse = fileParsers[ext]
+  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
+
+  return parse(await content)
+}
+
+export function parseLocaleSync(content: string, ext: string): unknown {
+  const parse = fileParsers[ext]
+  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
+
+  return parse(content)
 }

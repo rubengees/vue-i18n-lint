@@ -1,7 +1,14 @@
+export type SourceFile = {
+  keys: FileKey[]
+  localeFiles: LocaleFile[]
+}
+
 export type LocaleFile = {
   locale: string
   file: string
   keys: string[]
+  scope: "global" | "local"
+  sourceFile?: string
 }
 
 export type Position = {
@@ -37,6 +44,7 @@ export type UnusedKey = {
   files: {
     locale: string
     file: string
+    scope: "global" | "local"
   }[]
 }
 

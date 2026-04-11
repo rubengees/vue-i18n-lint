@@ -112,3 +112,17 @@ test("respects localePattern and reads only matching locale files", async () => 
   expectLogged("Found 0 missing and 0 unused keys.")
   expect(process.exit).toHaveBeenCalledWith(0)
 })
+
+test("handles <i18n> blocks", async () => {
+  await run(resolve(FIXTURES, "i18n-block"), [
+    "--localePattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--srcPattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Missing keys (1):")
+  expectLogged("block-missing")
+  expectLogged("Found 1 missing and 0 unused keys.")
+  expect(process.exit).toHaveBeenCalledWith(1)
+})

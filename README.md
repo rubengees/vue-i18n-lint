@@ -134,6 +134,7 @@ in addition to any `ignorePatterns` you configure.
 - JSON, JSONC, JSON5
 - YAML
 - JS/TS modules (expecting a default export of an object)
+- `<i18n>` blocks in Vue SFCs
 
 ## Exit codes
 

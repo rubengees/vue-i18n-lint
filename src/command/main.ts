@@ -2,8 +2,8 @@ import { resolve } from "node:path"
 import { styleText } from "node:util"
 import { defineCommand } from "citty"
 import { globby } from "globby"
-import { collectFileKeys } from "../collector/fileCollector.ts"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
+import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
 import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
@@ -51,9 +51,9 @@ export const mainCommand = defineCommand({
       gitignore: true,
     })
 
-    const srcKeys = rawSrcFiles.flatMap((path) => collectFileKeys(resolve(config.path, path)))
+    const sourceFiles = rawSrcFiles.map((path) => collectSourceFile(resolve(config.path, path)))
 
-    const { missing, unused } = processFiles(localeFiles, srcKeys)
+    const { missing, unused } = processFiles(localeFiles, sourceFiles)
     const elapsed = Math.round(performance.now() - startTime)
 
     if (missing.length > 0) {

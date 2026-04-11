@@ -8,6 +8,7 @@ test("collects keys from .json", async () => {
     locale: "en",
     file: "test/fixtures/locales/en.json",
     keys: ["hello", "nested.world", "nested.deep.key"],
+    scope: "global",
   })
 })
 
@@ -18,6 +19,7 @@ test("collects keys from .jsonc", async () => {
     locale: "en",
     file: "test/fixtures/locales/en.jsonc",
     keys: ["hello", "nested.world"],
+    scope: "global",
   })
 })
 
@@ -28,6 +30,7 @@ test("collects keys from .json5", async () => {
     locale: "en",
     file: "test/fixtures/locales/en.json5",
     keys: ["hello", "nested.world"],
+    scope: "global",
   })
 })
 
@@ -38,6 +41,7 @@ test("collects keys from .yaml", async () => {
     locale: "en",
     file: "test/fixtures/locales/en.yaml",
     keys: ["hello", "nested.world"],
+    scope: "global",
   })
 })
 
@@ -48,6 +52,7 @@ test("collects keys from .yml", async () => {
     locale: "en",
     file: "test/fixtures/locales/en.yml",
     keys: ["hello", "nested.world"],
+    scope: "global",
   })
 })
 
@@ -58,6 +63,7 @@ test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s
     locale: "en",
     file: `test/fixtures/locales/en${ext}`,
     keys: ["hello", "nested.world"],
+    scope: "global",
   })
 })
 
