@@ -7,6 +7,7 @@ import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
 import { flatten } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { parseLocaleSync } from "./localeCollector.ts"
+import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
 export async function collectSourceFile(filePath: string): Promise<SourceFile> {
@@ -22,6 +23,7 @@ export async function collectSourceFile(filePath: string): Promise<SourceFile> {
 }
 
 function collectFromScript(source: string, filename: string): SourceKey[] {
+  if (!TRANSLATION_CALL_REGEX.test(source)) return []
   const { program } = parseSync(filename, source)
   return collectJsKeys(program)
 }
@@ -35,6 +37,7 @@ function collectFromVue(source: string, file: string, filename: string): SourceF
 
   for (const script of [descriptor.script, descriptor.scriptSetup]) {
     if (!script) continue
+    if (!TRANSLATION_CALL_REGEX.test(script.content)) continue
     const { program } = parseSync(filename, script.content)
     rawKeys.push(...collectJsKeys(program, script.loc.start.offset))
   }

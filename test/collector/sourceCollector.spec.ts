@@ -54,6 +54,17 @@ test("finds keys in a vue file (template and script)", async () => {
   expect(localeFiles).toEqual([])
 })
 
+test("finds keys in a vue file with only <i18n-t>", async () => {
+  const filePath = resolve("test/fixtures/vue/i18n-t.vue")
+  const { keys, localeFiles } = await collectSourceFile(filePath)
+
+  expect(keys).toEqual([
+    { key: "a", file: filePath, location: { start: { line: 2, column: 20 }, end: { line: 2, column: 21 } } },
+  ])
+
+  expect(localeFiles).toEqual([])
+})
+
 test("finds keys and collects <i18n> block locales from a vue file", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)

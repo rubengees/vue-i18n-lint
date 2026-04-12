@@ -11,6 +11,7 @@ import {
 import { parseSync } from "oxc-parser"
 import type { SourceKey } from "../types.ts"
 import { collectJsKeys } from "./jsCollector.ts"
+import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 
 type WalkableNode = TemplateChildNode | AttributeNode | DirectiveNode | ExpressionNode
 
@@ -63,6 +64,7 @@ function collectFromElementNode(node: ElementNode): SourceKey[] {
 function collectFromExpression(node: SimpleExpressionNode) {
   const content = node.content
   if (!content.trim()) return []
+  if (!TRANSLATION_CALL_REGEX.test(content)) return []
 
   const { program } = parseSync("", content)
 
