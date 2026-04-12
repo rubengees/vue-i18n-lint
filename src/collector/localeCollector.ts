@@ -5,6 +5,8 @@ import { createJiti } from "jiti"
 import type { LocaleFile } from "../types.ts"
 import { flatten } from "../utils.ts"
 
+const jiti = createJiti(import.meta.url)
+
 export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   const ext = extname(filePath)
   const locale = basename(filePath, ext)
@@ -28,8 +30,6 @@ const supportedJsExtensions = [".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"]
 
 async function parseLocaleFile(filePath: string, ext: string): Promise<unknown> {
   if (supportedJsExtensions.includes(ext)) {
-    const jiti = createJiti(import.meta.url)
-
     try {
       return await jiti.import(resolve(filePath), { default: true })
     } catch {

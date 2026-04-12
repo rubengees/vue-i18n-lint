@@ -1,7 +1,7 @@
 import { type Argument, type Program, Visitor } from "oxc-parser"
 import type { SourceKey } from "../types.ts"
 
-const TRANSLATION_FUNCTIONS = ["t", "te", "tm", "tc", "$t", "$te", "$tm", "$tc"]
+const TRANSLATION_FUNCTIONS = new Set(["t", "te", "tm", "tc", "$t", "$te", "$tm", "$tc"])
 
 export function collectJsKeys(program: Program, offset: number = 0): SourceKey[] {
   const result: SourceKey[] = []
@@ -28,11 +28,11 @@ export function collectJsKeys(program: Program, offset: number = 0): SourceKey[]
 
 function isTranslationFunction(node: any): boolean {
   if (node.callee.type === "Identifier") {
-    return TRANSLATION_FUNCTIONS.includes(node.callee.name)
+    return TRANSLATION_FUNCTIONS.has(node.callee.name)
   }
 
   if (node.callee.type === "MemberExpression" && node.callee.property.type === "Identifier") {
-    return TRANSLATION_FUNCTIONS.includes(node.callee.property.name)
+    return TRANSLATION_FUNCTIONS.has(node.callee.property.name)
   }
 
   return false

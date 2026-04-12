@@ -2,9 +2,9 @@ import { resolve } from "node:path"
 import { expect, test } from "vitest"
 import { collectSourceFile } from "../../src/collector/sourceCollector.ts"
 
-test("finds keys in a js file", () => {
+test("finds keys in a js file", async () => {
   const filePath = resolve("test/fixtures/js/script.js")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
@@ -15,9 +15,9 @@ test("finds keys in a js file", () => {
   expect(localeFiles).toEqual([])
 })
 
-test("finds keys in a cjs file", () => {
+test("finds keys in a cjs file", async () => {
   const filePath = resolve("test/fixtures/js/script.cjs")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
@@ -28,9 +28,9 @@ test("finds keys in a cjs file", () => {
   expect(localeFiles).toEqual([])
 })
 
-test("finds keys in a ts file", () => {
+test("finds keys in a ts file", async () => {
   const filePath = resolve("test/fixtures/ts/script.ts")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
@@ -42,9 +42,9 @@ test("finds keys in a ts file", () => {
   expect(localeFiles).toEqual([])
 })
 
-test("finds keys in a vue file (template and script)", () => {
+test("finds keys in a vue file (template and script)", async () => {
   const filePath = resolve("test/fixtures/vue/component.vue")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "b", file: filePath, location: { start: { line: 9, column: 14 }, end: { line: 9, column: 15 } } },
@@ -54,9 +54,9 @@ test("finds keys in a vue file (template and script)", () => {
   expect(localeFiles).toEqual([])
 })
 
-test("finds keys and collects <i18n> block locales from a vue file", () => {
+test("finds keys and collects <i18n> block locales from a vue file", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block.vue")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "a", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 17 } } },
@@ -76,9 +76,9 @@ test("finds keys and collects <i18n> block locales from a vue file", () => {
   ])
 })
 
-test("collects <i18n lang='yaml'> block locales", () => {
+test("collects <i18n lang='yaml'> block locales", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-yaml.vue")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "greeting", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 24 } } },
@@ -90,9 +90,9 @@ test("collects <i18n lang='yaml'> block locales", () => {
   ])
 })
 
-test("collects <i18n lang='json5'> block locales", () => {
+test("collects <i18n lang='json5'> block locales", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-json5.vue")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([
     { key: "title", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 21 } } },
@@ -104,13 +104,15 @@ test("collects <i18n lang='json5'> block locales", () => {
 test("throw on <i18n> block with unsupported lang", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-lang.vue")
 
-  expect(() => collectSourceFile(filePath)).toThrow(`Invalid <i18n> block in ${filePath}: Unsupported file type: .toml`)
+  await expect(collectSourceFile(filePath)).rejects.toThrow(
+    `Invalid <i18n> block in ${filePath}: Unsupported file type: .toml`,
+  )
 })
 
 test("throw on <i18n> block with valid lang but invalid content", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-content.vue")
 
-  expect(() => collectSourceFile(filePath)).toThrow(
+  await expect(collectSourceFile(filePath)).rejects.toThrow(
     `Invalid <i18n> block in ${filePath}: Expected property name or '}' in JSON at position 3 (line 2 column 3)`,
   )
 })
@@ -118,14 +120,14 @@ test("throw on <i18n> block with valid lang but invalid content", async () => {
 test("throw on <i18n> block with valid lang but invalid structure (array)", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-structure.vue")
 
-  expect(() => collectSourceFile(filePath)).toThrow(
+  await expect(collectSourceFile(filePath)).rejects.toThrow(
     `Invalid <i18n> block in ${filePath}: Unsupported value type "number" at key "array.0"`,
   )
 })
 
-test("can handle invalid file", () => {
+test("can handle invalid file", async () => {
   const filePath = resolve("test/fixtures/ts/invalid.ts.txt")
-  const { keys, localeFiles } = collectSourceFile(filePath)
+  const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toEqual([])
   expect(localeFiles).toEqual([])

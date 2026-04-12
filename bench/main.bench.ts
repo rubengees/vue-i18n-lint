@@ -18,9 +18,17 @@ async function generateProject(srcDirs: number, locales: number) {
 
       await mkdir(dir, { recursive: true })
 
+      const noTranslations = i % 5 === 0
+
       await Promise.all([
-        copyFile(resolve(FIXTURES, "component.vue"), join(dir, `component${i}.vue`)),
-        copyFile(resolve(FIXTURES, "script.ts"), join(dir, `script${i}.ts`)),
+        copyFile(
+          resolve(FIXTURES, noTranslations ? "component-no-translations.vue" : "component.vue"),
+          join(dir, `component${i}.vue`),
+        ),
+        copyFile(
+          resolve(FIXTURES, noTranslations ? "script-no-translations.ts" : "script.ts"),
+          join(dir, `script${i}.ts`),
+        ),
       ])
     }),
   )

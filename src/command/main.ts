@@ -37,21 +37,20 @@ export const mainCommand = defineCommand({
 
     const config = await loadVueI18nLintConfig(args)
 
-    const rawLocaleFiles = await globby(config.localePattern, {
+    const globOptions = {
       cwd: config.path,
       ignore: config.ignorePatterns,
       gitignore: true,
-    })
+    }
 
-    const localeFiles = await Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path))))
-
-    const rawSrcFiles = await globby(config.srcPattern, {
-      cwd: config.path,
-      ignore: config.ignorePatterns,
-      gitignore: true,
-    })
-
-    const sourceFiles = rawSrcFiles.map((path) => collectSourceFile(resolve(config.path, path)))
+    const [localeFiles, sourceFiles] = await Promise.all([
+      globby(config.localePattern, globOptions).then((rawLocaleFiles) =>
+        Promise.all(rawLocaleFiles.map((path) => collectLocaleFile(resolve(config.path, path)))),
+      ),
+      globby(config.srcPattern, globOptions).then((rawSrcFiles) =>
+        Promise.all(rawSrcFiles.map((path) => collectSourceFile(resolve(config.path, path)))),
+      ),
+    ])
 
     const { missing, unused } = processFiles(localeFiles, sourceFiles)
     const elapsed = Math.round(performance.now() - startTime)
@@ -68,7 +67,7 @@ export const mainCommand = defineCommand({
       `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
     )
 
-    console.log(`Processed ${rawLocaleFiles.length} i18n files and ${rawSrcFiles.length} source files in ${elapsed}ms.`)
+    console.log(`Processed ${localeFiles.length} i18n files and ${sourceFiles.length} source files in ${elapsed}ms.`)
 
     process.exit(missing.length > 0 ? 1 : 0)
   },

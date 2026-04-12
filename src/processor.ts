@@ -39,7 +39,7 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
 
 function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): UnusedKey[] {
   const unusedKeys = new Map<string, UnusedKey>()
-  let sourceKeys = new Set<string>()
+  const sourceKeys = new Set<string>()
 
   for (const sourceFile of sourceFiles) {
     const sourceFileKeys = new Set(sourceFile.keys.map((k) => k.key))
@@ -54,7 +54,9 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
       }
     }
 
-    sourceKeys = sourceKeys.union(sourceFileKeys)
+    for (const key of sourceFileKeys) {
+      sourceKeys.add(key)
+    }
   }
 
   for (const localeFile of localeFiles) {

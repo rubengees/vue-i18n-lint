@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readFile } from "node:fs/promises"
 import { extname, resolve } from "node:path"
 import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
@@ -9,16 +9,16 @@ import { collectJsKeys } from "./jsCollector.ts"
 import { parseLocaleSync } from "./localeCollector.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
-export function collectSourceFile(filePath: string): SourceFile {
+export async function collectSourceFile(filePath: string): Promise<SourceFile> {
   const file = resolve(filePath)
-  const source = readFileSync(file, { encoding: "utf-8" })
+  const source = await readFile(file, { encoding: "utf-8" })
 
   if (extname(filePath) === ".vue") {
     return collectFromVue(source, file, filePath)
   }
 
   const rawKeys = collectFromScript(source, filePath)
-  return { keys: rawKeys.map((k) => toFileKey(k, file, source)), localeFiles: [] }
+  return { keys: rawKeysToFileKeys(rawKeys, file, source), localeFiles: [] }
 }
 
 function collectFromScript(source: string, filename: string): SourceKey[] {
@@ -27,7 +27,7 @@ function collectFromScript(source: string, filename: string): SourceKey[] {
 }
 
 function collectFromVue(source: string, file: string, filename: string): SourceFile {
-  const { descriptor } = parse(source, { filename })
+  const { descriptor } = parse(source, { filename, templateParseOptions: { prefixIdentifiers: false } })
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
@@ -40,7 +40,7 @@ function collectFromVue(source: string, file: string, filename: string): SourceF
   }
 
   return {
-    keys: rawKeys.map((k) => toFileKey(k, file, source)),
+    keys: rawKeysToFileKeys(rawKeys, file, source),
     localeFiles: collectI18nBlocks(descriptor, file),
   }
 }
@@ -83,15 +83,15 @@ function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
   })
 }
 
-function toFileKey(sourceKey: SourceKey, file: string, source: string): FileKey {
-  return {
-    key: sourceKey.key,
+function rawKeysToFileKeys(rawKeys: SourceKey[], file: string, source: string): FileKey[] {
+  return rawKeys.map((k) => ({
+    key: k.key,
     file,
     location: {
-      start: offsetToPosition(source, sourceKey.start),
-      end: offsetToPosition(source, sourceKey.end),
+      start: offsetToPosition(source, k.start),
+      end: offsetToPosition(source, k.end),
     },
-  }
+  }))
 }
 
 function offsetToPosition(source: string, offset: number): { line: number; column: number } {
