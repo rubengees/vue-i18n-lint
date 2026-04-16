@@ -1,19 +1,15 @@
 {
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "module": "nodenext",
-    "target": "esnext",
-    "lib": ["esnext"],
     "types": ["node"],
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedSideEffectImports": true,
-    "strict": true,
     "rewriteRelativeImportExtensions": true,
+    "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": true,
     "allowImportingTsExtensions": true,
+    "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
     "declaration": true
   },
   "exclude": ["tsdown.config.ts", "test/fixtures", "bench/fixtures"]
