@@ -60,6 +60,7 @@ test("finds keys in a vue file with only <i18n-t>", async () => {
 
   expect(keys).toEqual([
     { key: "a", file: filePath, location: { start: { line: 2, column: 20 }, end: { line: 2, column: 21 } } },
+    { key: "b", file: filePath, location: { start: { line: 3, column: 17 }, end: { line: 3, column: 18 } } },
   ])
 
   expect(localeFiles).toEqual([])

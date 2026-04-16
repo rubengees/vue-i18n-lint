@@ -12,4 +12,5 @@
   </span>
   <span @click="$t('m')"></span>
   <i18n-t keypath="keypath" />
+  <i18n-t path="path" />
 </template>

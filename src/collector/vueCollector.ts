@@ -46,7 +46,11 @@ function walkVueNode(node: WalkableNode): SourceKey[] {
 function collectFromElementNode(node: ElementNode): SourceKey[] {
   if (node.tag === "i18n-t") {
     for (const prop of node.props) {
-      if (prop.type === NodeTypes.ATTRIBUTE && prop.name === "keypath" && prop.value?.content) {
+      if (
+        prop.type === NodeTypes.ATTRIBUTE &&
+        (prop.name === "keypath" || prop.name === "path") &&
+        prop.value?.content
+      ) {
         return [
           {
             key: prop.value.content,
