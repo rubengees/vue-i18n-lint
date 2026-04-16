@@ -14,9 +14,15 @@
       "dependencyDashboardApproval": true
     },
     {
-      "matchPackageNames": ["@types/node", "@tsconfig/node20"],
+      "matchPackageNames": ["@types/node"],
       "allowedVersions": "^20",
-      "description": "Keep @types/node and @tsconfig/node20 aligned with the project's minimum Node.js target (>=20)"
+      "description": "Keep @types/node aligned with the project's minimum Node.js target (>=20)"
+    },
+    {
+      "matchPackageNames": ["@tsconfig/node20"],
+      "matchUpdateTypes": ["replacement"],
+      "enabled": false,
+      "description": "Prevent replacing @tsconfig/node20 to align with the project's minimum Node.js target (>=20)"
     }
   ]
 }
