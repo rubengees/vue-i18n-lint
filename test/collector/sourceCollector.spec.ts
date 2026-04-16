@@ -125,7 +125,7 @@ test("throw on <i18n> block with valid lang but invalid content", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-content.vue")
 
   await expect(collectSourceFile(filePath)).rejects.toThrow(
-    `Invalid <i18n> block in ${filePath}: Expected property name or '}' in JSON at position 3 (line 2 column 3)`,
+    `Invalid <i18n> block in ${filePath}: Expected property name or '}' in JSON at position 3`,
   )
 })
 
