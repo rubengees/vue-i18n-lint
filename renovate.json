@@ -12,6 +12,11 @@
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "dependencyDashboardApproval": true
+    },
+    {
+      "matchPackageNames": ["@types/node", "@tsconfig/node20"],
+      "allowedVersions": "^20",
+      "description": "Keep @types/node and @tsconfig/node20 aligned with the project's minimum Node.js target (>=20)"
     }
   ]
 }
