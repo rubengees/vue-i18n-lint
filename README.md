@@ -143,4 +143,4 @@ in addition to any `ignorePatterns` you configure.
 
 ## Requirements
 
-- Node.js >= 22
+- Node.js >= 20.12.0

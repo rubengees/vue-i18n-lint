@@ -20,11 +20,9 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
     const localLocaleKeys = new Map(sourceFile.localeFiles.map((it) => [it.locale, new Set(it.keys)]))
 
     for (const { key, file, location } of sourceFile.keys) {
-      const missingLocales = locales
-        .values()
-        .filter((locale) => !localLocaleKeys.get(locale)?.has(key) && !globalLocaleKeys.get(locale)?.has(key))
-        .map((locale) => locale)
-        .toArray()
+      const missingLocales = Array.from(locales).filter(
+        (locale) => !localLocaleKeys.get(locale)?.has(key) && !globalLocaleKeys.get(locale)?.has(key),
+      )
 
       if (missingLocales.length > 0) {
         const missingKey = getOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
@@ -34,7 +32,7 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
     }
   }
 
-  return missingKeys.values().toArray()
+  return Array.from(missingKeys.values())
 }
 
 function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): UnusedKey[] {
@@ -69,7 +67,7 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
     }
   }
 
-  return unusedKeys.values().toArray()
+  return Array.from(unusedKeys.values())
 }
 
 function getOrInsert<T>(map: Map<string, T>, key: string, defaultValue: T) {
