@@ -44,7 +44,7 @@
     "confbox": "^0.2.4",
     "globby": "^16.2.0",
     "jiti": "^2.6.1",
-    "oxc-parser": "^0.125.0",
+    "oxc-parser": "^0.126.0",
     "table": "^6.9.0",
     "zod": "^4.3.6"
   },
@@ -52,7 +52,7 @@
     "@tsconfig/node20": "20.1.9",
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "20.19.39",
-    "@typescript/native-preview": "7.0.0-dev.20260415.1",
+    "@typescript/native-preview": "7.0.0-dev.20260416.1",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "oxfmt": "0.45.0",
