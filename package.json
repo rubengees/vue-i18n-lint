@@ -52,13 +52,13 @@
     "@tsconfig/node20": "20.1.9",
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "20.19.39",
-    "@typescript/native-preview": "7.0.0-dev.20260416.1",
+    "@typescript/native-preview": "7.0.0-dev.20260417.1",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "oxfmt": "0.45.0",
     "oxlint": "1.60.0",
-    "oxlint-tsgolint": "0.21.0",
-    "tsdown": "0.21.8",
+    "oxlint-tsgolint": "0.21.1",
+    "tsdown": "0.21.9",
     "vitest": "4.1.4"
   },
   "engines": {
