@@ -9,8 +9,7 @@
     "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "declaration": true
+    "isolatedModules": true
   },
   "exclude": ["tsdown.config.ts", "test/fixtures", "bench/fixtures"]
 }
