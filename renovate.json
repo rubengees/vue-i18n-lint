@@ -15,14 +15,14 @@
     },
     {
       "matchPackageNames": ["@types/node"],
-      "allowedVersions": "^20",
-      "description": "Keep @types/node aligned with the project's minimum Node.js target (>=20)"
+      "allowedVersions": "^22",
+      "description": "Keep @types/node aligned with the project's minimum Node.js target (>=22)"
     },
     {
-      "matchPackageNames": ["@tsconfig/node20"],
+      "matchPackageNames": ["@tsconfig/node22"],
       "matchUpdateTypes": ["replacement"],
       "enabled": false,
-      "description": "Prevent replacing @tsconfig/node20 to align with the project's minimum Node.js target (>=20)"
+      "description": "Prevent replacing @tsconfig/node22 to align with the project's minimum Node.js target (>=22)"
     }
   ]
 }
