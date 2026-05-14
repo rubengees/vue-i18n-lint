@@ -1,14 +1,28 @@
-import type { LocaleFile, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
+import type { LocaleFile, LocaleTypeWarning, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
 
 export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
   return {
+    typeWarnings: calcTypeWarnings(localeFiles),
     missing: calcMissingKeys(localeFiles, sourceFiles),
     unused: calcUnusedKeys(localeFiles, sourceFiles),
   }
 }
 
+function calcTypeWarnings(localeFiles: LocaleFile[]): LocaleTypeWarning[] {
+  return localeFiles.flatMap((localeFile) =>
+    localeFile.keys
+      .filter((key) => key.type !== "string" && key.type !== "function")
+      .map((key) => ({
+        key: key.key,
+        locale: localeFile.locale,
+        file: localeFile.file,
+        type: key.type,
+      })),
+  )
+}
+
 function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
-  const globalLocaleKeys = new Map(localeFiles.map((it) => [it.locale, new Set(it.keys)]))
+  const globalLocaleKeys = new Map(localeFiles.map((it) => [it.locale, new Set(it.keys.map((k) => k.key))]))
   const locales = new Set([
     ...globalLocaleKeys.keys(),
     ...sourceFiles.flatMap((it) => it.localeFiles.map((it) => it.locale)),
@@ -17,7 +31,7 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
   const missingKeys = new Map<string, MissingKey>()
 
   for (const sourceFile of sourceFiles) {
-    const localLocaleKeys = new Map(sourceFile.localeFiles.map((it) => [it.locale, new Set(it.keys)]))
+    const localLocaleKeys = new Map(sourceFile.localeFiles.map((it) => [it.locale, new Set(it.keys.map((k) => k.key))]))
 
     for (const { key, file, location } of sourceFile.keys) {
       const missingLocales = Array.from(locales).filter(
@@ -43,7 +57,7 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
     const sourceFileKeys = new Set(sourceFile.keys.map((k) => k.key))
 
     for (const localeFile of sourceFile.localeFiles) {
-      for (let key of localeFile.keys) {
+      for (const { key } of localeFile.keys) {
         if (!sourceFileKeys.has(key)) {
           const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
 
@@ -58,7 +72,7 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
   }
 
   for (const localeFile of localeFiles) {
-    for (let key of localeFile.keys) {
+    for (const { key } of localeFile.keys) {
       if (!sourceKeys.has(key)) {
         const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
 

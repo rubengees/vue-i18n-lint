@@ -1,0 +1,7 @@
+{
+  "hello": "Hello",
+  "count": 42,
+  "bool": true,
+  "null": null,
+  "arr": ["a", 1, true]
+}

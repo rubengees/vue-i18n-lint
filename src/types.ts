@@ -6,7 +6,7 @@ export type SourceFile = {
 export type LocaleFile = {
   locale: string
   file: string
-  keys: string[]
+  keys: LocaleKey[]
   scope: "global" | "local"
   sourceFile?: string
 }
@@ -25,6 +25,11 @@ export type FileKey = {
   key: string
   file: string
   location: SourceLocation
+}
+
+export type LocaleKey = {
+  key: string
+  type: string
 }
 
 export type SourceKey = {
@@ -48,7 +53,15 @@ export type UnusedKey = {
   }[]
 }
 
+export type LocaleTypeWarning = {
+  key: string
+  locale: string
+  file: string
+  type: string
+}
+
 export type ProcessResult = {
+  typeWarnings: LocaleTypeWarning[]
   missing: MissingKey[]
   unused: UnusedKey[]
 }

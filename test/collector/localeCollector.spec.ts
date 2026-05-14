@@ -7,7 +7,11 @@ test("collects keys from .json", async () => {
   expect(result).toEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json",
-    keys: ["hello", "nested.world", "nested.deep.key"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+      { key: "nested.deep.key", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -18,7 +22,10 @@ test("collects keys from .jsonc", async () => {
   expect(result).toEqual({
     locale: "en",
     file: "test/fixtures/locales/en.jsonc",
-    keys: ["hello", "nested.world"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -29,7 +36,10 @@ test("collects keys from .json5", async () => {
   expect(result).toEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json5",
-    keys: ["hello", "nested.world"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -40,7 +50,10 @@ test("collects keys from .yaml", async () => {
   expect(result).toEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yaml",
-    keys: ["hello", "nested.world"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -51,7 +64,10 @@ test("collects keys from .yml", async () => {
   expect(result).toEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yml",
-    keys: ["hello", "nested.world"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -62,7 +78,10 @@ test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s
   expect(result).toEqual({
     locale: "en",
     file: `test/fixtures/locales/en${ext}`,
-    keys: ["hello", "nested.world"],
+    keys: [
+      { key: "hello", type: "string" },
+      { key: "nested.world", type: "string" },
+    ],
     scope: "global",
   })
 })
@@ -81,8 +100,13 @@ test("throws when file is not an object", async () => {
   await expect(collectLocaleFile("test/fixtures/locales/invalid.json")).rejects.toThrow("is not an object")
 })
 
-test("throws on unsupported value type", async () => {
-  await expect(collectLocaleFile("test/fixtures/locales/badtype.json")).rejects.toThrow(
-    'Invalid locale file test/fixtures/locales/badtype.json: Unsupported value type "number" at key "count"',
-  )
+test("collects keys with non-string value types", async () => {
+  const result = await collectLocaleFile("test/fixtures/locales/badtype.json")
+
+  expect(result).toEqual({
+    locale: "badtype",
+    file: "test/fixtures/locales/badtype.json",
+    keys: [{ key: "count", type: "number" }],
+    scope: "global",
+  })
 })

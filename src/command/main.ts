@@ -5,7 +5,7 @@ import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import { outputMissingKeys, outputUnusedKeys } from "../formatter.ts"
+import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 
 export const mainCommand = defineCommand({
@@ -52,8 +52,12 @@ export const mainCommand = defineCommand({
       ),
     ])
 
-    const { missing, unused } = processFiles(localeFiles, sourceFiles)
+    const { typeWarnings, missing, unused } = processFiles(localeFiles, sourceFiles)
     const elapsed = Math.round(performance.now() - startTime)
+
+    if (typeWarnings.length > 0) {
+      outputTypeWarnings(typeWarnings)
+    }
 
     if (missing.length > 0) {
       outputMissingKeys(missing)

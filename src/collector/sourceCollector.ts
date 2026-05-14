@@ -4,9 +4,9 @@ import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
 import { parseSync } from "oxc-parser"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
-import { flatten } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { parseLocaleSync } from "./localeCollector.ts"
+import { extractLocaleKeys } from "./localeExtractor.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
@@ -81,7 +81,7 @@ function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
       file,
       scope: "local",
       sourceFile: file,
-      keys: flatten(localeData),
+      keys: extractLocaleKeys(localeData),
     }
   })
 }

@@ -3,7 +3,7 @@ import { basename, extname, resolve } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
 import { createJiti } from "jiti"
 import type { LocaleFile } from "../types.ts"
-import { flatten } from "../utils.ts"
+import { extractLocaleKeys } from "./localeExtractor.ts"
 
 const jiti = createJiti(import.meta.url)
 
@@ -18,7 +18,7 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
     return {
       locale,
       file: filePath,
-      keys: flatten(data),
+      keys: extractLocaleKeys(data),
       scope: "global",
     }
   } catch (e) {

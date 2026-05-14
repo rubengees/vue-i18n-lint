@@ -83,8 +83,8 @@ test("finds keys and collects <i18n> block locales from a vue file", async () =>
   ])
 
   expect(localeFiles).toEqual([
-    { locale: "en", file: filePath, keys: ["block"], scope: "local", sourceFile: filePath },
-    { locale: "ja", file: filePath, keys: ["block"], scope: "local", sourceFile: filePath },
+    { locale: "en", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
+    { locale: "ja", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
   ])
 })
 
@@ -97,8 +97,8 @@ test("collects <i18n lang='yaml'> block locales", async () => {
   ])
 
   expect(localeFiles).toEqual([
-    { locale: "en", file: filePath, keys: ["greeting"], scope: "local", sourceFile: filePath },
-    { locale: "de", file: filePath, keys: ["greeting"], scope: "local", sourceFile: filePath },
+    { locale: "en", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
+    { locale: "de", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
   ])
 })
 
@@ -110,7 +110,9 @@ test("collects <i18n lang='json5'> block locales", async () => {
     { key: "title", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 21 } } },
   ])
 
-  expect(localeFiles).toEqual([{ locale: "en", file: filePath, keys: ["title"], scope: "local", sourceFile: filePath }])
+  expect(localeFiles).toEqual([
+    { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
+  ])
 })
 
 test("throw on <i18n> block with unsupported lang", async () => {
@@ -129,12 +131,23 @@ test("throw on <i18n> block with valid lang but invalid content", async () => {
   )
 })
 
-test("throw on <i18n> block with valid lang but invalid structure (array)", async () => {
+test("collects <i18n> block with non-string value types", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-structure.vue")
+  const { localeFiles } = await collectSourceFile(filePath)
 
-  await expect(collectSourceFile(filePath)).rejects.toThrow(
-    `Invalid <i18n> block in ${filePath}: Unsupported value type "number" at key "array.0"`,
-  )
+  expect(localeFiles).toEqual([
+    {
+      locale: "de",
+      file: filePath,
+      keys: [
+        { key: "array.0", type: "number" },
+        { key: "array.1", type: "number" },
+        { key: "array.2", type: "number" },
+      ],
+      scope: "local",
+      sourceFile: filePath,
+    },
+  ])
 })
 
 test("can handle invalid file", async () => {

@@ -1,17 +1,17 @@
 import { basename } from "node:path"
-import { test, expect } from "vitest"
+import { expect, test } from "vitest"
 import { processFiles } from "../src/processor.ts"
 import type { FileKey, LocaleFile, SourceFile } from "../src/types.ts"
 
 test("returns empty results when given no files and no keys", () => {
-  expect(processFiles([], [])).toEqual({ missing: [], unused: [] })
+  expect(processFiles([], [])).toEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("returns empty results when all keys match", () => {
   const localeFiles = [localeFile("i18n/en.json", ["hello", "world"])]
   const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
 
-  expect(processFiles(localeFiles, [srcFile])).toEqual({ missing: [], unused: [] })
+  expect(processFiles(localeFiles, [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("finds missing keys used in source but not in any i18n file", () => {
@@ -111,7 +111,7 @@ test("aggregates unused keys across all i18n files into a single entry", () => {
 test("returns empty results when no i18n files are given", () => {
   const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
 
-  expect(processFiles([], [srcFile])).toEqual({ missing: [], unused: [] })
+  expect(processFiles([], [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("marks all i18n keys as unused if no src files given", () => {
@@ -141,7 +141,7 @@ test("a key defined in a local <i18n> block is not reported missing from global 
   const globalLocaleFiles = [localeFile("i18n/en.json", ["global.key"])]
   const srcFile = sourceFile(
     [fileKey("global.key"), fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: ["local.key"], scope: "local" }],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
   )
 
   const result = processFiles(globalLocaleFiles, [srcFile])
@@ -154,7 +154,7 @@ test("a key used in a file with an <i18n> block but absent from both local and g
   const globalLocaleFiles = [localeFile("i18n/en.json", ["global.key"])]
   const srcFile = sourceFile(
     [fileKey("missing.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: ["local.key"], scope: "local" }],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
   )
 
   const result = processFiles(globalLocaleFiles, [srcFile])
@@ -165,7 +165,7 @@ test("a key used in a file with an <i18n> block but absent from both local and g
 test("a local <i18n> key that is not used in its component is reported as unused", () => {
   const srcFile = sourceFile(
     [fileKey("other.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: ["unused.local"], scope: "local" }],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "unused.local", type: "string" }], scope: "local" }],
   )
 
   const result = processFiles([], [srcFile])
@@ -178,16 +178,16 @@ test("a local <i18n> key that is not used in its component is reported as unused
 test("a local <i18n> key used in its component is not reported as unused", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: ["local.key"], scope: "local" }],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
   )
 
-  expect(processFiles([], [srcFile])).toEqual({ missing: [], unused: [] })
+  expect(processFiles([], [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("a local <i18n> key is not counted towards another component", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: ["local.key"], scope: "local" }],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
   )
 
   const srcFile2 = sourceFile([fileKey("local.key", "src/missing.vue")])
@@ -215,7 +215,10 @@ test("a local <i18n> key is not counted towards another component", () => {
 
 test("an unused local <i18n> key is reported as unused even if used in another component", () => {
   const srcFile = sourceFile([fileKey("unused.key", "src/comp.vue")])
-  const srcFile2 = sourceFile([], [{ locale: "en", file: "src/unused.vue", keys: ["unused.key"], scope: "local" }])
+  const srcFile2 = sourceFile(
+    [],
+    [{ locale: "en", file: "src/unused.vue", keys: [{ key: "unused.key", type: "string" }], scope: "local" }],
+  )
 
   const result = processFiles([], [srcFile, srcFile2])
 
@@ -249,8 +252,50 @@ test("an unused local <i18n> key is reported as unused even if used in another c
   ])
 })
 
+test("returns no typeWarnings when all keys have string type", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["hello", "world"])]
+  const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.typeWarnings).toEqual([])
+})
+
+test("returns typeWarnings for keys with non-string types", () => {
+  const enFile: LocaleFile = {
+    locale: "en",
+    file: "i18n/en.json",
+    scope: "global",
+    keys: [
+      { key: "count", type: "number" },
+      { key: "active", type: "boolean" },
+      { key: "label", type: "string" },
+    ],
+  }
+
+  const deFile: LocaleFile = {
+    locale: "de",
+    file: "i18n/de.json",
+    scope: "global",
+    keys: [{ key: "count", type: "number" }],
+  }
+
+  const srcFile = sourceFile([fileKey("label"), fileKey("missing")])
+
+  const result = processFiles([enFile, deFile], [srcFile])
+
+  expect(result.typeWarnings).toEqual([
+    { key: "count", locale: "en", file: "i18n/en.json", type: "number" },
+    { key: "active", locale: "en", file: "i18n/en.json", type: "boolean" },
+    { key: "count", locale: "de", file: "i18n/de.json", type: "number" },
+  ])
+
+  expect(result.missing).toHaveLength(2)
+  expect(result.unused).toHaveLength(2)
+})
+
 function localeFile(file: string, keys: string[]): LocaleFile {
-  return { locale: basename(file, ".json"), file, keys, scope: "global" }
+  return { locale: basename(file, ".json"), file, keys: keys.map((key) => ({ key, type: "string" })), scope: "global" }
 }
 
 function sourceFile(keys: FileKey[], localeFiles: LocaleFile[] = []): SourceFile {

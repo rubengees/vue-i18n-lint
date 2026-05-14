@@ -113,6 +113,24 @@ test("respects localePattern and reads only matching locale files", async () => 
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
+test("reports type warnings and exits 0 when locale file contains non-string values", async () => {
+  await run(resolve(FIXTURES, "type-warnings"), [
+    "--localePattern",
+    "**/locales/*.{json,ts}",
+    "--srcPattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Warnings (5):")
+  expectLogged("Unexpected type number for key count")
+  expectLogged("Unexpected type boolean for key bool")
+  expectLogged("Unexpected type null for key null")
+  expectLogged("Unexpected type number for key arr.1")
+  expectLogged("Unexpected type boolean for key arr.2")
+  expectLogged("Found 0 missing and 6 unused keys.")
+  expect(process.exit).toHaveBeenCalledWith(0)
+})
+
 test("handles <i18n> blocks", async () => {
   await run(resolve(FIXTURES, "i18n-block"), [
     "--localePattern",
