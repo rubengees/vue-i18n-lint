@@ -8,35 +8,35 @@ import {
   type SimpleExpressionNode,
   type TemplateChildNode,
 } from "@vue/compiler-core"
-import { parseSync } from "oxc-parser"
 import type { SourceKey } from "../types.ts"
 import { collectJsKeys } from "./jsCollector.ts"
+import { parseScript } from "./parseScript.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 
 type WalkableNode = TemplateChildNode | AttributeNode | DirectiveNode | ExpressionNode
 
-export function collectVueKeys(templateAst: RootNode): SourceKey[] {
-  return templateAst.children.flatMap(walkVueNode)
+export function collectVueKeys(file: string, templateAst: RootNode): SourceKey[] {
+  return templateAst.children.flatMap((c) => walkVueNode(file, c))
 }
 
-function walkVueNode(node: WalkableNode): SourceKey[] {
+function walkVueNode(file: string, node: WalkableNode): SourceKey[] {
   switch (node.type) {
     case NodeTypes.ELEMENT: {
       return [
-        ...node.children.flatMap(walkVueNode),
-        ...node.props.flatMap(walkVueNode),
+        ...node.children.flatMap((c) => walkVueNode(file, c)),
+        ...node.props.flatMap((c) => walkVueNode(file, c)),
         ...collectFromElementNode(node),
       ]
     }
 
     case NodeTypes.INTERPOLATION:
-      return walkVueNode(node.content)
+      return walkVueNode(file, node.content)
 
     case NodeTypes.DIRECTIVE:
-      return node.exp ? walkVueNode(node.exp) : []
+      return node.exp ? walkVueNode(file, node.exp) : []
 
     case NodeTypes.SIMPLE_EXPRESSION:
-      return node.isStatic ? [] : collectFromExpression(node)
+      return node.isStatic ? [] : collectFromExpression(file, node)
 
     default:
       return []
@@ -65,12 +65,15 @@ function collectFromElementNode(node: ElementNode): SourceKey[] {
   return []
 }
 
-function collectFromExpression(node: SimpleExpressionNode) {
+function collectFromExpression(file: string, node: SimpleExpressionNode) {
   const content = node.content
   if (!content.trim()) return []
   if (!TRANSLATION_CALL_REGEX.test(content)) return []
 
-  const { program } = parseSync("", content)
+  const program = parseScript(file, content, {
+    wrapInParens: true,
+    loc: { line: node.loc.start.line, column: node.loc.start.column },
+  })
 
-  return collectJsKeys(program, node.loc.start.offset)
+  return collectJsKeys(program, node.loc.start.offset - 1)
 }

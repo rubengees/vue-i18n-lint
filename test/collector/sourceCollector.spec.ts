@@ -54,6 +54,35 @@ test("finds keys in a vue file (template and script)", async () => {
   expect(localeFiles).toStrictEqual([])
 })
 
+test("finds keys in a vue file with object literal directive", async () => {
+  const filePath = resolve("test/fixtures/vue/object-literal-directive.vue")
+  const { keys, localeFiles } = await collectSourceFile(filePath)
+
+  expect(keys).toStrictEqual([
+    { key: "label", file: filePath, location: { start: { line: 11, column: 13 }, end: { line: 11, column: 18 } } },
+    { key: "active", file: filePath, location: { start: { line: 13, column: 39 }, end: { line: 13, column: 45 } } },
+    { key: "inactive", file: filePath, location: { start: { line: 13, column: 54 }, end: { line: 13, column: 62 } } },
+  ])
+
+  expect(localeFiles).toStrictEqual([])
+})
+
+test("finds keys in a vue file with ts syntax", async () => {
+  const filePath = resolve("test/fixtures/vue/ts-syntax.vue")
+  const { keys, localeFiles } = await collectSourceFile(filePath)
+
+  expect(keys).toStrictEqual([
+    {
+      key: "template-key",
+      file: filePath,
+      location: { start: { line: 14, column: 16 }, end: { line: 14, column: 28 } },
+    },
+    { key: "ts-key", file: filePath, location: { start: { line: 10, column: 18 }, end: { line: 10, column: 24 } } },
+  ])
+
+  expect(localeFiles).toStrictEqual([])
+})
+
 test("finds keys in a vue file with only <i18n-t>", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-t.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)

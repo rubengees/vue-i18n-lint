@@ -8,7 +8,7 @@ test("finds keys in template", () => {
   const parseResult = parse(file, { filename: "template.ts", templateParseOptions: { prefixIdentifiers: false } })
   const templateAst = parseResult.descriptor.template?.ast
 
-  const result = collectVueKeys(templateAst!)
+  const result = collectVueKeys("template.vue", templateAst!)
 
   expect(result).toStrictEqual([
     { key: "a", start: 26, end: 27 },
@@ -34,7 +34,7 @@ test("handles special formatting", () => {
   const parseResult = parse(file, { filename: "special.vue", templateParseOptions: { prefixIdentifiers: false } })
   const templateAst = parseResult.descriptor.template?.ast
 
-  const result = collectVueKeys(templateAst!)
+  const result = collectVueKeys("special.vue", templateAst!)
 
   expect(result).toStrictEqual([
     { key: "a", start: 297, end: 298 },

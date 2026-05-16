@@ -2,11 +2,11 @@ import { readFile } from "node:fs/promises"
 import { extname, resolve } from "node:path"
 import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
-import { parseSync } from "oxc-parser"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { parseLocaleSync } from "./localeCollector.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
+import { parseScript } from "./parseScript.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
@@ -24,7 +24,9 @@ export async function collectSourceFile(filePath: string): Promise<SourceFile> {
 
 function collectFromScript(source: string, filename: string): SourceKey[] {
   if (!TRANSLATION_CALL_REGEX.test(source)) return []
-  const { program } = parseSync(filename, source)
+
+  const program = parseScript(filename, source)
+
   return collectJsKeys(program)
 }
 
@@ -33,12 +35,17 @@ function collectFromVue(source: string, file: string, filename: string): SourceF
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
-  if (templateAst) rawKeys.push(...collectVueKeys(templateAst))
+  if (templateAst) rawKeys.push(...collectVueKeys(file, templateAst))
 
   for (const script of [descriptor.script, descriptor.scriptSetup]) {
     if (!script) continue
     if (!TRANSLATION_CALL_REGEX.test(script.content)) continue
-    const { program } = parseSync(filename, script.content)
+
+    const program = parseScript(filename, script.content, {
+      lang: script.lang,
+      loc: { line: script.loc.start.line, column: script.loc.start.column },
+    })
+
     rawKeys.push(...collectJsKeys(program, script.loc.start.offset))
   }
 
