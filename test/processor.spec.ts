@@ -137,6 +137,42 @@ test("same key used multiple times in source is aggregated into one missing entr
   expect(result.missing[0]?.sources.map((s) => s.file)).toEqual(["src/a.ts", "src/b.ts"])
 })
 
+test("a locale key is not unused when a shorter source key is a prefix of it", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["aa.bb.0", "u.v.w.x.y.z"])]
+  const srcFile = sourceFile([fileKey("aa.bb"), fileKey("u")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.unused).toEqual([])
+})
+
+test("a locale key is unused when source uses a sibling key, not a prefix", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["aa.bb.0", "aa.bb.1"])]
+  const srcFile = sourceFile([fileKey("aa.bb.1")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.unused).toEqual([{ key: "aa.bb.0", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] }])
+})
+
+test("a source key is not missing when locale it is a prefix of a locale key", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["aa.bb.0"])]
+  const srcFile = sourceFile([fileKey("aa.bb")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toEqual([])
+})
+
+test("a source key is missing when locale only has a sibling key", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["aa.bb.0"])]
+  const srcFile = sourceFile([fileKey("aa.bb.1")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toEqual([expect.objectContaining({ key: "aa.bb.1" })])
+})
+
 test("a key defined in a local <i18n> block is not reported missing from global locales", () => {
   const globalLocaleFiles = [localeFile("i18n/en.json", ["global.key"])]
   const srcFile = sourceFile(
@@ -250,6 +286,28 @@ test("an unused local <i18n> key is reported as unused even if used in another c
       ],
     },
   ])
+})
+
+test("a prefix source key is not reported missing when the <i18n> block has a matching leaf key", () => {
+  const srcFile = sourceFile(
+    [fileKey("local.key", "src/comp.vue")],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key.0", type: "string" }], scope: "local" }],
+  )
+
+  const result = processFiles([], [srcFile])
+
+  expect(result.missing).toEqual([])
+})
+
+test("a local <i18n> leaf key is not reported as unused when source uses a prefix of it", () => {
+  const srcFile = sourceFile(
+    [fileKey("local.key", "src/comp.vue")],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key.0", type: "string" }], scope: "local" }],
+  )
+
+  const result = processFiles([], [srcFile])
+
+  expect(result.unused).toEqual([])
 })
 
 test("returns no typeWarnings when all keys have string type", () => {

@@ -1,4 +1,5 @@
 import type { LocaleFile, LocaleTypeWarning, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
+import { mapGetOrInsert, newTrie, trieCoversKey } from "./utils.ts"
 
 export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
   return {
@@ -22,24 +23,30 @@ function calcTypeWarnings(localeFiles: LocaleFile[]): LocaleTypeWarning[] {
 }
 
 function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
-  const globalLocaleKeys = new Map(localeFiles.map((it) => [it.locale, new Set(it.keys.map((k) => k.key))]))
+  const emptyTrie = newTrie([])
+
+  const globalLocaleTries = new Map(localeFiles.map((it) => [it.locale, newTrie(it.keys.map((k) => k.key))]))
   const locales = new Set([
-    ...globalLocaleKeys.keys(),
+    ...globalLocaleTries.keys(),
     ...sourceFiles.flatMap((it) => it.localeFiles.map((it) => it.locale)),
   ])
 
   const missingKeys = new Map<string, MissingKey>()
 
   for (const sourceFile of sourceFiles) {
-    const localLocaleKeys = new Map(sourceFile.localeFiles.map((it) => [it.locale, new Set(it.keys.map((k) => k.key))]))
+    const localLocaleTries = new Map(
+      sourceFile.localeFiles.map((it) => [it.locale, newTrie(it.keys.map((k) => k.key))]),
+    )
 
     for (const { key, file, location } of sourceFile.keys) {
       const missingLocales = Array.from(locales).filter(
-        (locale) => !localLocaleKeys.get(locale)?.has(key) && !globalLocaleKeys.get(locale)?.has(key),
+        (locale) =>
+          !trieCoversKey(localLocaleTries.get(locale) ?? emptyTrie, key) &&
+          !trieCoversKey(globalLocaleTries.get(locale) ?? emptyTrie, key),
       )
 
       if (missingLocales.length > 0) {
-        const missingKey = getOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
+        const missingKey = mapGetOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
 
         missingKey.sources.push({ file, location })
       }
@@ -56,38 +63,35 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
   for (const sourceFile of sourceFiles) {
     const sourceFileKeys = new Set(sourceFile.keys.map((k) => k.key))
 
-    for (const localeFile of sourceFile.localeFiles) {
-      for (const { key } of localeFile.keys) {
-        if (!sourceFileKeys.has(key)) {
-          const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
+    calcUnusedKeysInLocaleFiles(unusedKeys, sourceFile.localeFiles, sourceFileKeys)
 
-          unusedKey.files.push({ locale: localeFile.locale, file: localeFile.file, scope: "local" })
-        }
-      }
-    }
-
-    for (const key of sourceFileKeys) {
+    for (const { key } of sourceFile.keys) {
       sourceKeys.add(key)
     }
   }
 
-  for (const localeFile of localeFiles) {
-    for (const { key } of localeFile.keys) {
-      if (!sourceKeys.has(key)) {
-        const unusedKey = getOrInsert(unusedKeys, key, { key, files: [] })
-
-        unusedKey.files.push({ locale: localeFile.locale, file: localeFile.file, scope: "global" })
-      }
-    }
-  }
+  calcUnusedKeysInLocaleFiles(unusedKeys, localeFiles, sourceKeys)
 
   return Array.from(unusedKeys.values())
 }
 
-function getOrInsert<T>(map: Map<string, T>, key: string, defaultValue: T) {
-  if (!map.has(key)) {
-    map.set(key, defaultValue)
-  }
+function calcUnusedKeysInLocaleFiles(
+  unusedKeys: Map<string, UnusedKey>,
+  localeFiles: LocaleFile[],
+  sourceKeys: Set<string>,
+) {
+  for (const localeFile of localeFiles) {
+    for (const { key } of localeFile.keys) {
+      // A locale key is considered used if the source uses the key itself or any of its ancestors
+      // (e.g. source uses "aa.bb", locale has "aa.bb.cc" -> covered because "aa.bb" is a prefix of "aa.bb.cc").
+      const parts = key.split(".")
+      const covered = parts.some((_, i) => sourceKeys.has(parts.slice(0, i + 1).join(".")))
 
-  return map.get(key) as T
+      if (!covered) {
+        const unusedKey = mapGetOrInsert(unusedKeys, key, { key, files: [] })
+
+        unusedKey.files.push({ locale: localeFile.locale, file: localeFile.file, scope: localeFile.scope })
+      }
+    }
+  }
 }

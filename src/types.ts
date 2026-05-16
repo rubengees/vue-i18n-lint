@@ -46,11 +46,13 @@ export type MissingKey = {
 
 export type UnusedKey = {
   key: string
-  files: {
-    locale: string
-    file: string
-    scope: "global" | "local"
-  }[]
+  files: UnusedKeyFile[]
+}
+
+export type UnusedKeyFile = {
+  locale: string
+  file: string
+  scope: "global" | "local"
 }
 
 export type LocaleTypeWarning = {

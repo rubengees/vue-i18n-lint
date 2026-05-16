@@ -131,6 +131,34 @@ test("reports type warnings and exits 0 when locale file contains non-string val
   expect(process.exit).toHaveBeenCalledWith(0)
 })
 
+test("treats a locale leaf key as used when source uses a prefix of it", async () => {
+  await run(resolve(FIXTURES, "partial-key-used"), [
+    "--localePattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--srcPattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Found 0 missing and 0 unused keys.")
+  expect(process.exit).toHaveBeenCalledWith(0)
+})
+
+test("reports a locale leaf key as missing when source uses a sibling key, not a prefix", async () => {
+  await run(resolve(FIXTURES, "partial-key-missing"), [
+    "--localePattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--srcPattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Missing keys (1):")
+  expectLogged("aa.bb.1")
+  expectLogged("Unused keys (1):")
+  expectLogged("aa.bb.0")
+  expectLogged("Found 1 missing and 1 unused keys.")
+  expect(process.exit).toHaveBeenCalledWith(1)
+})
+
 test("handles <i18n> blocks", async () => {
   await run(resolve(FIXTURES, "i18n-block"), [
     "--localePattern",
