@@ -71,7 +71,7 @@ export const mainCommand = defineCommand({
       `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
     )
 
-    console.log(`Processed ${localeFiles.length} i18n files and ${sourceFiles.length} source files in ${elapsed}ms.`)
+    console.log(`Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms.`)
 
     process.exit(missing.length > 0 ? 1 : 0)
   },

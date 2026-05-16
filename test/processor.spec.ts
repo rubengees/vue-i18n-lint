@@ -14,7 +14,7 @@ test("returns empty results when all keys match", () => {
   expect(processFiles(localeFiles, [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
-test("finds missing keys used in source but not in any i18n file", () => {
+test("finds missing keys used in source but not in any locale file", () => {
   const localeFiles = [localeFile("i18n/en.json", ["hello"])]
   const srcFile = sourceFile([fileKey("hello"), fileKey("missing.key", "src/page.ts", 10, 4)])
 
@@ -35,7 +35,7 @@ test("finds missing keys used in source but not in any i18n file", () => {
   expect(result.unused).toStrictEqual([])
 })
 
-test("finds unused keys defined in i18n files but not used in source", () => {
+test("finds unused keys defined in locale files but not used in source", () => {
   const localeFiles = [localeFile("i18n/en.json", ["hello", "orphan.key"])]
   const srcFile = sourceFile([fileKey("hello")])
 
@@ -91,7 +91,7 @@ test("a key missing from some locales reports only the locales that lack it", ()
   ])
 })
 
-test("aggregates unused keys across all i18n files into a single entry", () => {
+test("aggregates unused keys across all locale files into a single entry", () => {
   const localeFiles = [localeFile("i18n/en.json", ["hello", "stale"]), localeFile("i18n/de.json", ["hello", "stale"])]
   const srcFile = sourceFile([fileKey("hello")])
 
@@ -108,7 +108,7 @@ test("aggregates unused keys across all i18n files into a single entry", () => {
   ])
 })
 
-test("returns empty results when no i18n files are given", () => {
+test("returns empty results when no locale files are given", () => {
   const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
 
   expect(processFiles([], [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
