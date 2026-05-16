@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs"
-import { relative } from "node:path"
 import { styleText } from "node:util"
 import { codeFrameColumns } from "@babel/code-frame"
 import { table, type TableUserConfig } from "table"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "./types.ts"
+import { formatFilePath } from "./utils.ts"
 
 export function outputTypeWarnings(warnings: LocaleTypeWarning[]): void {
   console.log(styleText("bold", `Warnings (${warnings.length}):\n`))
@@ -58,11 +58,4 @@ export function outputUnusedKeys(keys: UnusedKey[]): void {
   }
 
   console.log(table([["Key", "Locales"], ...rows], config))
-}
-
-function formatFilePath(file: string) {
-  const relativePath = relative(process.cwd(), file)
-  const displayPath = relativePath.startsWith("..") ? file : relativePath
-
-  return `file://${displayPath}`
 }

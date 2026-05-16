@@ -3,6 +3,7 @@ import { basename, extname, resolve } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
 import { createJiti } from "jiti"
 import type { LocaleFile } from "../types.ts"
+import { formatFilePath } from "../utils.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
 
 const jiti = createJiti(import.meta.url)
@@ -12,7 +13,10 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   const locale = basename(filePath, ext)
   const data = await parseLocaleFile(filePath, ext)
 
-  if (data == null || typeof data !== "object") throw new Error(`Language file ${filePath} is not an object`)
+  if (data == null || typeof data !== "object") {
+    console.error(`Failed to read locale file ${formatFilePath(filePath)}: Not an object`)
+    return { locale, file: filePath, keys: [], scope: "global" }
+  }
 
   try {
     return {
@@ -22,7 +26,8 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
       scope: "global",
     }
   } catch (e) {
-    throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`, { cause: e })
+    console.error(`Failed to read locale file ${formatFilePath(filePath)}:`, e instanceof Error ? e.message : e)
+    return { locale, file: filePath, keys: [], scope: "global" }
   }
 }
 
@@ -50,14 +55,22 @@ const fileParsers: Record<string, (text: string) => unknown> = {
 
 export async function parseLocale(content: string, ext: string) {
   const parse = fileParsers[ext]
-  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
+
+  if (!parse) {
+    console.error(`Failed to parse locale: Unsupported file type: ${ext}`)
+    return null
+  }
 
   return parse(content)
 }
 
 export function parseLocaleSync(content: string, ext: string): unknown {
   const parse = fileParsers[ext]
-  if (!parse) throw new Error(`Unsupported file type: ${ext}`)
+
+  if (!parse) {
+    console.error(`Failed to parse locale: Unsupported file type: ${ext}`)
+    return null
+  }
 
   return parse(content)
 }

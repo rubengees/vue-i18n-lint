@@ -1,4 +1,4 @@
-import { type Program, parseSync, type ParserOptions } from "oxc-parser"
+import { type ParserOptions, parseSync, type Program } from "oxc-parser"
 
 export interface ParseScriptOptions {
   lang?: string | undefined
@@ -9,17 +9,17 @@ export interface ParseScriptOptions {
   }
 }
 
-export function parseScript(filename: string, content: string, options: ParseScriptOptions = {}): Program {
+export function parseScript(file: string, content: string, options: ParseScriptOptions = {}): Program {
   const source = options.wrapInParens ? `(${content})` : content
   const parseOptions: ParserOptions = {}
 
   const lang = asLang(options.lang)
   if (lang) parseOptions.lang = lang
 
-  const { program, errors } = parseSync(filename, source, parseOptions)
+  const { program, errors } = parseSync(file, source, parseOptions)
 
   if (errors.length > 0) {
-    const location = options.loc ? `at ${filename}:${options.loc.line}:${options.loc.column}` : filename
+    const location = options.loc ? `at ${file}:${options.loc.line}:${options.loc.column}` : file
 
     console.error(`Failed to parse script ${location}:\n${errors.map((e) => `  • ${e.message}`).join("\n")}\n`)
   }

@@ -1,8 +1,8 @@
 import { resolve } from "node:path"
-import { stripVTControlCharacters } from "node:util"
 import { runMain } from "citty"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { mainCommand } from "../../src/command/main.ts"
+import { expectLogged } from "../helpers.ts"
 
 const FIXTURES = "test/fixtures/projects"
 const DEFAULT_LOCALE_PATTERN = "**/locales/*.json"
@@ -19,12 +19,6 @@ afterEach(() => {
 
 function run(path: string, extra: string[] = []) {
   return runMain(mainCommand, { rawArgs: [path, ...extra] })
-}
-
-function expectLogged(text: string) {
-  const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args[0]?.toString() ?? ""))
-
-  expect(lines).toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
 }
 
 test("reports no issues when all keys are present", async () => {

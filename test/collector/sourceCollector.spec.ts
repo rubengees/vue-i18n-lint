@@ -1,6 +1,15 @@
 import { resolve } from "node:path"
-import { expect, test } from "vitest"
+import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { collectSourceFile } from "../../src/collector/sourceCollector.ts"
+import { expectErrorLogged } from "../helpers.ts"
+
+beforeEach(() => {
+  vi.spyOn(console, "error").mockImplementation(() => {})
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 test("finds keys in a js file", async () => {
   const filePath = resolve("test/fixtures/js/script.js")
@@ -144,20 +153,20 @@ test("collects <i18n lang='json5'> block locales", async () => {
   ])
 })
 
-test("throw on <i18n> block with unsupported lang", async () => {
+test("logs error and returns empty localeFiles on <i18n> block with unsupported lang", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-lang.vue")
+  const result = await collectSourceFile(filePath)
 
-  await expect(collectSourceFile(filePath)).rejects.toThrow(
-    `Invalid <i18n> block in ${filePath}: Unsupported file type: .toml`,
-  )
+  expect(result.localeFiles).toStrictEqual([])
+  expectErrorLogged("i18n-block-invalid-lang.vue")
 })
 
-test("throw on <i18n> block with valid lang but invalid content", async () => {
+test("logs error and returns empty localeFiles on <i18n> block with valid lang but invalid content", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-content.vue")
+  const result = await collectSourceFile(filePath)
 
-  await expect(collectSourceFile(filePath)).rejects.toThrow(
-    `Invalid <i18n> block in ${filePath}: Expected property name or '}' in JSON at position 3`,
-  )
+  expect(result.localeFiles).toStrictEqual([])
+  expectErrorLogged("i18n-block-invalid-content.vue")
 })
 
 test("collects <i18n> block with non-string value types", async () => {

@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises"
-import { extname, resolve } from "node:path"
+import { basename, extname } from "node:path"
 import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
+import { formatFilePath } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { parseLocaleSync } from "./localeCollector.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
@@ -10,28 +11,27 @@ import { parseScript } from "./parseScript.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
-export async function collectSourceFile(filePath: string): Promise<SourceFile> {
-  const file = resolve(filePath)
+export async function collectSourceFile(file: string): Promise<SourceFile> {
   const source = await readFile(file, { encoding: "utf-8" })
 
-  if (extname(filePath) === ".vue") {
-    return collectFromVue(source, file, filePath)
+  if (extname(file) === ".vue") {
+    return collectFromVue(source, file)
   }
 
-  const rawKeys = collectFromScript(source, filePath)
+  const rawKeys = collectFromScript(source, file)
   return { keys: rawKeysToFileKeys(rawKeys, file, source), localeFiles: [] }
 }
 
-function collectFromScript(source: string, filename: string): SourceKey[] {
+function collectFromScript(source: string, file: string): SourceKey[] {
   if (!TRANSLATION_CALL_REGEX.test(source)) return []
 
-  const program = parseScript(filename, source)
+  const program = parseScript(file, source)
 
   return collectJsKeys(program)
 }
 
-function collectFromVue(source: string, file: string, filename: string): SourceFile {
-  const { descriptor } = parse(source, { filename, templateParseOptions: { prefixIdentifiers: false } })
+function collectFromVue(source: string, file: string): SourceFile {
+  const { descriptor } = parse(source, { filename: basename(file), templateParseOptions: { prefixIdentifiers: false } })
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
@@ -41,7 +41,7 @@ function collectFromVue(source: string, file: string, filename: string): SourceF
     if (!script) continue
     if (!TRANSLATION_CALL_REGEX.test(script.content)) continue
 
-    const program = parseScript(filename, script.content, {
+    const program = parseScript(file, script.content, {
       lang: script.lang,
       loc: { line: script.loc.start.line, column: script.loc.start.column },
     })
@@ -64,9 +64,7 @@ function collectI18nBlocks(descriptor: SFCDescriptor, file: string): LocaleFile[
     try {
       localeFiles.push(...parseI18nBlock(block, file))
     } catch (e) {
-      throw new Error(`Invalid <i18n> block in ${file}: ${e instanceof Error ? e.message : e?.toString()}`, {
-        cause: e,
-      })
+      console.error(`Failed to read <i18n> block in ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
     }
   }
 
@@ -82,7 +80,8 @@ function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
 
   return Object.entries(data).map(([locale, localeData]) => {
     if (localeData == null || typeof localeData !== "object") {
-      throw new Error(`Locale ${locale} is not an object`)
+      console.error(`Failed to read <i18n> block in ${formatFilePath(file)}: Not an object`)
+      return { locale, file: file, keys: [], scope: "local" }
     }
 
     return {

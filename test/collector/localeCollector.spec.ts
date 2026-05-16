@@ -1,5 +1,14 @@
-import { test, expect } from "vitest"
+import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { collectLocaleFile } from "../../src/collector/localeCollector.ts"
+import { expectErrorLogged } from "../helpers.ts"
+
+beforeEach(() => {
+  vi.spyOn(console, "error").mockImplementation(() => {})
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 test("collects keys from .json", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.json")
@@ -86,18 +95,25 @@ test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s
   })
 })
 
-test("throws when .js file default export is not an object", async () => {
-  await expect(collectLocaleFile("test/fixtures/locales/invalid.js")).rejects.toThrow(
-    "Language file test/fixtures/locales/invalid.js is not an object",
-  )
+test("logs error and returns empty keys when .js file default export is not an object", async () => {
+  const result = await collectLocaleFile("test/fixtures/locales/invalid.js")
+
+  expect(result.keys).toStrictEqual([])
+  expectErrorLogged("invalid.js")
 })
 
-test("throws on unsupported file type", async () => {
-  await expect(collectLocaleFile("test/fixtures/locales/en.toml")).rejects.toThrow("Unsupported file type: .toml")
+test("logs error and returns empty keys on unsupported file type", async () => {
+  const result = await collectLocaleFile("test/fixtures/locales/en.toml")
+
+  expect(result.keys).toStrictEqual([])
+  expectErrorLogged("Unsupported file type: .toml")
 })
 
-test("throws when file is not an object", async () => {
-  await expect(collectLocaleFile("test/fixtures/locales/invalid.json")).rejects.toThrow("is not an object")
+test("logs error and returns empty keys when file is not an object", async () => {
+  const result = await collectLocaleFile("test/fixtures/locales/invalid.json")
+
+  expect(result.keys).toStrictEqual([])
+  expectErrorLogged("invalid.json")
 })
 
 test("collects keys with non-string value types", async () => {

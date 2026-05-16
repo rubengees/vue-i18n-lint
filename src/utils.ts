@@ -1,3 +1,5 @@
+import { resolve } from "node:path"
+
 /**
  * A `PrefixSet` represents a set of dot-separated keys together with all of
  * their dot-segment prefixes. For the input `["a.b.c"]` it contains
@@ -25,4 +27,8 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
   }
 
   return map.get(key)!
+}
+
+export function formatFilePath(filePath: string) {
+  return `file://${resolve(filePath)}`
 }
