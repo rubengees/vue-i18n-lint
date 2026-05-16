@@ -1,19 +1,22 @@
-import { Trie } from "mnemonist"
+/**
+ * A `PrefixSet` represents a set of dot-separated keys together with all of
+ * their dot-segment prefixes. For the input `["a.b.c"]` it contains
+ * `"a"`, `"a.b"` and `"a.b.c"`.
+ */
+export type PrefixSet = Set<string>
 
-export function newTrie(keys: string[] = []): Trie<string[]> {
-  const trie = new Trie<string[]>(Array)
+export function newPrefixSet(keys: Iterable<string> = []): PrefixSet {
+  const set = new Set<string>()
 
   for (const key of keys) {
-    trie.add(key.split("."))
+    const parts = key.split(".")
+
+    for (let i = 1; i <= parts.length; i++) {
+      set.add(parts.slice(0, i).join("."))
+    }
   }
 
-  return trie
-}
-
-export function trieCoversKey(trie: Trie<string[]>, key: string): boolean {
-  const parts = key.split(".")
-
-  return trie.find(parts).length > 0
+  return set
 }
 
 export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue: T) {

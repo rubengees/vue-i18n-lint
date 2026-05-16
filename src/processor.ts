@@ -1,5 +1,5 @@
 import type { LocaleFile, LocaleTypeWarning, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
-import { mapGetOrInsert, newTrie, trieCoversKey } from "./utils.ts"
+import { mapGetOrInsert, newPrefixSet } from "./utils.ts"
 
 export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
   return {
@@ -23,26 +23,22 @@ function calcTypeWarnings(localeFiles: LocaleFile[]): LocaleTypeWarning[] {
 }
 
 function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
-  const emptyTrie = newTrie([])
-
-  const globalLocaleTries = new Map(localeFiles.map((it) => [it.locale, newTrie(it.keys.map((k) => k.key))]))
+  const globalLocalePrefixes = new Map(localeFiles.map((it) => [it.locale, newPrefixSet(it.keys.map((k) => k.key))]))
   const locales = new Set([
-    ...globalLocaleTries.keys(),
+    ...globalLocalePrefixes.keys(),
     ...sourceFiles.flatMap((sf) => sf.localeFiles.map((lf) => lf.locale)),
   ])
 
   const missingKeys = new Map<string, MissingKey>()
 
   for (const sourceFile of sourceFiles) {
-    const localLocaleTries = new Map(
-      sourceFile.localeFiles.map((it) => [it.locale, newTrie(it.keys.map((k) => k.key))]),
+    const localLocalePrefixes = new Map(
+      sourceFile.localeFiles.map((it) => [it.locale, newPrefixSet(it.keys.map((k) => k.key))]),
     )
 
     for (const { key, file, location } of sourceFile.keys) {
-      const missingLocales = Array.from(locales).filter(
-        (locale) =>
-          !trieCoversKey(localLocaleTries.get(locale) ?? emptyTrie, key) &&
-          !trieCoversKey(globalLocaleTries.get(locale) ?? emptyTrie, key),
+      const missingLocales = Array.from(locales.values()).filter(
+        (locale) => !localLocalePrefixes.get(locale)?.has(key) && !globalLocalePrefixes.get(locale)?.has(key),
       )
 
       if (missingLocales.length > 0) {
@@ -65,7 +61,7 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
 
     calcUnusedKeysInLocaleFiles(unusedKeys, sourceFile.localeFiles, sourceFileKeys)
 
-    for (const { key } of sourceFile.keys) {
+    for (const key of sourceFileKeys) {
       sourceKeys.add(key)
     }
   }

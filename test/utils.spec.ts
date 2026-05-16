@@ -1,28 +1,37 @@
 import { expect, test } from "vitest"
-import { newTrie, trieCoversKey, mapGetOrInsert } from "../src/utils.ts"
+import { mapGetOrInsert, newPrefixSet } from "../src/utils.ts"
 
-test("trieCoversKey returns true for an exact key match", () => {
-  const trie = newTrie(["foo.bar"])
+test("PrefixSet contains the key itself", () => {
+  const set = newPrefixSet(["foo.bar"])
 
-  expect(trieCoversKey(trie, "foo.bar")).toStrictEqual(true)
+  expect(set.has("foo.bar")).toStrictEqual(true)
 })
 
-test("trieCoversKey returns true for a key that is a prefix of a trie entry", () => {
-  const trie = newTrie(["foo.bar"])
+test("PrefixSet contains every dot-segment prefix of a key", () => {
+  const set = newPrefixSet(["foo.bar.baz"])
 
-  expect(trieCoversKey(trie, "foo")).toStrictEqual(true)
+  expect(set.has("foo")).toStrictEqual(true)
+  expect(set.has("foo.bar")).toStrictEqual(true)
+  expect(set.has("foo.bar.baz")).toStrictEqual(true)
 })
 
-test("trieCoversKey returns false when no prefix matches", () => {
-  const trie = newTrie(["foo.bar"])
+test("PrefixSet does not match partial keys", () => {
+  const set = newPrefixSet(["foo.bar"])
 
-  expect(trieCoversKey(trie, "baz")).toStrictEqual(false)
+  expect(set.has("foo.ba")).toStrictEqual(false)
+  expect(set.has("fo.bar")).toStrictEqual(false)
 })
 
-test("trieCoversKey returns false for an empty trie", () => {
-  const trie = newTrie()
+test("PrefixSet does not match unrelated keys", () => {
+  const set = newPrefixSet(["foo.bar"])
 
-  expect(trieCoversKey(trie, "foo")).toStrictEqual(false)
+  expect(set.has("baz")).toStrictEqual(false)
+})
+
+test("PrefixSet is empty when no keys are given", () => {
+  const set = newPrefixSet()
+
+  expect(set.has("")).toStrictEqual(false)
 })
 
 test("mapGetOrInsert inserts and returns the default value for a missing key", () => {
