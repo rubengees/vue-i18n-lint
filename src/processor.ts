@@ -28,7 +28,7 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
   const globalLocaleTries = new Map(localeFiles.map((it) => [it.locale, newTrie(it.keys.map((k) => k.key))]))
   const locales = new Set([
     ...globalLocaleTries.keys(),
-    ...sourceFiles.flatMap((it) => it.localeFiles.map((it) => it.locale)),
+    ...sourceFiles.flatMap((sf) => sf.localeFiles.map((lf) => lf.locale)),
   ])
 
   const missingKeys = new Map<string, MissingKey>()

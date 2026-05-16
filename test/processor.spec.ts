@@ -4,14 +4,14 @@ import { processFiles } from "../src/processor.ts"
 import type { FileKey, LocaleFile, SourceFile } from "../src/types.ts"
 
 test("returns empty results when given no files and no keys", () => {
-  expect(processFiles([], [])).toEqual({ typeWarnings: [], missing: [], unused: [] })
+  expect(processFiles([], [])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("returns empty results when all keys match", () => {
   const localeFiles = [localeFile("i18n/en.json", ["hello", "world"])]
   const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
 
-  expect(processFiles(localeFiles, [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
+  expect(processFiles(localeFiles, [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("finds missing keys used in source but not in any i18n file", () => {
@@ -20,7 +20,7 @@ test("finds missing keys used in source but not in any i18n file", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([
+  expect(result.missing).toStrictEqual([
     {
       key: "missing.key",
       locales: ["en"],
@@ -32,7 +32,7 @@ test("finds missing keys used in source but not in any i18n file", () => {
       ],
     },
   ])
-  expect(result.unused).toEqual([])
+  expect(result.unused).toStrictEqual([])
 })
 
 test("finds unused keys defined in i18n files but not used in source", () => {
@@ -41,8 +41,8 @@ test("finds unused keys defined in i18n files but not used in source", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([])
-  expect(result.unused).toEqual([
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([
     { key: "orphan.key", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
   ])
 })
@@ -53,7 +53,7 @@ test("finds both missing and unused keys simultaneously", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([
+  expect(result.missing).toStrictEqual([
     {
       key: "missing.key",
       locales: ["en"],
@@ -66,7 +66,7 @@ test("finds both missing and unused keys simultaneously", () => {
     },
   ])
 
-  expect(result.unused).toEqual([
+  expect(result.unused).toStrictEqual([
     { key: "unused.key", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
   ])
 })
@@ -77,7 +77,7 @@ test("a key missing from some locales reports only the locales that lack it", ()
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([
+  expect(result.missing).toStrictEqual([
     {
       key: "only.in.en",
       locales: ["de"],
@@ -97,7 +97,7 @@ test("aggregates unused keys across all i18n files into a single entry", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.unused).toEqual([
+  expect(result.unused).toStrictEqual([
     {
       key: "stale",
       files: [
@@ -111,7 +111,7 @@ test("aggregates unused keys across all i18n files into a single entry", () => {
 test("returns empty results when no i18n files are given", () => {
   const srcFile = sourceFile([fileKey("hello"), fileKey("world")])
 
-  expect(processFiles([], [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
+  expect(processFiles([], [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("marks all i18n keys as unused if no src files given", () => {
@@ -119,8 +119,8 @@ test("marks all i18n keys as unused if no src files given", () => {
 
   const result = processFiles(localeFiles, [])
 
-  expect(result.missing).toEqual([])
-  expect(result.unused).toEqual([
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([
     { key: "hello", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
     { key: "world", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
   ])
@@ -134,7 +134,7 @@ test("same key used multiple times in source is aggregated into one missing entr
 
   expect(result.missing).toHaveLength(1)
   expect(result.missing[0]?.key).toBe("shared.key")
-  expect(result.missing[0]?.sources.map((s) => s.file)).toEqual(["src/a.ts", "src/b.ts"])
+  expect(result.missing[0]?.sources.map((s) => s.file)).toStrictEqual(["src/a.ts", "src/b.ts"])
 })
 
 test("a locale key is not unused when a shorter source key is a prefix of it", () => {
@@ -143,7 +143,7 @@ test("a locale key is not unused when a shorter source key is a prefix of it", (
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.unused).toEqual([])
+  expect(result.unused).toStrictEqual([])
 })
 
 test("a locale key is unused when source uses a sibling key, not a prefix", () => {
@@ -152,7 +152,9 @@ test("a locale key is unused when source uses a sibling key, not a prefix", () =
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.unused).toEqual([{ key: "aa.bb.0", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] }])
+  expect(result.unused).toStrictEqual([
+    { key: "aa.bb.0", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
+  ])
 })
 
 test("a source key is not missing when locale it is a prefix of a locale key", () => {
@@ -161,7 +163,7 @@ test("a source key is not missing when locale it is a prefix of a locale key", (
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([])
+  expect(result.missing).toStrictEqual([])
 })
 
 test("a source key is missing when locale only has a sibling key", () => {
@@ -170,7 +172,7 @@ test("a source key is missing when locale only has a sibling key", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.missing).toEqual([expect.objectContaining({ key: "aa.bb.1" })])
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "aa.bb.1" })])
 })
 
 test("a key defined in a local <i18n> block is not reported missing from global locales", () => {
@@ -182,8 +184,8 @@ test("a key defined in a local <i18n> block is not reported missing from global 
 
   const result = processFiles(globalLocaleFiles, [srcFile])
 
-  expect(result.missing).toEqual([])
-  expect(result.unused).toEqual([])
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([])
 })
 
 test("a key used in a file with an <i18n> block but absent from both local and global is reported missing", () => {
@@ -195,7 +197,7 @@ test("a key used in a file with an <i18n> block but absent from both local and g
 
   const result = processFiles(globalLocaleFiles, [srcFile])
 
-  expect(result.missing).toEqual([expect.objectContaining({ key: "missing.key", locales: ["en"] })])
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "missing.key", locales: ["en"] })])
 })
 
 test("a local <i18n> key that is not used in its component is reported as unused", () => {
@@ -206,7 +208,7 @@ test("a local <i18n> key that is not used in its component is reported as unused
 
   const result = processFiles([], [srcFile])
 
-  expect(result.unused).toEqual([
+  expect(result.unused).toStrictEqual([
     { key: "unused.local", files: [{ locale: "en", file: "src/comp.vue", scope: "local" }] },
   ])
 })
@@ -217,7 +219,7 @@ test("a local <i18n> key used in its component is not reported as unused", () =>
     [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
   )
 
-  expect(processFiles([], [srcFile])).toEqual({ typeWarnings: [], missing: [], unused: [] })
+  expect(processFiles([], [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
 test("a local <i18n> key is not counted towards another component", () => {
@@ -230,7 +232,7 @@ test("a local <i18n> key is not counted towards another component", () => {
 
   const result = processFiles([], [srcFile, srcFile2])
 
-  expect(result.missing).toEqual([
+  expect(result.missing).toStrictEqual([
     {
       key: "local.key",
       locales: ["en"],
@@ -246,7 +248,7 @@ test("a local <i18n> key is not counted towards another component", () => {
     },
   ])
 
-  expect(result.unused).toEqual([])
+  expect(result.unused).toStrictEqual([])
 })
 
 test("an unused local <i18n> key is reported as unused even if used in another component", () => {
@@ -258,7 +260,7 @@ test("an unused local <i18n> key is reported as unused even if used in another c
 
   const result = processFiles([], [srcFile, srcFile2])
 
-  expect(result.missing).toEqual([
+  expect(result.missing).toStrictEqual([
     {
       key: "unused.key",
       locales: ["en"],
@@ -274,7 +276,7 @@ test("an unused local <i18n> key is reported as unused even if used in another c
     },
   ])
 
-  expect(result.unused).toEqual([
+  expect(result.unused).toStrictEqual([
     {
       key: "unused.key",
       files: [
@@ -296,7 +298,7 @@ test("a prefix source key is not reported missing when the <i18n> block has a ma
 
   const result = processFiles([], [srcFile])
 
-  expect(result.missing).toEqual([])
+  expect(result.missing).toStrictEqual([])
 })
 
 test("a local <i18n> leaf key is not reported as unused when source uses a prefix of it", () => {
@@ -307,7 +309,7 @@ test("a local <i18n> leaf key is not reported as unused when source uses a prefi
 
   const result = processFiles([], [srcFile])
 
-  expect(result.unused).toEqual([])
+  expect(result.unused).toStrictEqual([])
 })
 
 test("returns no typeWarnings when all keys have string type", () => {
@@ -316,7 +318,7 @@ test("returns no typeWarnings when all keys have string type", () => {
 
   const result = processFiles(localeFiles, [srcFile])
 
-  expect(result.typeWarnings).toEqual([])
+  expect(result.typeWarnings).toStrictEqual([])
 })
 
 test("returns typeWarnings for keys with non-string types", () => {
@@ -342,7 +344,7 @@ test("returns typeWarnings for keys with non-string types", () => {
 
   const result = processFiles([enFile, deFile], [srcFile])
 
-  expect(result.typeWarnings).toEqual([
+  expect(result.typeWarnings).toStrictEqual([
     { key: "count", locale: "en", file: "i18n/en.json", type: "number" },
     { key: "active", locale: "en", file: "i18n/en.json", type: "boolean" },
     { key: "count", locale: "de", file: "i18n/de.json", type: "number" },

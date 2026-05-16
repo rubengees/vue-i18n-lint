@@ -49,7 +49,7 @@ function outputMissingKey(key: MissingKey) {
 export function outputUnusedKeys(keys: UnusedKey[]): void {
   console.log(styleText("bold", `Unused keys (${keys.length}):\n`))
 
-  const sortedKeys = keys.sort((a, b) => b.files.length - a.files.length || a.key.localeCompare(b.key))
+  const sortedKeys = keys.toSorted((a, b) => b.files.length - a.files.length || a.key.localeCompare(b.key))
   const rows = sortedKeys.map((unusedKey) => [unusedKey.key, unusedKey.files.map((file) => file.locale).join(", ")])
   const config: TableUserConfig = {
     drawHorizontalLine(index, size) {

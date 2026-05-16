@@ -4,7 +4,7 @@ import { collectLocaleFile } from "../../src/collector/localeCollector.ts"
 test("collects keys from .json", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.json")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json",
     keys: [
@@ -19,7 +19,7 @@ test("collects keys from .json", async () => {
 test("collects keys from .jsonc", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.jsonc")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.jsonc",
     keys: [
@@ -33,7 +33,7 @@ test("collects keys from .jsonc", async () => {
 test("collects keys from .json5", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.json5")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json5",
     keys: [
@@ -47,7 +47,7 @@ test("collects keys from .json5", async () => {
 test("collects keys from .yaml", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.yaml")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yaml",
     keys: [
@@ -61,7 +61,7 @@ test("collects keys from .yaml", async () => {
 test("collects keys from .yml", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/en.yml")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yml",
     keys: [
@@ -75,7 +75,7 @@ test("collects keys from .yml", async () => {
 test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s", async (ext) => {
   const result = await collectLocaleFile(`test/fixtures/locales/en${ext}`)
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "en",
     file: `test/fixtures/locales/en${ext}`,
     keys: [
@@ -103,7 +103,7 @@ test("throws when file is not an object", async () => {
 test("collects keys with non-string value types", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/badtype.json")
 
-  expect(result).toEqual({
+  expect(result).toStrictEqual({
     locale: "badtype",
     file: "test/fixtures/locales/badtype.json",
     keys: [{ key: "count", type: "number" }],

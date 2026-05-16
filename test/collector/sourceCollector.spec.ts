@@ -6,71 +6,71 @@ test("finds keys in a js file", async () => {
   const filePath = resolve("test/fixtures/js/script.js")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
     { key: "b", file: filePath, location: { start: { line: 6, column: 20 }, end: { line: 6, column: 21 } } },
     { key: "c", file: filePath, location: { start: { line: 7, column: 20 }, end: { line: 7, column: 21 } } },
   ])
 
-  expect(localeFiles).toEqual([])
+  expect(localeFiles).toStrictEqual([])
 })
 
 test("finds keys in a cjs file", async () => {
   const filePath = resolve("test/fixtures/js/script.cjs")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
     { key: "b", file: filePath, location: { start: { line: 6, column: 20 }, end: { line: 6, column: 21 } } },
     { key: "c", file: filePath, location: { start: { line: 7, column: 20 }, end: { line: 7, column: 21 } } },
   ])
 
-  expect(localeFiles).toEqual([])
+  expect(localeFiles).toStrictEqual([])
 })
 
 test("finds keys in a ts file", async () => {
   const filePath = resolve("test/fixtures/ts/script.ts")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } } },
     { key: "b", file: filePath, location: { start: { line: 6, column: 20 }, end: { line: 6, column: 21 } } },
     { key: "c", file: filePath, location: { start: { line: 7, column: 20 }, end: { line: 7, column: 21 } } },
     { key: "d", file: filePath, location: { start: { line: 8, column: 20 }, end: { line: 8, column: 21 } } },
   ])
 
-  expect(localeFiles).toEqual([])
+  expect(localeFiles).toStrictEqual([])
 })
 
 test("finds keys in a vue file (template and script)", async () => {
   const filePath = resolve("test/fixtures/vue/component.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "b", file: filePath, location: { start: { line: 9, column: 14 }, end: { line: 9, column: 15 } } },
     { key: "a", file: filePath, location: { start: { line: 5, column: 18 }, end: { line: 5, column: 19 } } },
   ])
 
-  expect(localeFiles).toEqual([])
+  expect(localeFiles).toStrictEqual([])
 })
 
 test("finds keys in a vue file with only <i18n-t>", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-t.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 2, column: 20 }, end: { line: 2, column: 21 } } },
     { key: "b", file: filePath, location: { start: { line: 3, column: 17 }, end: { line: 3, column: 18 } } },
   ])
 
-  expect(localeFiles).toEqual([])
+  expect(localeFiles).toStrictEqual([])
 })
 
 test("finds keys and collects <i18n> block locales from a vue file", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 17 } } },
     { key: "b", file: filePath, location: { start: { line: 3, column: 16 }, end: { line: 3, column: 17 } } },
     { key: "c", file: filePath, location: { start: { line: 4, column: 16 }, end: { line: 4, column: 17 } } },
@@ -82,7 +82,7 @@ test("finds keys and collects <i18n> block locales from a vue file", async () =>
     },
   ])
 
-  expect(localeFiles).toEqual([
+  expect(localeFiles).toStrictEqual([
     { locale: "en", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
     { locale: "ja", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
   ])
@@ -92,11 +92,11 @@ test("collects <i18n lang='yaml'> block locales", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-yaml.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "greeting", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 24 } } },
   ])
 
-  expect(localeFiles).toEqual([
+  expect(localeFiles).toStrictEqual([
     { locale: "en", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
     { locale: "de", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
   ])
@@ -106,11 +106,11 @@ test("collects <i18n lang='json5'> block locales", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-json5.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([
+  expect(keys).toStrictEqual([
     { key: "title", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 21 } } },
   ])
 
-  expect(localeFiles).toEqual([
+  expect(localeFiles).toStrictEqual([
     { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
   ])
 })
@@ -135,7 +135,7 @@ test("collects <i18n> block with non-string value types", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-structure.vue")
   const { localeFiles } = await collectSourceFile(filePath)
 
-  expect(localeFiles).toEqual([
+  expect(localeFiles).toStrictEqual([
     {
       locale: "de",
       file: filePath,
@@ -154,6 +154,6 @@ test("can handle invalid file", async () => {
   const filePath = resolve("test/fixtures/ts/invalid.ts.txt")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
-  expect(keys).toEqual([])
-  expect(localeFiles).toEqual([])
+  expect(keys).toStrictEqual([])
+  expect(localeFiles).toStrictEqual([])
 })

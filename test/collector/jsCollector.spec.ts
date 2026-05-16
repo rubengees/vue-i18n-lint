@@ -9,7 +9,7 @@ test("finds keys in script", () => {
 
   const result = collectJsKeys(program)
 
-  expect(result).toEqual([
+  expect(result).toStrictEqual([
     { key: "a", start: 78, end: 79 },
     { key: "b", start: 101, end: 102 },
     { key: "c", start: 124, end: 125 },
@@ -20,5 +20,5 @@ test("finds keys in script", () => {
 test("does not crash when translation function is called with no arguments", () => {
   const program = parseSync("script.ts", "t()").program
 
-  expect(collectJsKeys(program)).toEqual([])
+  expect(collectJsKeys(program)).toStrictEqual([])
 })

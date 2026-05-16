@@ -55,7 +55,7 @@ beforeAll(async () => {
   await generateProject(1000, 20)
 
   vi.spyOn(console, "log").mockImplementation(() => {})
-  vi.spyOn(process, "exit").mockImplementation(() => undefined as never)
+  vi.spyOn(process, "exit").mockImplementation(vi.fn<(code?: number | string | null) => never>())
 })
 
 afterAll(async () => {

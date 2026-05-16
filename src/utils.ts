@@ -21,5 +21,5 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
     map.set(key, defaultValue)
   }
 
-  return map.get(key) as T
+  return map.get(key)!
 }

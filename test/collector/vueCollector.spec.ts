@@ -10,7 +10,7 @@ test("finds keys in template", () => {
 
   const result = collectVueKeys(templateAst!)
 
-  expect(result).toEqual([
+  expect(result).toStrictEqual([
     { key: "a", start: 26, end: 27 },
     { key: "b", start: 56, end: 57 },
     { key: "c", start: 86, end: 87 },
@@ -36,7 +36,7 @@ test("handles special formatting", () => {
 
   const result = collectVueKeys(templateAst!)
 
-  expect(result).toEqual([
+  expect(result).toStrictEqual([
     { key: "a", start: 297, end: 298 },
     { key: "b", start: 315, end: 316 },
   ])

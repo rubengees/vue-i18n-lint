@@ -9,15 +9,15 @@ describe("loadVueI18nLintConfig", () => {
     test("uses cwd as path when none provided", async () => {
       const config = await loadVueI18nLintConfig()
 
-      expect(config.path).toEqual(process.cwd())
+      expect(config.path).toStrictEqual(process.cwd())
     })
 
     test("applies default localePattern, srcPattern, and ignorePatterns when no config file exists", async () => {
       const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "no-config") })
 
-      expect(config.localePattern).toEqual("**/locales/*.json")
-      expect(config.srcPattern).toEqual("**/*.{ts,cts,mts,js,cjs,mjs,vue}")
-      expect(config.ignorePatterns).toEqual([])
+      expect(config.localePattern).toStrictEqual("**/locales/*.json")
+      expect(config.srcPattern).toStrictEqual("**/*.{ts,cts,mts,js,cjs,mjs,vue}")
+      expect(config.ignorePatterns).toStrictEqual([])
     })
   })
 
@@ -25,9 +25,9 @@ describe("loadVueI18nLintConfig", () => {
     test.each(["js", "ts", "yaml", "json"])("reads vue-i18n-lint.config.%s", async (ext) => {
       const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, ext) })
 
-      expect(config.localePattern).toEqual("custom/locales/**/*.json")
-      expect(config.srcPattern).toEqual("custom/src/**/*.ts")
-      expect(config.ignorePatterns).toEqual(["custom/node_modules/**"])
+      expect(config.localePattern).toStrictEqual("custom/locales/**/*.json")
+      expect(config.srcPattern).toStrictEqual("custom/src/**/*.ts")
+      expect(config.ignorePatterns).toStrictEqual(["custom/node_modules/**"])
     })
   })
 
@@ -40,16 +40,16 @@ describe("loadVueI18nLintConfig", () => {
         ignorePatterns: "cli/**",
       })
 
-      expect(config.localePattern).toEqual("cli/**/*.json")
-      expect(config.srcPattern).toEqual("src/**/*.ts")
-      expect(config.ignorePatterns).toEqual(["cli/**"])
+      expect(config.localePattern).toStrictEqual("cli/**/*.json")
+      expect(config.srcPattern).toStrictEqual("src/**/*.ts")
+      expect(config.ignorePatterns).toStrictEqual(["cli/**"])
     })
 
     test("file config values are preserved when cli does not override them", async () => {
       const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "js") })
-      expect(config.localePattern).toEqual("custom/locales/**/*.json")
-      expect(config.srcPattern).toEqual("custom/src/**/*.ts")
-      expect(config.ignorePatterns).toEqual(["custom/node_modules/**"])
+      expect(config.localePattern).toStrictEqual("custom/locales/**/*.json")
+      expect(config.srcPattern).toStrictEqual("custom/src/**/*.ts")
+      expect(config.ignorePatterns).toStrictEqual(["custom/node_modules/**"])
     })
 
     test("parses comma-separated cli ignorePatterns, trims whitespace and drops empty entries", async () => {
@@ -58,14 +58,14 @@ describe("loadVueI18nLintConfig", () => {
         ignorePatterns: " a/** ,, b/** ",
       })
 
-      expect(config.ignorePatterns).toEqual(["a/**", "b/**"])
+      expect(config.ignorePatterns).toStrictEqual(["a/**", "b/**"])
     })
   })
 
   describe("validation", () => {
     beforeEach(() => {
       vi.spyOn(console, "error").mockImplementation(() => {})
-      vi.spyOn(process, "exit").mockImplementation(() => undefined as never)
+      vi.spyOn(process, "exit").mockImplementation(vi.fn<(code?: number | string | null) => never>())
     })
 
     afterEach(() => {

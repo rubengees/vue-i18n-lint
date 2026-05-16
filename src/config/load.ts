@@ -1,6 +1,6 @@
 import { loadConfig } from "c12"
 import { z } from "zod"
-import { type Config, configSchema } from "./schema.ts"
+import { configSchema } from "./schema.ts"
 
 type CliArgs = {
   path?: string | undefined
@@ -24,7 +24,7 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
     cwd: normalizedCliArgs.path,
   })
 
-  const merged: Partial<Config> = {
+  const merged = {
     ...filterNullish(fileConfig),
     ...filterNullish(normalizedCliArgs),
   }
@@ -39,8 +39,14 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   return result.data
 }
 
-function filterNullish<T extends Record<string, unknown>>(
-  obj: T,
-): { [K in keyof T as NonNullable<T[K]> extends never ? never : K]: NonNullable<T[K]> } {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v != null)) as ReturnType<typeof filterNullish<T>>
+function filterNullish<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  const result: Partial<T> = {}
+
+  for (const key of Object.keys(obj) as Array<keyof T>) {
+    if (obj[key] != null) {
+      result[key] = obj[key]
+    }
+  }
+
+  return result
 }

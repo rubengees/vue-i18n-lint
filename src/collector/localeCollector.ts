@@ -22,7 +22,7 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
       scope: "global",
     }
   } catch (e) {
-    throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`)
+    throw new Error(`Invalid locale file ${filePath}: ${e instanceof Error ? e.message : e?.toString()}`, { cause: e })
   }
 }
 
@@ -37,10 +37,10 @@ async function parseLocaleFile(filePath: string, ext: string): Promise<unknown> 
     }
   }
 
-  return await parseLocale(readFile(filePath, { encoding: "utf-8" }), ext)
+  return await parseLocale(await readFile(filePath, { encoding: "utf-8" }), ext)
 }
 
-const fileParsers: Record<string, <T>(text: string) => T> = {
+const fileParsers: Record<string, (text: string) => unknown> = {
   ".json": parseJSON,
   ".jsonc": parseJSONC,
   ".json5": parseJSON5,
@@ -48,11 +48,11 @@ const fileParsers: Record<string, <T>(text: string) => T> = {
   ".yml": parseYAML,
 }
 
-export async function parseLocale(content: string | Promise<string>, ext: string) {
+export async function parseLocale(content: string, ext: string) {
   const parse = fileParsers[ext]
   if (!parse) throw new Error(`Unsupported file type: ${ext}`)
 
-  return parse(await content)
+  return parse(content)
 }
 
 export function parseLocaleSync(content: string, ext: string): unknown {

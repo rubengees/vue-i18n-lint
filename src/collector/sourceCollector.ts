@@ -57,7 +57,9 @@ function collectI18nBlocks(descriptor: SFCDescriptor, file: string): LocaleFile[
     try {
       localeFiles.push(...parseI18nBlock(block, file))
     } catch (e) {
-      throw new Error(`Invalid <i18n> block in ${file}: ${e instanceof Error ? e.message : e?.toString()}`)
+      throw new Error(`Invalid <i18n> block in ${file}: ${e instanceof Error ? e.message : e?.toString()}`, {
+        cause: e,
+      })
     }
   }
 

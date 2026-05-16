@@ -1,17 +1,23 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "ignorePatterns": ["dist", "test/fixtures", "bench/fixtures"],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "node", "promise", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
   "options": {
     "maxWarnings": 0,
     "typeAware": true
   },
   "rules": {
-    "consistent-type-imports": "error"
+    "typescript/consistent-type-imports": "error",
+    "vitest/prefer-strict-equal": "error"
   },
   "overrides": [
     {
       "files": ["test/**/*.spec.ts"],
-      "rules": { "unbound-method": "off" }
+      "rules": { "typescript/unbound-method": "off" }
     }
   ]
 }

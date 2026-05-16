@@ -10,7 +10,7 @@ const DEFAULT_SRC_PATTERN = "**/*.{ts,cts,mts,js,cjs,mjs,vue}"
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {})
-  vi.spyOn(process, "exit").mockImplementation(() => undefined as never)
+  vi.spyOn(process, "exit").mockImplementation(vi.fn<(code?: number | string | null) => never>())
 })
 
 afterEach(() => {
@@ -24,7 +24,7 @@ function run(path: string, extra: string[] = []) {
 function expectLogged(text: string) {
   const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args[0]?.toString() ?? ""))
 
-  expect(lines).toEqual(expect.arrayContaining([expect.stringContaining(text)]))
+  expect(lines).toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
 }
 
 test("reports no issues when all keys are present", async () => {
