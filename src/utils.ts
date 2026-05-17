@@ -29,6 +29,20 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
   return map.get(key)!
 }
 
-export function formatFilePath(filePath: string) {
-  return `file://${resolve(filePath)}`
+export function offsetToPosition(source: string, offset: number): { line: number; column: number } {
+  const lines = source.slice(0, offset).split("\n")
+
+  return {
+    line: lines.length,
+    column: (lines[lines.length - 1]?.length ?? 0) + 1,
+  }
+}
+
+export function formatFilePath(filePath: string, line?: number, column?: number) {
+  const base = `file://${resolve(filePath)}`
+
+  if (line != null && column != null) return `${base}:${line}:${column}`
+  if (line != null) return `${base}:${line}`
+
+  return base
 }

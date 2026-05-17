@@ -133,7 +133,7 @@ test("same key used multiple times in source is aggregated into one missing entr
   const result = processFiles(localeFiles, [srcFile])
 
   expect(result.missing).toHaveLength(1)
-  expect(result.missing[0]?.key).toBe("shared.key")
+  expect(result.missing[0]?.key).toStrictEqual("shared.key")
   expect(result.missing[0]?.sources.map((s) => s.file)).toStrictEqual(["src/a.ts", "src/b.ts"])
 })
 

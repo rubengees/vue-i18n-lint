@@ -25,7 +25,7 @@
   "scripts": {
     "prepare": "husky",
     "dev": "vitest",
-    "start": "node src/cli.ts",
+    "start": "jiti src/cli.ts",
     "build": "tsdown",
     "lint": "oxlint",
     "format": "oxfmt",

@@ -1,15 +1,15 @@
 import { type ParserOptions, parseSync, type Program } from "oxc-parser"
+import { ParseError } from "../error.ts"
+import { offsetToPosition } from "../utils.ts"
 
-export type ParseScriptOptions = {
+export type ScriptParserOptions = {
   lang?: string | undefined
-  wrapInParens?: boolean
-  loc?: {
-    line: number
-    column: number
-  }
+  wrapInParens?: boolean | undefined
+  fileSource?: string | undefined
+  offset?: number | undefined
 }
 
-export function parseScript(file: string, content: string, options: ParseScriptOptions = {}): Program {
+export function parseScript(file: string, content: string, options: ScriptParserOptions = {}): Program {
   const source = options.wrapInParens ? `(${content})` : content
   const parseOptions: ParserOptions = {}
 
@@ -19,9 +19,13 @@ export function parseScript(file: string, content: string, options: ParseScriptO
   const { program, errors } = parseSync(file, source, parseOptions)
 
   if (errors.length > 0) {
-    const location = options.loc ? `at ${file}:${options.loc.line}:${options.loc.column}` : file
+    const messages = errors.map((e) => `  • ${e.message}`).join("\n")
+    const firstError = errors[0]!
 
-    console.error(`Failed to parse script ${location}:\n${errors.map((e) => `  • ${e.message}`).join("\n")}\n`)
+    const rawOffset = firstError.labels?.[0]?.start ?? 0
+    const { line, column } = offsetToPosition(options.fileSource ?? content, rawOffset + (options.offset ?? 0))
+
+    throw new ParseError(`Failed to parse script:\n${messages}`, file, { line, column })
   }
 
   return program

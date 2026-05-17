@@ -4,11 +4,11 @@ import { expect, test } from "vitest"
 import { collectVueKeys } from "../../src/collector/vueCollector.ts"
 
 test("finds keys in template", () => {
-  const file = readFileSync("test/fixtures/vue/template.vue", { encoding: "utf-8" })
-  const parseResult = parse(file, { filename: "template.ts", templateParseOptions: { prefixIdentifiers: false } })
+  const content = readFileSync("test/fixtures/vue/template.vue", { encoding: "utf-8" })
+  const parseResult = parse(content, { filename: "template.ts", templateParseOptions: { prefixIdentifiers: false } })
   const templateAst = parseResult.descriptor.template?.ast
 
-  const result = collectVueKeys("template.vue", templateAst!)
+  const result = collectVueKeys("template.vue", templateAst!, { fileSource: content })
 
   expect(result).toStrictEqual([
     { key: "a", start: 26, end: 27 },
@@ -30,11 +30,11 @@ test("finds keys in template", () => {
 })
 
 test("handles special formatting", () => {
-  const file = readFileSync("test/fixtures/vue/special.vue", { encoding: "utf-8" })
-  const parseResult = parse(file, { filename: "special.vue", templateParseOptions: { prefixIdentifiers: false } })
+  const content = readFileSync("test/fixtures/vue/special.vue", { encoding: "utf-8" })
+  const parseResult = parse(content, { filename: "special.vue", templateParseOptions: { prefixIdentifiers: false } })
   const templateAst = parseResult.descriptor.template?.ast
 
-  const result = collectVueKeys("special.vue", templateAst!)
+  const result = collectVueKeys("special.vue", templateAst!, { fileSource: content })
 
   expect(result).toStrictEqual([
     { key: "a", start: 297, end: 298 },

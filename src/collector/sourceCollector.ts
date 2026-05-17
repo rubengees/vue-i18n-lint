@@ -2,18 +2,18 @@ import { readFile } from "node:fs/promises"
 import { basename, extname } from "node:path"
 import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
+import { ParseError } from "../error.ts"
 import { parseLocale } from "../parser/localeParser.ts"
 import { parseScript } from "../parser/scriptParser.ts"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
-import { formatFilePath } from "../utils.ts"
+import { offsetToPosition } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
 export async function collectSourceFile(file: string): Promise<SourceFile> {
-  const source = await readSourceFile(file)
-  if (source == null) return { keys: [], localeFiles: [] }
+  const source = await readFile(file, { encoding: "utf-8" })
 
   if (extname(file) === ".vue") {
     return collectFromVue(source, file)
@@ -21,15 +21,6 @@ export async function collectSourceFile(file: string): Promise<SourceFile> {
 
   const rawKeys = collectFromScript(source, file)
   return { keys: rawKeysToFileKeys(rawKeys, file, source), localeFiles: [] }
-}
-
-async function readSourceFile(file: string): Promise<string | null> {
-  try {
-    return await readFile(file, { encoding: "utf-8" })
-  } catch (e) {
-    console.error(`Failed to read source file ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
-    return null
-  }
 }
 
 function collectFromScript(source: string, file: string): SourceKey[] {
@@ -41,13 +32,29 @@ function collectFromScript(source: string, file: string): SourceKey[] {
 }
 
 function collectFromVue(source: string, file: string): SourceFile {
-  const descriptor = parseVueFile(source, file)
-  if (descriptor == null) return { keys: [], localeFiles: [] }
+  const { descriptor, errors } = parse(source, {
+    filename: basename(file),
+    templateParseOptions: { prefixIdentifiers: false },
+  })
+
+  if (errors.length > 0 && !descriptor.template && !descriptor.script && !descriptor.scriptSetup) {
+    const messages = errors.map((e) => `  • ${e.message}`).join("\n")
+    const firstError = errors[0]!
+
+    if ("loc" in firstError) {
+      const line = firstError.loc?.start.line
+      const column = firstError.loc?.start.column != null ? firstError.loc.start.column + 1 : undefined
+
+      throw new ParseError(`Failed to parse Vue file:\n${messages}`, file, { line, column })
+    } else {
+      throw new ParseError(`Failed to parse Vue file:\n${messages}`, file)
+    }
+  }
 
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
-  if (templateAst) rawKeys.push(...collectVueKeys(file, templateAst))
+  if (templateAst) rawKeys.push(...collectVueKeys(file, templateAst, { fileSource: source }))
 
   for (const script of [descriptor.script, descriptor.scriptSetup]) {
     if (!script) continue
@@ -55,7 +62,8 @@ function collectFromVue(source: string, file: string): SourceFile {
 
     const program = parseScript(file, script.content, {
       lang: script.lang,
-      loc: { line: script.loc.start.line, column: script.loc.start.column },
+      offset: script.loc.start.offset,
+      fileSource: source,
     })
 
     rawKeys.push(...collectJsKeys(program, script.loc.start.offset))
@@ -64,23 +72,6 @@ function collectFromVue(source: string, file: string): SourceFile {
   return {
     keys: rawKeysToFileKeys(rawKeys, file, source),
     localeFiles: collectI18nBlocks(descriptor, file),
-  }
-}
-
-function parseVueFile(source: string, file: string) {
-  try {
-    const result = parse(source, { filename: basename(file), templateParseOptions: { prefixIdentifiers: false } })
-
-    if (result.errors.length > 0) {
-      console.error(
-        `Failed to parse Vue file ${formatFilePath(file)}:\n${result.errors.map((e) => `  • ${e.message}`).join("\n")}\n`,
-      )
-    }
-
-    return result.descriptor
-  } catch (e) {
-    console.error(`Failed to parse Vue file ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
-    return null
   }
 }
 
@@ -99,12 +90,7 @@ function collectI18nBlocks(descriptor: SFCDescriptor, file: string): LocaleFile[
 function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
   const lang = typeof block.attrs["lang"] === "string" ? block.attrs["lang"] : "json"
 
-  const data = parseLocale(block.content, file, {
-    ext: `.${lang}`,
-    loc: { line: block.loc.start.line, column: block.loc.start.column },
-  })
-
-  if (data == null) return []
+  const data = parseLocale(block.content, file, { ext: `.${lang}` })
 
   return Object.entries(data).map(([locale, localeData]) => {
     if (localeData == null) {
@@ -130,13 +116,4 @@ function rawKeysToFileKeys(rawKeys: SourceKey[], file: string, source: string): 
       end: offsetToPosition(source, k.end),
     },
   }))
-}
-
-function offsetToPosition(source: string, offset: number): { line: number; column: number } {
-  const lines = source.slice(0, offset).split("\n")
-
-  return {
-    line: lines.length,
-    column: (lines[lines.length - 1]?.length ?? 0) + 1,
-  }
 }

@@ -1,15 +1,6 @@
 import { resolve } from "node:path"
-import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { expect, test } from "vitest"
 import { collectSourceFile } from "../../src/collector/sourceCollector.ts"
-import { expectErrorLogged } from "../helpers.ts"
-
-beforeEach(() => {
-  vi.spyOn(console, "error").mockImplementation(() => {})
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
 
 test("finds keys in a js file", async () => {
   const filePath = resolve("test/fixtures/js/script.js")
@@ -153,29 +144,19 @@ test("collects <i18n lang='json5'> block locales", async () => {
   ])
 })
 
-test("logs error and returns empty localeFiles on <i18n> block with unsupported lang", async () => {
+test("throws on <i18n> block with unsupported lang", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-lang.vue")
-  const result = await collectSourceFile(filePath)
-
-  expect(result.localeFiles).toStrictEqual([])
-  expectErrorLogged(`Unsupported type: .toml`)
+  await expect(collectSourceFile(filePath)).rejects.toThrow("Unsupported locale type: .toml")
 })
 
-test("logs error and returns empty localeFiles on <i18n> block with valid lang but invalid content", async () => {
+test("throws on <i18n> block with valid lang but invalid content", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-invalid-content.vue")
-  const result = await collectSourceFile(filePath)
-
-  expect(result.localeFiles).toStrictEqual([])
-  expectErrorLogged("Failed to parse locale")
-  expectErrorLogged("JSON")
+  await expect(collectSourceFile(filePath)).rejects.toThrow("Failed to parse locale content")
 })
 
-test("logs error and returns empty localeFiles on <i18n> block with array instead of object", async () => {
+test("throws on <i18n> block with array instead of object", async () => {
   const filePath = resolve("test/fixtures/vue/i18n-block-not-object.vue")
-  const result = await collectSourceFile(filePath)
-
-  expect(result.localeFiles).toStrictEqual([])
-  expectErrorLogged("Not an object")
+  await expect(collectSourceFile(filePath)).rejects.toThrow("Locale content is not an object")
 })
 
 test("collects <i18n> block with non-string value types", async () => {
@@ -197,23 +178,14 @@ test("collects <i18n> block with non-string value types", async () => {
   ])
 })
 
-test("can handle invalid ts file", async () => {
+test("throws on invalid ts file", async () => {
   const filePath = resolve("test/fixtures/ts/invalid.ts.txt")
-  const { keys, localeFiles } = await collectSourceFile(filePath)
-
-  expect(keys).toStrictEqual([])
-  expect(localeFiles).toStrictEqual([])
-  expectErrorLogged("Failed to parse script")
-  expectErrorLogged("Unexpected token")
+  await expect(collectSourceFile(filePath)).rejects.toThrow("Failed to parse script")
 })
 
-test("logs error and returns empty result when source file does not exist", async () => {
+test("throws when source file does not exist", async () => {
   const filePath = resolve("test/fixtures/does-not-exist.vue")
-  const result = await collectSourceFile(filePath)
-
-  expect(result).toStrictEqual({ keys: [], localeFiles: [] })
-  expectErrorLogged("Failed to read source file")
-  expectErrorLogged("does-not-exist.vue")
+  await expect(collectSourceFile(filePath)).rejects.toThrow(/ENOENT.*does-not-exist\.vue/)
 })
 
 test("can handle partially invalid vue file", async () => {
@@ -227,16 +199,9 @@ test("can handle partially invalid vue file", async () => {
   expect(result.localeFiles).toStrictEqual([
     { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
   ])
-
-  expectErrorLogged("Failed to parse Vue file")
-  expectErrorLogged("Single file component can contain only one <template> element")
 })
 
-test("can handle invalid vue file", async () => {
+test("throws on completely invalid vue file", async () => {
   const filePath = resolve("test/fixtures/vue/invalid.vue")
-  const result = await collectSourceFile(filePath)
-
-  expect(result).toStrictEqual({ keys: [], localeFiles: [] })
-  expectErrorLogged("Failed to parse Vue file")
-  expectErrorLogged("At least one <template> or <script> is required in a single file component")
+  await expect(collectSourceFile(filePath)).rejects.toThrow("Failed to parse Vue file")
 })

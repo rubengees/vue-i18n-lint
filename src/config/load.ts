@@ -19,7 +19,7 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
       ?.filter((p) => p.length > 0),
   }
 
-  const fileConfig = await loadFileConfig(normalizedCliArgs)
+  const fileConfig = await loadFileConfig(normalizedCliArgs.path)
 
   const merged = {
     ...filterNullish(fileConfig),
@@ -29,19 +29,15 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   const result = configSchema.safeParse(merged)
 
   if (!result.success) {
-    console.error(z.prettifyError(result.error))
-    process.exit(1)
+    throw new Error(`Failed to load config:\n${z.prettifyError(result.error)}`)
   }
 
   return result.data
 }
 
-async function loadFileConfig(normalizedCliArgs: { path: string; ignorePatterns: any }) {
+async function loadFileConfig(path: string) {
   try {
-    const result = await loadConfig({
-      name: "vue-i18n-lint",
-      cwd: normalizedCliArgs.path,
-    })
+    const result = await loadConfig({ name: "vue-i18n-lint", cwd: path })
 
     return result.config
   } catch (e) {

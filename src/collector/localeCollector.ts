@@ -7,10 +7,6 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   const locale = basename(filePath, extname(filePath))
   const data = await parseLocaleFile(filePath)
 
-  if (data == null) {
-    return { locale, file: filePath, keys: [], scope: "global" }
-  }
-
   return {
     locale,
     file: filePath,

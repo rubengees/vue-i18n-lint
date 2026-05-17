@@ -25,11 +25,13 @@ test("outputMissingKeys prints key location and code frame", () => {
   expectLogged("script.ts")
 })
 
-test("outputMissingKeys throws when source file cannot be read", () => {
+test("outputMissingKeys still prints location when source file cannot be read", () => {
   const file = resolve("test/fixtures/does-not-exist.ts")
   const key: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location }] }
 
-  expect(() => outputMissingKeys([key])).toThrow("Failed to read file for code frame")
+  expect(() => outputMissingKeys([key])).not.toThrow()
+  expectLogged("Missing keys (1)")
+  expectLogged("does-not-exist.ts")
 })
 
 test("outputUnusedKeys prints a table of unused keys", () => {

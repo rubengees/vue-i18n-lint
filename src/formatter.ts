@@ -33,24 +33,28 @@ function outputMissingKey(key: MissingKey) {
   for (const source of key.sources) {
     console.log(`  ${formatFilePath(source.file)}:${source.location.start.line}:${source.location.start.column}`)
 
-    console.log(
-      codeFrameColumns(readSourceFile(source.file), source.location, {
-        highlightCode: true,
-        linesAbove: 1,
-        linesBelow: 1,
-        message: `Missing in ${styleText("bold", key.locales.join(", "))}`,
-      }),
-    )
+    const content = readSourceFile(source.file)
+
+    if (content != null) {
+      console.log(
+        codeFrameColumns(content, source.location, {
+          highlightCode: true,
+          linesAbove: 1,
+          linesBelow: 1,
+          message: `Missing in ${styleText("bold", key.locales.join(", "))}`,
+        }),
+      )
+    }
 
     console.log()
   }
 }
 
-function readSourceFile(file: string) {
+function readSourceFile(file: string): string | null {
   try {
     return readFileSync(file, { encoding: "utf-8" })
-  } catch (e) {
-    throw new Error("Failed to read file for code frame", { cause: e })
+  } catch {
+    return null
   }
 }
 
