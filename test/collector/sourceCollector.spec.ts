@@ -158,7 +158,7 @@ test("logs error and returns empty localeFiles on <i18n> block with unsupported 
   const result = await collectSourceFile(filePath)
 
   expect(result.localeFiles).toStrictEqual([])
-  expectErrorLogged("i18n-block-invalid-lang.vue")
+  expectErrorLogged(`Unsupported type: .toml`)
 })
 
 test("logs error and returns empty localeFiles on <i18n> block with valid lang but invalid content", async () => {
@@ -166,7 +166,16 @@ test("logs error and returns empty localeFiles on <i18n> block with valid lang b
   const result = await collectSourceFile(filePath)
 
   expect(result.localeFiles).toStrictEqual([])
-  expectErrorLogged("i18n-block-invalid-content.vue")
+  expectErrorLogged("Failed to parse locale")
+  expectErrorLogged("JSON")
+})
+
+test("logs error and returns empty localeFiles on <i18n> block with array instead of object", async () => {
+  const filePath = resolve("test/fixtures/vue/i18n-block-not-object.vue")
+  const result = await collectSourceFile(filePath)
+
+  expect(result.localeFiles).toStrictEqual([])
+  expectErrorLogged("Not an object")
 })
 
 test("collects <i18n> block with non-string value types", async () => {
@@ -188,10 +197,46 @@ test("collects <i18n> block with non-string value types", async () => {
   ])
 })
 
-test("can handle invalid file", async () => {
+test("can handle invalid ts file", async () => {
   const filePath = resolve("test/fixtures/ts/invalid.ts.txt")
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toStrictEqual([])
   expect(localeFiles).toStrictEqual([])
+  expectErrorLogged("Failed to parse script")
+  expectErrorLogged("Unexpected token")
+})
+
+test("logs error and returns empty result when source file does not exist", async () => {
+  const filePath = resolve("test/fixtures/does-not-exist.vue")
+  const result = await collectSourceFile(filePath)
+
+  expect(result).toStrictEqual({ keys: [], localeFiles: [] })
+  expectErrorLogged("Failed to read source file")
+  expectErrorLogged("does-not-exist.vue")
+})
+
+test("can handle partially invalid vue file", async () => {
+  const filePath = resolve("test/fixtures/vue/partially-invalid.vue")
+  const result = await collectSourceFile(filePath)
+
+  expect(result.keys).toStrictEqual([
+    { key: "title", file: filePath, location: { start: { line: 2, column: 16 }, end: { line: 2, column: 21 } } },
+  ])
+
+  expect(result.localeFiles).toStrictEqual([
+    { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
+  ])
+
+  expectErrorLogged("Failed to parse Vue file")
+  expectErrorLogged("Single file component can contain only one <template> element")
+})
+
+test("can handle invalid vue file", async () => {
+  const filePath = resolve("test/fixtures/vue/invalid.vue")
+  const result = await collectSourceFile(filePath)
+
+  expect(result).toStrictEqual({ keys: [], localeFiles: [] })
+  expectErrorLogged("Failed to parse Vue file")
+  expectErrorLogged("At least one <template> or <script> is required in a single file component")
 })

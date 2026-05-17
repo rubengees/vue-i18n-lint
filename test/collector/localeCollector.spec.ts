@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { collectLocaleFile } from "../../src/collector/localeCollector.ts"
 import { expectErrorLogged } from "../helpers.ts"
@@ -95,27 +96,6 @@ test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s
   })
 })
 
-test("logs error and returns empty keys when .js file default export is not an object", async () => {
-  const result = await collectLocaleFile("test/fixtures/locales/invalid.js")
-
-  expect(result.keys).toStrictEqual([])
-  expectErrorLogged("invalid.js")
-})
-
-test("logs error and returns empty keys on unsupported file type", async () => {
-  const result = await collectLocaleFile("test/fixtures/locales/en.toml")
-
-  expect(result.keys).toStrictEqual([])
-  expectErrorLogged("Unsupported file type: .toml")
-})
-
-test("logs error and returns empty keys when file is not an object", async () => {
-  const result = await collectLocaleFile("test/fixtures/locales/invalid.json")
-
-  expect(result.keys).toStrictEqual([])
-  expectErrorLogged("invalid.json")
-})
-
 test("collects keys with non-string value types", async () => {
   const result = await collectLocaleFile("test/fixtures/locales/badtype.json")
 
@@ -125,4 +105,75 @@ test("collects keys with non-string value types", async () => {
     keys: [{ key: "count", type: "number" }],
     scope: "global",
   })
+})
+
+test("logs error and returns empty keys when .js file default export is not an object", async () => {
+  const filePath = resolve("test/fixtures/locales/invalid.js")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "invalid", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to read locale file")
+  expectErrorLogged("invalid.js")
+  expectErrorLogged("Not an object")
+})
+
+test("logs error and returns empty keys when JSON file contains null", async () => {
+  const filePath = resolve("test/fixtures/locales/null.json")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "null", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Not an object")
+})
+
+test("logs error and returns empty keys when .js file throws on import", async () => {
+  const filePath = resolve("test/fixtures/locales/throws.js")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "throws", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to read locale file")
+  expectErrorLogged("throws.js")
+})
+
+test("logs error and returns empty keys when locale file does not exist", async () => {
+  const filePath = resolve("test/fixtures/locales/does-not-exist.json")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "does-not-exist", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to read locale file")
+  expectErrorLogged("does-not-exist.json")
+})
+
+test("logs error and returns empty keys on unsupported file type", async () => {
+  const filePath = resolve("test/fixtures/locales/en.toml")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "en", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to parse locale")
+  expectErrorLogged("Unsupported type: .toml")
+})
+
+test("logs error and returns empty keys when JSON file is not an object (string)", async () => {
+  const filePath = resolve("test/fixtures/locales/invalid.json")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "invalid", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to parse locale")
+  expectErrorLogged("Not an object")
+})
+
+test("logs error and returns empty keys when JSON file is an array", async () => {
+  const filePath = resolve("test/fixtures/locales/array.json")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "array", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to parse locale")
+  expectErrorLogged("Not an object")
+})
+
+test("logs error and returns empty keys when JSON file is malformed", async () => {
+  const filePath = resolve("test/fixtures/locales/malformed.json")
+  const result = await collectLocaleFile(filePath)
+
+  expect(result).toStrictEqual({ locale: "malformed", file: filePath, keys: [], scope: "global" })
+  expectErrorLogged("Failed to parse locale")
 })

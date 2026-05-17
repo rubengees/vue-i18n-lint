@@ -8,9 +8,9 @@ import {
   type SimpleExpressionNode,
   type TemplateChildNode,
 } from "@vue/compiler-core"
+import { parseScript } from "../parser/scriptParser.ts"
 import type { SourceKey } from "../types.ts"
 import { collectJsKeys } from "./jsCollector.ts"
-import { parseScript } from "./parseScript.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 
 type WalkableNode = TemplateChildNode | AttributeNode | DirectiveNode | ExpressionNode

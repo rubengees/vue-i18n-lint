@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { loadVueI18nLintConfig } from "../../src/config/load.ts"
+import { expectErrorLogged } from "../helpers.ts"
 
 const FIXTURES = resolve("test/fixtures/config")
 
@@ -72,19 +73,30 @@ describe("loadVueI18nLintConfig", () => {
       vi.restoreAllMocks()
     })
 
-    test("throws when cli localePattern is empty", async () => {
+    test("exits when cli localePattern is empty", async () => {
       expect(await loadVueI18nLintConfig({ localePattern: "" })).toBeUndefined()
       expect(process.exit).toHaveBeenCalledWith(1)
+      expectErrorLogged("localePattern")
     })
 
-    test("throws when cli srcPattern is empty", async () => {
+    test("exits when cli srcPattern is empty", async () => {
       expect(await loadVueI18nLintConfig({ srcPattern: "" })).toBeUndefined()
       expect(process.exit).toHaveBeenCalledWith(1)
+      expectErrorLogged("srcPattern")
     })
 
-    test("throws when config file has an empty string in ignorePatterns", async () => {
+    test("exits when config file has an empty string in ignorePatterns", async () => {
       expect(await loadVueI18nLintConfig({ path: resolve(FIXTURES, "invalid") })).toBeUndefined()
       expect(process.exit).toHaveBeenCalledWith(1)
+      expectErrorLogged("ignorePatterns")
+    })
+  })
+
+  describe("error handling", () => {
+    test("throw error when config is invalid", async () => {
+      await expect(() => loadVueI18nLintConfig({ path: resolve(FIXTURES, "error") })).rejects.toThrow(
+        "Failed to load config file",
+      )
     })
   })
 })

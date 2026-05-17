@@ -2,17 +2,18 @@ import { readFile } from "node:fs/promises"
 import { basename, extname } from "node:path"
 import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
+import { parseLocale } from "../parser/localeParser.ts"
+import { parseScript } from "../parser/scriptParser.ts"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
 import { formatFilePath } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
-import { parseLocaleSync } from "./localeCollector.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
-import { parseScript } from "./parseScript.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 import { collectVueKeys } from "./vueCollector.ts"
 
 export async function collectSourceFile(file: string): Promise<SourceFile> {
-  const source = await readFile(file, { encoding: "utf-8" })
+  const source = await readSourceFile(file)
+  if (source == null) return { keys: [], localeFiles: [] }
 
   if (extname(file) === ".vue") {
     return collectFromVue(source, file)
@@ -20,6 +21,15 @@ export async function collectSourceFile(file: string): Promise<SourceFile> {
 
   const rawKeys = collectFromScript(source, file)
   return { keys: rawKeysToFileKeys(rawKeys, file, source), localeFiles: [] }
+}
+
+async function readSourceFile(file: string): Promise<string | null> {
+  try {
+    return await readFile(file, { encoding: "utf-8" })
+  } catch (e) {
+    console.error(`Failed to read source file ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
+    return null
+  }
 }
 
 function collectFromScript(source: string, file: string): SourceKey[] {
@@ -31,7 +41,9 @@ function collectFromScript(source: string, file: string): SourceKey[] {
 }
 
 function collectFromVue(source: string, file: string): SourceFile {
-  const { descriptor } = parse(source, { filename: basename(file), templateParseOptions: { prefixIdentifiers: false } })
+  const descriptor = parseVueFile(source, file)
+  if (descriptor == null) return { keys: [], localeFiles: [] }
+
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
@@ -55,17 +67,30 @@ function collectFromVue(source: string, file: string): SourceFile {
   }
 }
 
+function parseVueFile(source: string, file: string) {
+  try {
+    const result = parse(source, { filename: basename(file), templateParseOptions: { prefixIdentifiers: false } })
+
+    if (result.errors.length > 0) {
+      console.error(
+        `Failed to parse Vue file ${formatFilePath(file)}:\n${result.errors.map((e) => `  • ${e.message}`).join("\n")}\n`,
+      )
+    }
+
+    return result.descriptor
+  } catch (e) {
+    console.error(`Failed to parse Vue file ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
+    return null
+  }
+}
+
 function collectI18nBlocks(descriptor: SFCDescriptor, file: string): LocaleFile[] {
   const localeFiles: LocaleFile[] = []
 
   for (const block of descriptor.customBlocks) {
     if (block.type !== "i18n") continue
 
-    try {
-      localeFiles.push(...parseI18nBlock(block, file))
-    } catch (e) {
-      console.error(`Failed to read <i18n> block in ${formatFilePath(file)}:`, e instanceof Error ? e.message : e)
-    }
+    localeFiles.push(...parseI18nBlock(block, file))
   }
 
   return localeFiles
@@ -74,13 +99,15 @@ function collectI18nBlocks(descriptor: SFCDescriptor, file: string): LocaleFile[
 function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
   const lang = typeof block.attrs["lang"] === "string" ? block.attrs["lang"] : "json"
 
-  const data = parseLocaleSync(block.content, `.${lang}`)
+  const data = parseLocale(block.content, file, {
+    ext: `.${lang}`,
+    loc: { line: block.loc.start.line, column: block.loc.start.column },
+  })
 
-  if (data == null || typeof data !== "object") throw new Error(`Not an object`)
+  if (data == null) return []
 
   return Object.entries(data).map(([locale, localeData]) => {
-    if (localeData == null || typeof localeData !== "object") {
-      console.error(`Failed to read <i18n> block in ${formatFilePath(file)}: Not an object`)
+    if (localeData == null) {
       return { locale, file: file, keys: [], scope: "local" }
     }
 

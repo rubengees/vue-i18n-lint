@@ -19,10 +19,7 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
       ?.filter((p) => p.length > 0),
   }
 
-  const { config: fileConfig } = await loadConfig({
-    name: "vue-i18n-lint",
-    cwd: normalizedCliArgs.path,
-  })
+  const fileConfig = await loadFileConfig(normalizedCliArgs)
 
   const merged = {
     ...filterNullish(fileConfig),
@@ -37,6 +34,19 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   }
 
   return result.data
+}
+
+async function loadFileConfig(normalizedCliArgs: { path: string; ignorePatterns: any }) {
+  try {
+    const result = await loadConfig({
+      name: "vue-i18n-lint",
+      cwd: normalizedCliArgs.path,
+    })
+
+    return result.config
+  } catch (e) {
+    throw new Error(`Failed to load config file`, { cause: e })
+  }
 }
 
 function filterNullish<T extends Record<string, unknown>>(obj: T): Partial<T> {

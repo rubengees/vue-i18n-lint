@@ -34,7 +34,7 @@ function outputMissingKey(key: MissingKey) {
     console.log(`  ${formatFilePath(source.file)}:${source.location.start.line}:${source.location.start.column}`)
 
     console.log(
-      codeFrameColumns(readFileSync(source.file, { encoding: "utf-8" }), source.location, {
+      codeFrameColumns(readSourceFile(source.file), source.location, {
         highlightCode: true,
         linesAbove: 1,
         linesBelow: 1,
@@ -43,6 +43,14 @@ function outputMissingKey(key: MissingKey) {
     )
 
     console.log()
+  }
+}
+
+function readSourceFile(file: string) {
+  try {
+    return readFileSync(file, { encoding: "utf-8" })
+  } catch (e) {
+    throw new Error("Failed to read file for code frame", { cause: e })
   }
 }
 

@@ -1,6 +1,6 @@
 import { type ParserOptions, parseSync, type Program } from "oxc-parser"
 
-export interface ParseScriptOptions {
+export type ParseScriptOptions = {
   lang?: string | undefined
   wrapInParens?: boolean
   loc?: {
