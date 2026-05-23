@@ -2,7 +2,7 @@ import { resolve } from "node:path"
 import { runCommand } from "citty"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { mainCommand } from "../../src/command/main.ts"
-import { expectLogged } from "../helpers.ts"
+import { expectErrorLogged, expectLogged } from "../helpers.ts"
 
 const FIXTURES = "test/fixtures/projects"
 const DEFAULT_LOCALE_PATTERN = "**/locales/*.json"
@@ -171,5 +171,18 @@ test("handles <i18n> blocks", async () => {
   expectLogged("Missing keys (1):")
   expectLogged("block-missing")
   expectLogged("Found 1 missing and 0 unused keys.")
+  expect(result).toStrictEqual(1)
+})
+
+test("skips unparseable files, logs an error, and exits 1", async () => {
+  const result = await run(resolve(FIXTURES, "parse-error"), [
+    "--localePattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--srcPattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectErrorLogged("Failed to process:")
+  expectLogged("1 file skipped due to errors")
   expect(result).toStrictEqual(1)
 })
