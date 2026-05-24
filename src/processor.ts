@@ -101,6 +101,7 @@ function calcUnusedKeysInLocaleFiles(
       // (e.g. source uses "aa.bb", locale has "aa.bb.cc" -> covered because "aa.bb" is a prefix of "aa.bb.cc").
       const parts = key.split(".")
       const coveredByStatic = parts.some((_, i) => sourceKeys.has(parts.slice(0, i + 1).join(".")))
+      // Only check dynamic patterns when not already covered, as an optimization.
       const coveredByDynamic = !coveredByStatic && dynamicPatterns.some((pattern) => pattern.test(key))
 
       if (!coveredByStatic && !coveredByDynamic) {

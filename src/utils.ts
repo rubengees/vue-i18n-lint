@@ -52,8 +52,9 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
 
 /**
  * Converts a dynamic key pattern (containing `*` wildcards) to a regular expression.
- * Each `*` matches one or more dot-separated key segments.
- * For example, the pattern `"a.b.*.c"` matches `"a.b.x.c"` and `"a.b.x.y.c"`.
+ * Each `*` matches one or more dot-separated key segments (at least one segment is required).
+ * For example, the pattern `"a.b.*.c"` matches `"a.b.x.c"` and `"a.b.x.y.c"`,
+ * but not `"a.b.c"` (no segment for the wildcard).
  */
 export function dynamicKeyToRegex(pattern: string): RegExp {
   const escaped = pattern
