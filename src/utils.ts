@@ -1,4 +1,21 @@
 import { resolve } from "node:path"
+import { createDefu } from "defu"
+
+export const merge = createDefu((obj, key, value) => {
+  if (Array.isArray(value)) {
+    obj[key] = value
+    return true
+  }
+
+  return false
+})
+
+export function split(value: string): string[] {
+  return value
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+}
 
 /**
  * A `PrefixSet` represents a set of dot-separated keys together with all of

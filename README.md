@@ -84,16 +84,19 @@ vue-i18n-lint [options] [path]
 
 ### Options
 
-| Option             | Description                             | Default                            |
-| ------------------ | --------------------------------------- | ---------------------------------- |
-| `--localePattern`  | Glob pattern for i18n locale files      | `**/locales/*.json`                |
-| `--srcPattern`     | Glob pattern for source files           | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
-| `--ignorePatterns` | Comma-separated glob patterns to ignore |                                    |
+| Option                  | Description                                                   | Default                            |
+| ----------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| `--locale-pattern`      | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
+| `--src-pattern`         | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
+| `--ignore-patterns`     | Comma-separated glob patterns to ignore                       |                                    |
+| `--ignore-keys`         | Comma-separated keys to ignore in all checks                  |                                    |
+| `--ignore-missing-keys` | Comma-separated keys to ignore only in the missing keys check |                                    |
+| `--ignore-unused-keys`  | Comma-separated keys to ignore only in the unused keys check  |                                    |
 
 ### Example
 
 ```sh
-npx vue-i18n-lint --localePattern "**/i18n/*.{json}" ./my-project
+npx vue-i18n-lint --locale-pattern "**/i18n/*.{json}" ./my-project
 ```
 
 ## Configuration file
@@ -114,6 +117,15 @@ export default defineConfig({
   localePattern: "**/i18n/*.json",
   srcPattern: "**/*.{ts,vue}",
   ignorePatterns: ["**/fixtures/**"],
+  ignoreKeys: ["dynamic.key"],
+  checks: {
+    missingKeys: {
+      ignore: ["only.missing"],
+    },
+    unusedKeys: {
+      ignore: ["only.unused"],
+    },
+  },
 })
 ```
 

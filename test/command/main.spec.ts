@@ -25,9 +25,9 @@ async function run(path: string, extra: string[] = []) {
 
 test("reports no issues when all keys are present", async () => {
   const result = await run(resolve(FIXTURES, "all-keys-present"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -37,9 +37,9 @@ test("reports no issues when all keys are present", async () => {
 
 test("exits 1 and reports missing key count when keys are missing", async () => {
   const result = await run(resolve(FIXTURES, "missing-keys"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -51,9 +51,9 @@ test("exits 1 and reports missing key count when keys are missing", async () => 
 
 test("reports unused key count when keys are unused", async () => {
   const result = await run(resolve(FIXTURES, "unused-keys"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -64,9 +64,9 @@ test("reports unused key count when keys are unused", async () => {
 
 test("exits 1 and reports both counts when keys are missing and unused", async () => {
   const result = await run(resolve(FIXTURES, "mixed"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -78,11 +78,11 @@ test("exits 1 and reports both counts when keys are missing and unused", async (
 
 test("respects ignorePatterns and skips excluded source files", async () => {
   const result = await run(resolve(FIXTURES, "missing-keys"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
-    "--ignorePatterns",
+    "--ignore-patterns",
     "src/**",
   ])
 
@@ -92,9 +92,9 @@ test("respects ignorePatterns and skips excluded source files", async () => {
 
 test("respects srcPattern and only scans matching source files", async () => {
   const result = await run(resolve(FIXTURES, "multi-src"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     "src/app.ts",
   ])
 
@@ -104,9 +104,9 @@ test("respects srcPattern and only scans matching source files", async () => {
 
 test("respects localePattern and reads only matching locale files", async () => {
   const result = await run(resolve(FIXTURES, "all-keys-present"), [
-    "--localePattern",
+    "--locale-pattern",
     "**/translations/*.json",
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -116,9 +116,9 @@ test("respects localePattern and reads only matching locale files", async () => 
 
 test("reports type warnings and exits 0 when locale file contains non-string values", async () => {
   const result = await run(resolve(FIXTURES, "type-warnings"), [
-    "--localePattern",
+    "--locale-pattern",
     "**/locales/*.{json,ts}",
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -134,9 +134,9 @@ test("reports type warnings and exits 0 when locale file contains non-string val
 
 test("treats a locale leaf key as used when source uses a prefix of it", async () => {
   const result = await run(resolve(FIXTURES, "partial-key-used"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -146,9 +146,9 @@ test("treats a locale leaf key as used when source uses a prefix of it", async (
 
 test("reports a locale leaf key as missing when source uses a sibling key, not a prefix", async () => {
   const result = await run(resolve(FIXTURES, "partial-key-missing"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -162,9 +162,9 @@ test("reports a locale leaf key as missing when source uses a sibling key, not a
 
 test("handles <i18n> blocks", async () => {
   const result = await run(resolve(FIXTURES, "i18n-block"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
@@ -176,13 +176,39 @@ test("handles <i18n> blocks", async () => {
 
 test("skips unparseable files, logs an error, and exits 1", async () => {
   const result = await run(resolve(FIXTURES, "parse-error"), [
-    "--localePattern",
+    "--locale-pattern",
     DEFAULT_LOCALE_PATTERN,
-    "--srcPattern",
+    "--src-pattern",
     DEFAULT_SRC_PATTERN,
   ])
 
   expectErrorLogged("Failed to process:")
   expectLogged("1 file skipped due to errors")
   expect(result).toStrictEqual(1)
+})
+
+test("--ignore-keys suppresses keys from both missing and unused checks", async () => {
+  const result = await run(resolve(FIXTURES, "mixed"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--ignore-keys",
+    "missing.key,unused",
+  ])
+
+  expectLogged("Found 0 missing and 0 unused keys.")
+  expect(result).toStrictEqual(0)
+})
+
+test("config file checks.missingKeys.ignore and checks.unusedKeys.ignore suppress keys", async () => {
+  const result = await run(resolve(FIXTURES, "ignore-keys-config"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Found 0 missing and 0 unused keys.")
+  expect(result).toStrictEqual(0)
 })

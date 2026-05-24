@@ -60,6 +60,56 @@ describe("loadVueI18nLintConfig", () => {
 
       expect(config.ignorePatterns).toStrictEqual(["a/**", "b/**"])
     })
+
+    test("parses comma-separated cli ignoreKeys", async () => {
+      const config = await loadVueI18nLintConfig({
+        path: resolve(FIXTURES, "no-config"),
+        ignoreKeys: "foo, bar",
+      })
+
+      expect(config.ignoreKeys).toStrictEqual(["foo", "bar"])
+    })
+
+    test("parses comma-separated cli ignoreMissingKeys into checks.missingKeys.ignore", async () => {
+      const config = await loadVueI18nLintConfig({
+        path: resolve(FIXTURES, "no-config"),
+        ignoreMissingKeys: "foo, bar",
+      })
+
+      expect(config.checks.missingKeys.ignore).toStrictEqual(["foo", "bar"])
+      expect(config.checks.unusedKeys.ignore).toStrictEqual([])
+    })
+
+    test("parses comma-separated cli ignoreUnusedKeys into checks.unusedKeys.ignore", async () => {
+      const config = await loadVueI18nLintConfig({
+        path: resolve(FIXTURES, "no-config"),
+        ignoreUnusedKeys: "foo, bar",
+      })
+
+      expect(config.checks.missingKeys.ignore).toStrictEqual([])
+      expect(config.checks.unusedKeys.ignore).toStrictEqual(["foo", "bar"])
+    })
+
+    test("cli ignoreMissingKeys and ignoreUnusedKeys can be set independently", async () => {
+      const config = await loadVueI18nLintConfig({
+        path: resolve(FIXTURES, "no-config"),
+        ignoreMissingKeys: "missing.key",
+        ignoreUnusedKeys: "unused.key",
+      })
+
+      expect(config.checks.missingKeys.ignore).toStrictEqual(["missing.key"])
+      expect(config.checks.unusedKeys.ignore).toStrictEqual(["unused.key"])
+    })
+
+    test("cli checks override file config checks, non-overridden checks are preserved", async () => {
+      const config = await loadVueI18nLintConfig({
+        path: resolve(FIXTURES, "js"),
+        ignoreMissingKeys: "cli.key",
+      })
+
+      expect(config.checks.missingKeys.ignore).toStrictEqual(["cli.key"])
+      expect(config.checks.unusedKeys.ignore).toStrictEqual([])
+    })
   })
 
   describe("validation", () => {

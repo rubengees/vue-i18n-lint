@@ -6,6 +6,7 @@ import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
 import { formatErrorMessage, ParseError } from "../error.ts"
+import { filterResults } from "../filter.ts"
 import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
@@ -34,6 +35,18 @@ export const mainCommand = defineCommand({
       type: "string",
       description: "Comma-separated glob patterns to ignore",
     },
+    ignoreKeys: {
+      type: "string",
+      description: "Comma-separated keys to ignore in both missing and unused checks",
+    },
+    ignoreMissingKeys: {
+      type: "string",
+      description: "Comma-separated keys to ignore in the missing keys check",
+    },
+    ignoreUnusedKeys: {
+      type: "string",
+      description: "Comma-separated keys to ignore in the unused keys check",
+    },
   },
   async run({ args }): Promise<number> {
     const startTime = performance.now()
@@ -60,7 +73,12 @@ export const mainCommand = defineCommand({
     const validSourceFiles = sourceFiles.filter((f): f is SourceFile => f != null)
     const parseErrors = localeFiles.filter((f) => f == null).length + sourceFiles.filter((f) => f == null).length
 
-    const { typeWarnings, missing, unused } = processFiles(validLocaleFiles, validSourceFiles)
+    const { typeWarnings, missing, unused } = filterResults(processFiles(validLocaleFiles, validSourceFiles), {
+      ignoreKeys: config.ignoreKeys,
+      missingKeys: { ignore: config.checks.missingKeys.ignore },
+      unusedKeys: { ignore: config.checks.unusedKeys.ignore },
+    })
+
     const elapsed = Math.round(performance.now() - startTime)
 
     if (parseErrors > 0) console.log()
