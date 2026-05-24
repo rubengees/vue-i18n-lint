@@ -25,6 +25,7 @@ export type FileKey = {
   key: string
   file: string
   location: SourceLocation
+  isDynamic?: boolean
 }
 
 export type LocaleKey = {
@@ -36,6 +37,7 @@ export type SourceKey = {
   key: string
   start: number
   end: number
+  isDynamic?: boolean
 }
 
 export type MissingKey = {

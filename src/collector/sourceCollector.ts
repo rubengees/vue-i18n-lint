@@ -115,5 +115,6 @@ function rawKeysToFileKeys(rawKeys: SourceKey[], file: string, source: string): 
       start: offsetToPosition(source, k.start),
       end: offsetToPosition(source, k.end),
     },
+    ...(k.isDynamic ? { isDynamic: true } : {}),
   }))
 }

@@ -145,6 +145,23 @@ in addition to any `ignorePatterns` you configure.
 - **Missing keys**: Translation keys used in source code but not defined in any locale file
 - **Unused keys**: Translation keys defined in locale files but never referenced in source code
 
+### Dynamic keys
+
+Keys that contain runtime variables are supported on a best-effort basis. Both template literals
+and `+` concatenation are recognised:
+
+```ts
+t(`a.b.${variable}.c`)       // pattern: a.b.*.c
+t("a.b." + variable + ".c") // pattern: a.b.*.c
+```
+
+Each variable part is treated as a wildcard (`*`) that matches one or more dot-separated key segments.
+
+- **Missing**: a dynamic key is only reported missing if no locale key matches its pattern.
+- **Unused**: a locale key is not reported unused if a dynamic key pattern matches it.
+
+Fully dynamic keys (`t(someVariable)`) are ignored.
+
 ## Supported locale file formats
 
 - JSON, JSONC, JSON5

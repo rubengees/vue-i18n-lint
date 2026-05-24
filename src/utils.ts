@@ -50,6 +50,20 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
   return map.get(key)!
 }
 
+/**
+ * Converts a dynamic key pattern (containing `*` wildcards) to a regular expression.
+ * Each `*` matches one or more dot-separated key segments.
+ * For example, the pattern `"a.b.*.c"` matches `"a.b.x.c"` and `"a.b.x.y.c"`.
+ */
+export function dynamicKeyToRegex(pattern: string): RegExp {
+  const escaped = pattern
+    .split("*")
+    .map((part) => part.replace(/[.+^${}()|[\]\\]/g, "\\$&"))
+    .join("[^.]+(?:\\.[^.]+)*")
+
+  return new RegExp(`^${escaped}$`)
+}
+
 export function offsetToPosition(source: string, offset: number): { line: number; column: number } {
   const lines = source.slice(0, offset).split("\n")
 

@@ -372,3 +372,83 @@ function fileKey(
 ): FileKey {
   return { key, file, location: { start: { line, column }, end: { line: endLine, column: endColumn } } }
 }
+
+function dynamicKey(key: string, file = "src/app.ts"): FileKey {
+  return { key, file, location: { start: { line: 1, column: 1 }, end: { line: 1, column: 2 } }, isDynamic: true }
+}
+
+test("a dynamic key pattern is not missing when a locale key matches the pattern", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.x.c"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([])
+})
+
+test("a dynamic key pattern is missing when no locale key matches the pattern", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.c"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "a.b.*.c", locales: ["en"] })])
+})
+
+test("a dynamic key pattern with multiple locale keys matching is not missing", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.x.c", "a.b.y.z.c"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([])
+})
+
+test("a dynamic key pattern is missing for locales where no match exists", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.x.c"]), localeFile("i18n/de.json", ["other.key"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "a.b.*.c", locales: ["de"] })])
+})
+
+test("a locale key is not unused when it is matched by a dynamic key pattern", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.x.c"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.unused).toStrictEqual([])
+})
+
+test("a locale key is unused when no dynamic pattern matches it", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.c"])]
+  const srcFile = sourceFile([dynamicKey("a.b.*.c")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.unused).toStrictEqual([
+    { key: "a.b.c", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
+  ])
+})
+
+test("a dynamic key at the end of the pattern matches locale keys with extra segments", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["start.x", "start.x.y"])]
+  const srcFile = sourceFile([dynamicKey("start.*")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([])
+})
+
+test("a dynamic key at the start of the pattern matches locale keys with a variable prefix", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["x.end", "x.y.end"])]
+  const srcFile = sourceFile([dynamicKey("*.end")])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([])
+})
