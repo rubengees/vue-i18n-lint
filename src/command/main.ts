@@ -5,6 +5,7 @@ import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
+import { Severity } from "../config/schema.ts"
 import { formatErrorMessage, ParseError } from "../error.ts"
 import { filterResults } from "../filter.ts"
 import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
@@ -47,6 +48,14 @@ export const mainCommand = defineCommand({
       type: "string",
       description: "Comma-separated keys to ignore in the unused keys check",
     },
+    missingKeysSeverity: {
+      type: "string",
+      description: "Severity for missing keys: error, warning, or off",
+    },
+    unusedKeysSeverity: {
+      type: "string",
+      description: "Severity for unused keys: error, warning, or off",
+    },
   },
   async run({ args }): Promise<number> {
     const startTime = performance.now()
@@ -81,10 +90,13 @@ export const mainCommand = defineCommand({
 
     const elapsed = Math.round(performance.now() - startTime)
 
+    const missingSeverity = config.checks.missingKeys.severity
+    const unusedSeverity = config.checks.unusedKeys.severity
+
     if (parseErrors > 0) console.log()
     if (typeWarnings.length > 0) outputTypeWarnings(typeWarnings)
-    if (missing.length > 0) outputMissingKeys(missing)
-    if (unused.length > 0) outputUnusedKeys(unused)
+    if (missing.length > 0 && missingSeverity !== Severity.Off) outputMissingKeys(missing)
+    if (unused.length > 0 && unusedSeverity !== Severity.Off) outputUnusedKeys(unused)
 
     console.log(
       `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
@@ -97,7 +109,10 @@ export const mainCommand = defineCommand({
       `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
     )
 
-    return missing.length > 0 || parseErrors > 0 ? 1 : 0
+    const missingIsError = missingSeverity === Severity.Error && missing.length > 0
+    const unusedIsError = unusedSeverity === Severity.Error && unused.length > 0
+
+    return missingIsError || unusedIsError || parseErrors > 0 ? 1 : 0
   },
 })
 
@@ -110,6 +125,7 @@ async function collectFile<T>(file: string, collect: (file: string) => Promise<T
     } else {
       console.error(`Failed to process ${formatFilePath(file)}: ${formatErrorMessage(e)}`)
     }
+
     return null
   }
 }

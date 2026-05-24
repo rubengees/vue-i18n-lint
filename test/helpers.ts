@@ -7,6 +7,12 @@ export function expectLogged(text: string) {
   expect(lines).toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
 }
 
+export function expectNotLogged(text: string) {
+  const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args.join(" ")))
+
+  expect(lines).not.toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
+}
+
 export function expectErrorLogged(text: string) {
   const lines = vi.mocked(console.error).mock.calls.map((args) => stripVTControlCharacters(args.join(" ")))
 

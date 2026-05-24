@@ -10,7 +10,11 @@ export const merge = createDefu((obj, key, value) => {
   return false
 })
 
-export function split(value: string): string[] {
+export function split(value: string): string[]
+export function split(value: string | null | undefined): string[] | undefined
+export function split(value: string | null | undefined): string[] | undefined {
+  if (value == null) return undefined
+
   return value
     .split(",")
     .map((p) => p.trim())

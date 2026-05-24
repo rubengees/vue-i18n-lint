@@ -2,7 +2,7 @@ import { resolve } from "node:path"
 import { runCommand } from "citty"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { mainCommand } from "../../src/command/main.ts"
-import { expectErrorLogged, expectLogged } from "../helpers.ts"
+import { expectErrorLogged, expectLogged, expectNotLogged } from "../helpers.ts"
 
 const FIXTURES = "test/fixtures/projects"
 const DEFAULT_LOCALE_PATTERN = "**/locales/*.json"
@@ -210,5 +210,62 @@ test("config file checks.missingKeys.ignore and checks.unusedKeys.ignore suppres
   ])
 
   expectLogged("Found 0 missing and 0 unused keys.")
+  expect(result).toStrictEqual(0)
+})
+
+test("--missing-keys-severity=warning does not set exit code to 1 when keys are missing", async () => {
+  const result = await run(resolve(FIXTURES, "missing-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--missing-keys-severity",
+    "warning",
+  ])
+
+  expectLogged("Missing keys (1):")
+  expectLogged("missing.key")
+  expect(result).toStrictEqual(0)
+})
+
+test("--missing-keys-severity=off suppresses output and does not set exit code to 1", async () => {
+  const result = await run(resolve(FIXTURES, "missing-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--missing-keys-severity",
+    "off",
+  ])
+
+  expectNotLogged("Missing keys")
+  expect(result).toStrictEqual(0)
+})
+
+test("--unused-keys-severity=error sets exit code to 1 when keys are unused", async () => {
+  const result = await run(resolve(FIXTURES, "unused-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--unused-keys-severity",
+    "error",
+  ])
+
+  expectLogged("Unused keys (1):")
+  expect(result).toStrictEqual(1)
+})
+
+test("--unused-keys-severity=off suppresses unused keys output", async () => {
+  const result = await run(resolve(FIXTURES, "unused-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--unused-keys-severity",
+    "off",
+  ])
+
+  expectNotLogged("Unused keys")
   expect(result).toStrictEqual(0)
 })

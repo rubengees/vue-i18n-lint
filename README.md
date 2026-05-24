@@ -84,14 +84,16 @@ vue-i18n-lint [options] [path]
 
 ### Options
 
-| Option                  | Description                                                   | Default                            |
-| ----------------------- | ------------------------------------------------------------- | ---------------------------------- |
-| `--locale-pattern`      | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
-| `--src-pattern`         | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
-| `--ignore-patterns`     | Comma-separated glob patterns to ignore                       |                                    |
-| `--ignore-keys`         | Comma-separated keys to ignore in all checks                  |                                    |
-| `--ignore-missing-keys` | Comma-separated keys to ignore only in the missing keys check |                                    |
-| `--ignore-unused-keys`  | Comma-separated keys to ignore only in the unused keys check  |                                    |
+| Option                    | Description                                                   | Default                            |
+| ------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| `--locale-pattern`        | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
+| `--src-pattern`           | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
+| `--ignore-patterns`       | Comma-separated glob patterns to ignore                       |                                    |
+| `--ignore-keys`           | Comma-separated keys to ignore in all checks                  |                                    |
+| `--ignore-missing-keys`   | Comma-separated keys to ignore only in the missing keys check |                                    |
+| `--ignore-unused-keys`    | Comma-separated keys to ignore only in the unused keys check  |                                    |
+| `--missing-keys-severity` | Severity for missing keys: `error`, `warning`, or `off`       | `error`                            |
+| `--unused-keys-severity`  | Severity for unused keys: `error`, `warning`, or `off`        | `warning`                          |
 
 ### Example
 
@@ -120,9 +122,11 @@ export default defineConfig({
   ignoreKeys: ["dynamic.key"],
   checks: {
     missingKeys: {
+      severity: "error",
       ignore: ["only.missing"],
     },
     unusedKeys: {
+      severity: "warning",
       ignore: ["only.unused"],
     },
   },
@@ -148,10 +152,15 @@ in addition to any `ignorePatterns` you configure.
 - JS/TS modules (expecting a default export of an object)
 - `<i18n>` blocks in Vue SFCs
 
-## Exit codes
+## Severity levels
 
-- `0` — No missing keys
-- `1` — One or more missing keys found
+Each check (`missingKeys`, `unusedKeys`) supports a `severity` setting:
+
+| Value       | Behavior                                                    |
+| ----------- | ----------------------------------------------------------- |
+| `"error"`   | Prints output and sets exit code to `1` if issues are found |
+| `"warning"` | Prints output but does not set exit code to `1`             |
+| `"off"`     | Does not print output and does not affect exit code         |
 
 ## Requirements
 

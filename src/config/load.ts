@@ -11,6 +11,8 @@ type CliArgs = {
   ignoreKeys?: string | undefined
   ignoreMissingKeys?: string | undefined
   ignoreUnusedKeys?: string | undefined
+  missingKeysSeverity?: string | undefined
+  unusedKeysSeverity?: string | undefined
 }
 
 export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
@@ -31,16 +33,20 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
 function buildCliConfig(path: string, cliArgs?: CliArgs) {
   return {
     path,
-    ...(cliArgs?.localePattern != null && { localePattern: cliArgs.localePattern }),
-    ...(cliArgs?.srcPattern != null && { srcPattern: cliArgs.srcPattern }),
-    ...(cliArgs?.ignorePatterns != null && { ignorePatterns: split(cliArgs.ignorePatterns) }),
-    ...(cliArgs?.ignoreKeys != null && { ignoreKeys: split(cliArgs.ignoreKeys) }),
-    ...((cliArgs?.ignoreMissingKeys != null || cliArgs?.ignoreUnusedKeys != null) && {
-      checks: {
-        ...(cliArgs.ignoreMissingKeys != null && { missingKeys: { ignore: split(cliArgs.ignoreMissingKeys) } }),
-        ...(cliArgs.ignoreUnusedKeys != null && { unusedKeys: { ignore: split(cliArgs.ignoreUnusedKeys) } }),
+    localePattern: cliArgs?.localePattern,
+    srcPattern: cliArgs?.srcPattern,
+    ignorePatterns: split(cliArgs?.ignorePatterns),
+    ignoreKeys: split(cliArgs?.ignoreKeys),
+    checks: {
+      missingKeys: {
+        ignore: split(cliArgs?.ignoreMissingKeys),
+        severity: cliArgs?.missingKeysSeverity,
       },
-    }),
+      unusedKeys: {
+        ignore: split(cliArgs?.ignoreUnusedKeys),
+        severity: cliArgs?.unusedKeysSeverity,
+      },
+    },
   }
 }
 
