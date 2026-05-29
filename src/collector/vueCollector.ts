@@ -8,6 +8,7 @@ import {
   type SimpleExpressionNode,
   type TemplateChildNode,
 } from "@vue/compiler-core"
+import type { Expression } from "oxc-parser"
 import { parseScript } from "../parser/scriptParser.ts"
 import type { SourceKey } from "../types.ts"
 import { collectJsKeys } from "./jsCollector.ts"
@@ -36,8 +37,11 @@ function walkVueNode(file: string, node: WalkableNode, options?: VueCollectorOpt
     case NodeTypes.INTERPOLATION:
       return walkVueNode(file, node.content, options)
 
-    case NodeTypes.DIRECTIVE:
+    case NodeTypes.DIRECTIVE: {
+      if (node.name === "t") return collectFromDirective(file, node, options)
+
       return node.exp ? walkVueNode(file, node.exp, options) : []
+    }
 
     case NodeTypes.SIMPLE_EXPRESSION:
       return node.isStatic ? [] : collectFromExpression(file, node, options)
@@ -60,6 +64,60 @@ function collectFromElementNode(node: ElementNode): SourceKey[] {
             key: prop.value.content,
             start: prop.value.loc.start.offset + 1,
             end: prop.value.loc.end.offset - 1,
+          },
+        ]
+      }
+    }
+  }
+
+  return []
+}
+
+function collectFromDirective(file: string, node: DirectiveNode, options?: VueCollectorOptions): SourceKey[] {
+  if (!node.exp || node.exp.type !== NodeTypes.SIMPLE_EXPRESSION) return []
+
+  const content = node.exp.content.trim()
+  if (!content) return []
+
+  const program = parseScript(file, content, {
+    wrapInParens: true,
+    offset: node.exp.loc.start.offset - 1,
+    fileSource: options?.fileSource,
+  })
+
+  const bodyPart = program.body[0]
+  if (!bodyPart || bodyPart.type !== "ExpressionStatement") return []
+
+  return walkDirective(bodyPart.expression, node.exp.loc.start.offset - 1)
+}
+
+function walkDirective(expression: Expression, offset: number): SourceKey[] {
+  if (expression.type === "ParenthesizedExpression") return walkDirective(expression.expression, offset)
+
+  if (expression.type === "Literal" && typeof expression.value === "string") {
+    return [
+      {
+        key: expression.value,
+        start: expression.start + offset + 1,
+        end: expression.end + offset - 1,
+      },
+    ]
+  }
+
+  if (expression.type === "ObjectExpression") {
+    for (const prop of expression.properties) {
+      if (
+        prop.type === "Property" &&
+        prop.key.type === "Identifier" &&
+        prop.key.name === "path" &&
+        prop.value.type === "Literal" &&
+        typeof prop.value.value === "string"
+      ) {
+        return [
+          {
+            key: prop.value.value,
+            start: prop.value.start + offset + 1,
+            end: prop.value.end + offset - 1,
           },
         ]
       }

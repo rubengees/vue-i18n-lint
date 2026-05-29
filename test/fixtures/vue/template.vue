@@ -13,4 +13,6 @@
   <span @click="$t('m')"></span>
   <i18n-t keypath="keypath" />
   <i18n-t path="path" />
+  <span v-t="'vt-key'"></span>
+  <span v-t="{ path: 'vt-object-key' }"></span>
 </template>

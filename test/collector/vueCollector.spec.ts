@@ -26,6 +26,8 @@ test("finds keys in template", () => {
     { key: "m", start: 398, end: 399 },
     { key: "keypath", start: 430, end: 437 },
     { key: "path", start: 458, end: 462 },
+    { key: "vt-key", start: 481, end: 487 },
+    { key: "vt-object-key", start: 520, end: 533 },
   ])
 })
 
@@ -40,4 +42,18 @@ test("handles special formatting", () => {
     { key: "a", start: 297, end: 298 },
     { key: "b", start: 315, end: 316 },
   ])
+})
+
+test("ignores invalid v-t declarations", () => {
+  const content = readFileSync("test/fixtures/vue/v-t-invalid.vue", { encoding: "utf-8" })
+  const parseResult = parse(content, {
+    filename: "v-t-invalid.vue",
+    templateParseOptions: { prefixIdentifiers: false },
+  })
+
+  const templateAst = parseResult.descriptor.template?.ast
+
+  const result = collectVueKeys("v-t-invalid.vue", templateAst!, { fileSource: content })
+
+  expect(result).toStrictEqual([{ key: "valid", start: 78, end: 83 }])
 })
