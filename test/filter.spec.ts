@@ -69,6 +69,32 @@ test("filtering multiple keys at once works", () => {
   expect(filtered.unused.map((k) => k.key)).toStrictEqual(["y"])
 })
 
+test("ignoreKeys suppresses a dynamic missing key by its placeholder string", () => {
+  const result = makeResult(["status.<dynamic>", "other.key"], ["other.unused"])
+
+  const filtered = filterResults(result, { ignoreKeys: ["status.<dynamic>"] })
+
+  expect(filtered.missing.map((k) => k.key)).toStrictEqual(["other.key"])
+  expect(filtered.unused.map((k) => k.key)).toStrictEqual(["other.unused"])
+})
+
+test("missingKeys.ignore suppresses a dynamic missing key but does not affect unused", () => {
+  const result = makeResult(["status.<dynamic>", "other.key"], ["other.unused"])
+
+  const filtered = filterResults(result, { missingKeys: { ignore: ["status.<dynamic>"] } })
+
+  expect(filtered.missing.map((k) => k.key)).toStrictEqual(["other.key"])
+  expect(filtered.unused.map((k) => k.key)).toStrictEqual(["other.unused"])
+})
+
+test("unusedKeys.ignore does not suppress a dynamic missing key", () => {
+  const result = makeResult(["status.<dynamic>"], [])
+
+  const filtered = filterResults(result, { unusedKeys: { ignore: ["status.<dynamic>"] } })
+
+  expect(filtered.missing.map((k) => k.key)).toStrictEqual(["status.<dynamic>"])
+})
+
 function makeResult(missing: string[], unused: string[]): ProcessResult {
   return {
     typeWarnings: [],

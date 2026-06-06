@@ -22,10 +22,14 @@ export type SourceLocation = {
 }
 
 export type FileKey = {
-  key: string
+  key: string | DynamicKey
   file: string
   location: SourceLocation
 }
+
+export const DYNAMIC_PART: unique symbol = Symbol("dynamic")
+
+export type DynamicKey = (string | typeof DYNAMIC_PART)[]
 
 export type LocaleKey = {
   key: string
@@ -33,7 +37,7 @@ export type LocaleKey = {
 }
 
 export type SourceKey = {
-  key: string
+  key: string | DynamicKey
   start: number
   end: number
 }

@@ -1,7 +1,8 @@
 import { basename } from "node:path"
 import { expect, test } from "vitest"
 import { processFiles } from "../src/processor.ts"
-import type { FileKey, LocaleFile, SourceFile } from "../src/types.ts"
+import { DYNAMIC_PART } from "../src/types.ts"
+import type { DynamicKey, FileKey, LocaleFile, SourceFile } from "../src/types.ts"
 
 test("returns empty results when given no files and no keys", () => {
   expect(processFiles([], [])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
@@ -354,6 +355,86 @@ test("returns typeWarnings for keys with non-string types", () => {
   expect(result.unused).toHaveLength(2)
 })
 
+test("a dynamic key is reported missing when no locale key matches the pattern", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["other.key"])]
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART])])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([
+    {
+      key: "status.<dynamic>",
+      locales: ["en"],
+      sources: [expect.objectContaining({ file: "src/app.ts" })],
+    },
+  ])
+})
+
+test("a dynamic key is not reported missing when a locale key matches the pattern", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["status.active.label"])]
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART])])
+
+  expect(processFiles(localeFiles, [srcFile]).missing).toStrictEqual([])
+})
+
+test("a locale key that only contains the dynamic pattern as a substring is not counted as coverage", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["prefix.a.x.d"])]
+  const srcFile = sourceFile([dynamicFileKey(["a.", DYNAMIC_PART, ".d"])])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "a.<dynamic>.d", locales: ["en"] })])
+})
+
+test("a dynamic key missing from some locales reports only those locales", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["status.active"]), localeFile("i18n/de.json", ["other.key"])]
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART])])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toStrictEqual([
+    {
+      key: "status.<dynamic>",
+      locales: ["de"],
+      sources: [expect.objectContaining({ file: "src/app.ts" })],
+    },
+  ])
+})
+
+test("the same dynamic key used in multiple locations is aggregated into a single missing entry", () => {
+  const localeFiles = [localeFile("i18n/en.json", [])]
+  const srcFile = sourceFile([
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/a.ts"),
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/b.ts"),
+  ])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.missing).toHaveLength(1)
+  expect(result.missing[0]?.key).toBe("status.<dynamic>")
+  expect(result.missing[0]?.sources.map((s) => s.file)).toStrictEqual(["src/a.ts", "src/b.ts"])
+})
+
+test("dynamic source key covers matched locale keys (including deep ones via prefix) but not unmatched ones", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["status.active", "status.active.label", "role.admin"])]
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART])])
+
+  const result = processFiles(localeFiles, [srcFile])
+
+  expect(result.unused).toStrictEqual([
+    { key: "role.admin", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
+  ])
+})
+
+test("a dynamic key covers local <i18n> keys (neither missing nor unused)", () => {
+  const srcFile = sourceFile(
+    [dynamicFileKey(["local.", DYNAMIC_PART], "src/comp.vue")],
+    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.title", type: "string" }], scope: "local" }],
+  )
+
+  expect(processFiles([], [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
+})
+
 function localeFile(file: string, keys: string[]): LocaleFile {
   return { locale: basename(file, ".json"), file, keys: keys.map((key) => ({ key, type: "string" })), scope: "global" }
 }
@@ -371,4 +452,8 @@ function fileKey(
   endColumn = column + 1,
 ): FileKey {
   return { key, file, location: { start: { line, column }, end: { line: endLine, column: endColumn } } }
+}
+
+function dynamicFileKey(key: DynamicKey, file = "src/app.ts", line = 1, column = 1): FileKey {
+  return { key, file, location: { start: { line, column }, end: { line, column: column + 1 } } }
 }

@@ -19,14 +19,18 @@ async function generateProject(srcDirs: number, locales: number) {
       await mkdir(dir, { recursive: true })
 
       const noTranslations = i % 5 === 0
+      const dynamic = !noTranslations && i % 5 === 0
 
       await Promise.all([
         copyFile(
-          resolve(FIXTURES, noTranslations ? "component-no-translations.vue" : "component.vue"),
+          resolve(
+            FIXTURES,
+            noTranslations ? "component-no-translations.vue" : dynamic ? "component-dynamic.vue" : "component.vue",
+          ),
           join(dir, `component${i}.vue`),
         ),
         copyFile(
-          resolve(FIXTURES, noTranslations ? "script-no-translations.ts" : "script.ts"),
+          resolve(FIXTURES, noTranslations ? "script-no-translations.ts" : dynamic ? "script-dynamic.ts" : "script.ts"),
           join(dir, `script${i}.ts`),
         ),
       ])

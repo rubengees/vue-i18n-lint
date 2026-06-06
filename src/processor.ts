@@ -1,4 +1,13 @@
-import type { LocaleFile, LocaleTypeWarning, MissingKey, ProcessResult, SourceFile, UnusedKey } from "./types.ts"
+import escape from "regexp.escape"
+import type {
+  DynamicKey,
+  LocaleFile,
+  LocaleTypeWarning,
+  MissingKey,
+  ProcessResult,
+  SourceFile,
+  UnusedKey,
+} from "./types.ts"
 import { mapGetOrInsert, newPrefixSet } from "./utils.ts"
 
 export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
@@ -37,14 +46,41 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
     )
 
     for (const { key, file, location } of sourceFile.keys) {
-      const missingLocales = Array.from(locales.values()).filter(
-        (locale) => !localLocalePrefixes.get(locale)?.has(key) && !globalLocalePrefixes.get(locale)?.has(key),
-      )
+      if (typeof key !== "string") {
+        const regex = buildDynamicKeyRegex(key)
 
-      if (missingLocales.length > 0) {
-        const missingKey = mapGetOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
+        const missingLocales = Array.from(locales.values()).filter(
+          (locale) =>
+            !localLocalePrefixes
+              .get(locale)
+              ?.values()
+              ?.some((localeKey) => regex.test(localeKey)) &&
+            !globalLocalePrefixes
+              .get(locale)
+              ?.values()
+              ?.some((localeKey) => regex.test(localeKey)),
+        )
 
-        missingKey.sources.push({ file, location })
+        if (missingLocales.length > 0) {
+          const keyStr = dynamicKeyToString(key)
+          const missingKey = mapGetOrInsert(missingKeys, keyStr, {
+            key: keyStr,
+            locales: missingLocales,
+            sources: [],
+          })
+
+          missingKey.sources.push({ file, location })
+        }
+      } else {
+        const missingLocales = Array.from(locales.values()).filter(
+          (locale) => !localLocalePrefixes.get(locale)?.has(key) && !globalLocalePrefixes.get(locale)?.has(key),
+        )
+
+        if (missingLocales.length > 0) {
+          const missingKey = mapGetOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
+
+          missingKey.sources.push({ file, location })
+        }
       }
     }
   }
@@ -52,21 +88,37 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
   return Array.from(missingKeys.values())
 }
 
+function dynamicKeyToString(dynamicKey: DynamicKey): string {
+  return dynamicKey.map((part) => (typeof part === "string" ? part : "<dynamic>")).join("")
+}
+
+function buildDynamicKeyRegex(dynamicKey: DynamicKey): RegExp {
+  return new RegExp("^" + dynamicKey.map((part) => (typeof part === "string" ? escape(part) : ".*")).join("") + "$")
+}
+
 function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): UnusedKey[] {
   const unusedKeys = new Map<string, UnusedKey>()
   const sourceKeys = new Set<string>()
+  const sourceDynamicKeys: RegExp[] = []
 
   for (const sourceFile of sourceFiles) {
-    const sourceFileKeys = new Set(sourceFile.keys.map((k) => k.key))
+    const sourceFileKeys = new Set(sourceFile.keys.flatMap((k) => (typeof k.key === "string" ? [k.key] : [])))
+    const sourceFileDynamicKeys = sourceFile.keys
+      .flatMap((k) => (typeof k.key !== "string" ? [k.key] : []))
+      .map(buildDynamicKeyRegex)
 
-    calcUnusedKeysInLocaleFiles(unusedKeys, sourceFile.localeFiles, sourceFileKeys)
+    calcUnusedKeysInLocaleFiles(unusedKeys, sourceFile.localeFiles, sourceFileKeys, sourceFileDynamicKeys)
 
     for (const key of sourceFileKeys) {
       sourceKeys.add(key)
     }
+
+    for (const regex of sourceFileDynamicKeys) {
+      sourceDynamicKeys.push(regex)
+    }
   }
 
-  calcUnusedKeysInLocaleFiles(unusedKeys, localeFiles, sourceKeys)
+  calcUnusedKeysInLocaleFiles(unusedKeys, localeFiles, sourceKeys, sourceDynamicKeys)
 
   return Array.from(unusedKeys.values())
 }
@@ -75,13 +127,19 @@ function calcUnusedKeysInLocaleFiles(
   unusedKeys: Map<string, UnusedKey>,
   localeFiles: LocaleFile[],
   sourceKeys: Set<string>,
+  sourceDynamicKeys: RegExp[] = [],
 ) {
   for (const localeFile of localeFiles) {
     for (const { key } of localeFile.keys) {
+      const parts = key.split(".")
+
       // A locale key is considered used if the source uses the key itself or any of its ancestors
       // (e.g. source uses "aa.bb", locale has "aa.bb.cc" -> covered because "aa.bb" is a prefix of "aa.bb.cc").
-      const parts = key.split(".")
-      const covered = parts.some((_, i) => sourceKeys.has(parts.slice(0, i + 1).join(".")))
+      const covered = parts.some((_, i) => {
+        const joined = parts.slice(0, i + 1).join(".")
+
+        return sourceKeys.has(joined) || sourceDynamicKeys.some((regex) => regex.test(joined))
+      })
 
       if (!covered) {
         const unusedKey = mapGetOrInsert(unusedKeys, key, { key, files: [] })

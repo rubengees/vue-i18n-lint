@@ -135,6 +135,9 @@ export default defineConfig({
 
 Use the exported `defineConfig` helper for TypeScript autocompletion.
 
+Dynamic missing keys are reported with `<dynamic>` as a placeholder (e.g. `status.<dynamic>`).
+Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
+
 ### gitignore
 
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
@@ -144,6 +147,28 @@ in addition to any `ignorePatterns` you configure.
 
 - **Missing keys**: Translation keys used in source code but not defined in any locale file
 - **Unused keys**: Translation keys defined in locale files but never referenced in source code
+
+## Dynamic keys
+
+Keys built from template literals or string concatenation with runtime variables are understood:
+
+```ts
+t(`status.${type}`) // matched against locale keys as "status.*"
+t("prefix." + key) // matched against locale keys as "prefix.*"
+```
+
+A dynamic key is not reported missing if at least one locale key matches its pattern. Locale keys
+that match a dynamic pattern are not reported as unused.
+
+If no locale key matches, the missing key is reported with `<dynamic>` as a placeholder,
+e.g. `status.<dynamic>`.
+
+Purely dynamic expressions with no static fragments (e.g. `t(variable)`) are ignored.
+
+Dynamic key support is best-effort. There are many more complex cases that can't be detected by vue-i18n-lint (yet).
+
+> [!TIP]
+> Ignoring dynamic keys is done using the `<dynamic>` placeholder, e.g. `ignoreKeys: ["status.<dynamic>"]`
 
 ## Supported locale file formats
 

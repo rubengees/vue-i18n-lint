@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
 import { expect, test } from "vitest"
 import { collectSourceFile } from "../../src/collector/sourceCollector.ts"
+import { DYNAMIC_PART } from "../../src/types.ts"
 
 test("finds keys in a js file", async () => {
   const filePath = resolve("test/fixtures/js/script.js")
@@ -78,6 +79,71 @@ test("finds keys in a vue file with ts syntax", async () => {
       location: { start: { line: 14, column: 16 }, end: { line: 14, column: 28 } },
     },
     { key: "ts-key", file: filePath, location: { start: { line: 10, column: 18 }, end: { line: 10, column: 24 } } },
+  ])
+
+  expect(localeFiles).toStrictEqual([])
+})
+
+test("finds dynamic keys in a vue file", async () => {
+  const filePath = resolve("test/fixtures/vue/dynamic.vue")
+  const { keys, localeFiles } = await collectSourceFile(filePath)
+
+  expect(keys).toStrictEqual([
+    {
+      key: [DYNAMIC_PART, ".t.b.", DYNAMIC_PART, ".d.", DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 22, column: 15 }, end: { line: 22, column: 53 } },
+    },
+    {
+      key: ["s.b.", DYNAMIC_PART, ".d"],
+      file: filePath,
+      location: { start: { line: 24, column: 15 }, end: { line: 24, column: 35 } },
+    },
+    {
+      key: ["n", DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 25, column: 22 }, end: { line: 25, column: 32 } },
+    },
+    {
+      key: "b.c.false42",
+      file: filePath,
+      location: { start: { line: 25, column: 36 }, end: { line: 25, column: 58 } },
+    },
+    {
+      key: ["a.b.", DYNAMIC_PART, ".d"],
+      file: filePath,
+      location: { start: { line: 8, column: 17 }, end: { line: 8, column: 32 } },
+    },
+    {
+      key: ["a.b", DYNAMIC_PART, ".d"],
+      file: filePath,
+      location: { start: { line: 9, column: 18 }, end: { line: 9, column: 32 } },
+    },
+    {
+      key: ["a.b.", DYNAMIC_PART, "d"],
+      file: filePath,
+      location: { start: { line: 10, column: 18 }, end: { line: 10, column: 32 } },
+    },
+    {
+      key: ["u.b.", DYNAMIC_PART, ".d"],
+      file: filePath,
+      location: { start: { line: 13, column: 18 }, end: { line: 13, column: 38 } },
+    },
+    {
+      key: ["u.b", DYNAMIC_PART, ".d"],
+      file: filePath,
+      location: { start: { line: 14, column: 18 }, end: { line: 14, column: 37 } },
+    },
+    {
+      key: ["u.b.", DYNAMIC_PART, "d"],
+      file: filePath,
+      location: { start: { line: 15, column: 18 }, end: { line: 15, column: 37 } },
+    },
+    {
+      key: ["x.", DYNAMIC_PART, "yx.y.za.", DYNAMIC_PART, ".b", DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 18, column: 18 }, end: { line: 18, column: 80 } },
+    },
   ])
 
   expect(localeFiles).toStrictEqual([])

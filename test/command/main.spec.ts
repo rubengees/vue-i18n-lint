@@ -269,3 +269,31 @@ test("--unused-keys-severity=off suppresses unused keys output", async () => {
   expectNotLogged("Unused keys")
   expect(result).toStrictEqual(0)
 })
+
+test("reports a dynamic key as missing and does not report dynamically-covered locale keys as unused", async () => {
+  const result = await run(resolve(FIXTURES, "dynamic-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectLogged("Missing keys (1):")
+  expectNotLogged("Unused keys")
+  expectLogged("Found 1 missing and 0 unused keys.")
+  expect(result).toStrictEqual(1)
+})
+
+test("--ignore-keys suppresses a dynamic missing key by its placeholder string", async () => {
+  const result = await run(resolve(FIXTURES, "dynamic-keys"), [
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--ignore-keys",
+    "color.<dynamic>",
+  ])
+
+  expectLogged("Found 0 missing and 0 unused keys.")
+  expect(result).toStrictEqual(0)
+})
