@@ -25,7 +25,7 @@ export function collectJsKeys(program: Program, offset: number = 0): SourceKey[]
 function isTranslationFunction(node: any): boolean {
   if (node.callee.type === "Identifier") return TRANSLATION_FUNCTIONS.has(node.callee.name)
 
-  if (node.callee.type === "MemberExpression" && node.callee.property.type === "Identifier") {
+  if (node.callee.type === "MemberExpression" && !node.callee.computed && node.callee.property.type === "Identifier") {
     return TRANSLATION_FUNCTIONS.has(node.callee.property.name)
   }
 
