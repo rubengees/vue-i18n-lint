@@ -1,6 +1,7 @@
 import { createDefineConfig } from "c12"
-import type { Config } from "./config/schema.ts"
+import type { z } from "zod"
+import type { configSchema } from "./config/schema.ts"
 
-export type VueI18nLintConfig = Partial<Omit<Config, "path">>
+export type VueI18nLintConfig = Omit<z.input<typeof configSchema>, "path">
 
 export const defineConfig = createDefineConfig<VueI18nLintConfig>()

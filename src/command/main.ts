@@ -5,7 +5,6 @@ import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import { Severity } from "../config/schema.ts"
 import { formatErrorMessage, ParseError } from "../error.ts"
 import { filterResults } from "../filter.ts"
 import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
@@ -95,8 +94,8 @@ export const mainCommand = defineCommand({
 
     if (parseErrors > 0) console.log()
     if (typeWarnings.length > 0) outputTypeWarnings(typeWarnings)
-    if (missing.length > 0 && missingSeverity !== Severity.Off) outputMissingKeys(missing)
-    if (unused.length > 0 && unusedSeverity !== Severity.Off) outputUnusedKeys(unused)
+    if (missing.length > 0 && missingSeverity !== "off") outputMissingKeys(missing)
+    if (unused.length > 0 && unusedSeverity !== "off") outputUnusedKeys(unused)
 
     console.log(
       `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
@@ -109,8 +108,8 @@ export const mainCommand = defineCommand({
       `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
     )
 
-    const missingIsError = missingSeverity === Severity.Error && missing.length > 0
-    const unusedIsError = unusedSeverity === Severity.Error && unused.length > 0
+    const missingIsError = missingSeverity === "error" && missing.length > 0
+    const unusedIsError = unusedSeverity === "error" && unused.length > 0
 
     return missingIsError || unusedIsError || parseErrors > 0 ? 1 : 0
   },

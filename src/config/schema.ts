@@ -1,12 +1,6 @@
 import { z } from "zod"
 
-export enum Severity {
-  Error = "error",
-  Warning = "warning",
-  Off = "off",
-}
-
-const severityEnum = z.enum(Severity)
+const severityEnum = z.enum(["error", "warning", "off"])
 
 export const configSchema = z.object({
   path: z.string().nonempty(),
@@ -18,21 +12,19 @@ export const configSchema = z.object({
     .object({
       missingKeys: z
         .object({
-          severity: severityEnum.default(Severity.Error),
+          severity: severityEnum.default("error"),
           ignore: z.array(z.string().nonempty()).default([]),
         })
-        .default({ severity: Severity.Error, ignore: [] }),
+        .default({ severity: "error", ignore: [] }),
       unusedKeys: z
         .object({
-          severity: severityEnum.default(Severity.Warning),
+          severity: severityEnum.default("warning"),
           ignore: z.array(z.string().nonempty()).default([]),
         })
-        .default({ severity: Severity.Warning, ignore: [] }),
+        .default({ severity: "warning", ignore: [] }),
     })
     .default({
-      missingKeys: { severity: Severity.Error, ignore: [] },
-      unusedKeys: { severity: Severity.Warning, ignore: [] },
+      missingKeys: { severity: "error", ignore: [] },
+      unusedKeys: { severity: "warning", ignore: [] },
     }),
 })
-
-export type Config = z.infer<typeof configSchema>
