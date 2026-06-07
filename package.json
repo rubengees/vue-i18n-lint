@@ -36,16 +36,16 @@
     "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test"
   },
   "dependencies": {
-    "@babel/code-frame": "^7.29.0",
-    "@vue/compiler-core": "^3.5.34",
-    "@vue/compiler-sfc": "^3.5.34",
+    "@babel/code-frame": "^7.29.7",
+    "@vue/compiler-core": "^3.5.35",
+    "@vue/compiler-sfc": "^3.5.35",
     "c12": "4.0.0-beta.5",
     "citty": "^0.2.2",
     "confbox": "^0.2.4",
     "defu": "^6.1.7",
     "globby": "^16.2.0",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.132.0",
+    "oxc-parser": "^0.134.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -55,17 +55,17 @@
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "22.19.19",
     "@types/regexp.escape": "^2.0.0",
-    "@typescript/native-preview": "7.0.0-dev.20260521.1",
+    "@typescript/native-preview": "7.0.0-dev.20260606.1",
     "husky": "9.1.7",
-    "lint-staged": "17.0.5",
-    "oxfmt": "0.51.0",
-    "oxlint": "1.66.0",
+    "lint-staged": "17.0.7",
+    "oxfmt": "0.53.0",
+    "oxlint": "1.68.0",
     "oxlint-tsgolint": "0.23.0",
-    "tsdown": "0.22.0",
-    "vitest": "4.1.7"
+    "tsdown": "0.22.2",
+    "vitest": "4.1.8"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.2.2+sha512.36e6621fad506178936455e70247b8808ef4ec25797a9f437a93281a020484e2607f6a469a22e982987c3dbb8866e3071514ab10a4a1749e06edcd1ec118436f"
+  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
 }
