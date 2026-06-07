@@ -55,7 +55,9 @@ function extractKey(arg: Argument, offset: number): SourceKey[] {
   const end = offset + arg.end
 
   if (normalizedParts.length === 1 && typeof normalizedParts[0] === "string") {
-    return [{ key: normalizedParts[0], start: start + 1, end: end - 1 }]
+    const isQuoted = (arg.type === "Literal" && typeof arg.value === "string") || arg.type === "TemplateLiteral"
+
+    return [{ key: normalizedParts[0], start: isQuoted ? start + 1 : start, end: isQuoted ? end - 1 : end }]
   }
 
   return [{ key: normalizedParts, start, end }]

@@ -107,7 +107,7 @@ test("finds dynamic keys in a vue file", async () => {
     {
       key: "b.c.false42",
       file: filePath,
-      location: { start: { line: 25, column: 36 }, end: { line: 25, column: 58 } },
+      location: { start: { line: 25, column: 35 }, end: { line: 25, column: 59 } },
     },
     {
       key: ["a.b.", DYNAMIC_PART, ".d"],
