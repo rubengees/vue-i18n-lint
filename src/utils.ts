@@ -50,6 +50,14 @@ export function mapGetOrInsert<T>(map: Map<string, T>, key: string, defaultValue
   return map.get(key)!
 }
 
+export function getOrInsertComputed<T>(map: Map<string, T>, key: string, callback: (key: string) => T) {
+  if (!map.has(key)) {
+    map.set(key, callback(key))
+  }
+
+  return map.get(key)!
+}
+
 export function offsetToPosition(source: string, offset: number): { line: number; column: number } {
   const lines = source.slice(0, offset).split("\n")
 
