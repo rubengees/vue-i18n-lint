@@ -11,6 +11,7 @@ import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../form
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { formatFilePath } from "../utils.ts"
+import { initCommand } from "./init.ts"
 
 export const mainCommand = defineCommand({
   meta: {
@@ -57,6 +58,10 @@ export const mainCommand = defineCommand({
     },
   },
   async run({ args }): Promise<number> {
+    if (args.path === "init") {
+      return await initCommand(args._[1])
+    }
+
     const startTime = performance.now()
 
     const config = await loadVueI18nLintConfig(args)
