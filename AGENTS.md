@@ -15,7 +15,7 @@ This project deliberately uses the **OXC toolchain** plus **tsgo** instead of th
 - **Type check**: `tsgo` (`@typescript/native-preview`) — _not_ `tsc`
 - **Test/bench**: `vitest`
 - **Dev runner**: `jiti` (runs CLI from source, no build needed)
-- **Key deps**: `citty` (CLI), `c12` (config), `globby`, `@vue/compiler-sfc`, `oxc-parser`, `zod` v4, `defu`, `confbox`
+- **Key deps**: `@stricli/core` (CLI), `c12` (config), `globby`, `@vue/compiler-sfc`, `oxc-parser`, `zod` v4, `defu`, `confbox`
 
 ## Commands
 
@@ -38,15 +38,16 @@ This project deliberately uses the **OXC toolchain** plus **tsgo** instead of th
 
 ```
 src/
+  app.ts                 # Application definition (routes, help config)
   cli.ts                 # CLI entry (#!/usr/bin/env node banner)
   index.ts               # Library entry — exports defineConfig + VueI18nLintConfig
   processor.ts           # Diff logic: missing/unused/typeWarnings
   formatter.ts           # Console output (code frames, tables)
   filter.ts              # Applies ignore lists
   error.ts               # ParseError + formatErrorMessage
-  utils.ts               # merge, split, PrefixSet, position helpers
+  utils.ts               # merge, writeLine, PrefixSet, position helpers
   types.ts               # Domain types (SourceFile, LocaleFile, FileKey, DynamicKey)
-  command/{main,init}.ts # citty commands
+  command/{lint,init}.ts # @stricli/core commands
   config/{schema,load}.ts # zod schema + c12 loader
   collector/             # Source/locale/Vue/JS collectors
   parser/                # oxc-parser + confbox/jiti wrappers
@@ -73,8 +74,8 @@ Configured via `.oxfmtrc.json`, `.oxlintrc.json`, `tsconfig.json`:
 - Vitest, no custom config. Tests in `test/`, mirroring `src/` layout.
 - Style: top-level `test("...", () => {})`; `describe` only when grouping is useful.
 - **Use `toStrictEqual`, not `toEqual`** (enforced by `vitest/prefer-strict-equal`).
-- Console assertions: spy on `console.log`/`console.error` in `beforeEach`, then use `expectLogged` / `expectErrorLogged` / `expectNotLogged` from `test/helpers.ts` (handles ANSI stripping).
-- CLI tests: `runCommand(mainCommand, { rawArgs: [...] })` from `citty`, assert on returned exit code.
+- Console assertions: use `buildTestProcess`, `runTest`, `expectStdoutContains`, `expectStdoutNotContains`, `expectStderrContains` from `test/helpers.ts` — wraps `@stricli/core`'s `run` with in-memory streams and handles ANSI stripping.
+- CLI tests: `runTest([...])` returns a `TestProcess` with captured stdout/stderr + exit code.
 - Fixtures: `test/fixtures/projects/<name>/{locales,src}/...` for end-to-end; `test/fixtures/{vue,ts,js,locales,config}/` for unit-level.
 
 ## Architecture Notes
@@ -90,7 +91,7 @@ Key concepts:
 - **Translation function detection**: `TRANSLATION_FUNCTIONS = Set(['t','te','tm','tc','$t','$te','$tm','$tc'])`. A regex fast-path (`/\$?t[emc]?\s*\(/`) gates the full oxc parser.
 - **Errors**: `ParseError` carries `file/line/column`; unparseable files are _skipped_ (logged, exit bumped to 1) — one bad file does not abort the run.
 - **Config**: `c12` loads `vue-i18n-lint.config.{ts,js,json,yaml}`. CLI args take precedence. Merge via `merge` in `utils.ts` (defu-based) where **arrays from higher-priority layers replace, not concatenate**. Final result validated by zod.
-- **CLI**: `citty` `defineCommand`. The `init` subcommand is dispatched inline (`if (args.path === "init")`), not registered as a native citty subcommand.
+- **CLI**: `@stricli/core` `buildCommand` / `buildRouteMap` / `buildApplication`. `init` and `lint` are proper routes; `lint` is the default command.
 
 ## Git & Workflow
 

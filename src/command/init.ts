@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { formatFilePath } from "../utils.ts"
+import { buildCommand, type ApplicationContext } from "@stricli/core"
+import { formatFilePath, writeLine } from "../utils.ts"
 
 // language=ts
 const configTemplate = `import { defineConfig } from "vue-i18n-lint"
@@ -12,18 +13,36 @@ export default defineConfig({
 })
 `
 
-export async function initCommand(dir?: string): Promise<number> {
-  const targetDir = dir || "."
-  const configPath = join(targetDir, "vue-i18n-lint.config.ts")
+export const initCommand = buildCommand({
+  async func(this: ApplicationContext, _flags: {}, path?: string) {
+    const targetPath = path || "."
+    const configPath = join(targetPath, "vue-i18n-lint.config.ts")
 
-  if (existsSync(configPath)) {
-    console.error(`vue-i18n-lint.config.ts already exists in ${formatFilePath(targetDir)}.`)
-    return 1
-  }
+    if (existsSync(configPath)) {
+      writeLine(this.process.stderr, `vue-i18n-lint.config.ts already exists in ${formatFilePath(targetPath)}.`)
+      this.process.exitCode = 1
+      return
+    }
 
-  await mkdir(targetDir, { recursive: true })
-  await writeFile(configPath, configTemplate, "utf-8")
+    await mkdir(targetPath, { recursive: true })
+    await writeFile(configPath, configTemplate, "utf-8")
 
-  console.log(`Created vue-i18n-lint.config.ts in ${formatFilePath(targetDir)}.`)
-  return 0
-}
+    writeLine(this.process.stdout, `Created vue-i18n-lint.config.ts in ${formatFilePath(targetPath)}.`)
+  },
+  parameters: {
+    positional: {
+      kind: "tuple",
+      parameters: [
+        {
+          brief: "Target path for the config file",
+          parse: String,
+          placeholder: "path",
+          optional: true,
+        },
+      ],
+    },
+  },
+  docs: {
+    brief: "Create a default vue-i18n-lint configuration file",
+  },
+})

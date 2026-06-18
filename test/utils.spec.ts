@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { expect, test } from "vitest"
-import { formatFilePath, mapGetOrInsert, newPrefixSet, offsetToPosition, split } from "../src/utils.ts"
+import { formatFilePath, mapGetOrInsert, newPrefixSet, offsetToPosition } from "../src/utils.ts"
 
 test("PrefixSet contains the key itself", () => {
   const set = newPrefixSet(["foo.bar"])
@@ -82,16 +82,4 @@ test("formatFilePath appends line and column when both are given", () => {
 
 test("formatFilePath resolves relative paths", () => {
   expect(formatFilePath("src/file.ts")).toStrictEqual(`file://${resolve("src/file.ts")}`)
-})
-
-test("split returns an array of trimmed non-empty strings", () => {
-  expect(split("a,b, c")).toStrictEqual(["a", "b", "c"])
-})
-
-test("split returns undefined for null", () => {
-  expect(split(null)).toStrictEqual(undefined)
-})
-
-test("split returns undefined for undefined", () => {
-  expect(split(undefined)).toStrictEqual(undefined)
 })

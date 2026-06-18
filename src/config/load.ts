@@ -1,16 +1,16 @@
 import { loadConfig } from "c12"
 import { z } from "zod"
-import { merge, split } from "../utils.ts"
+import { merge } from "../utils.ts"
 import { configSchema } from "./schema.ts"
 
 type CliArgs = {
   path?: string | undefined
   localePattern?: string | undefined
   srcPattern?: string | undefined
-  ignorePatterns?: string | undefined
-  ignoreKeys?: string | undefined
-  ignoreMissingKeys?: string | undefined
-  ignoreUnusedKeys?: string | undefined
+  ignorePatterns?: readonly string[] | undefined
+  ignoreKeys?: readonly string[] | undefined
+  ignoreMissingKeys?: readonly string[] | undefined
+  ignoreUnusedKeys?: readonly string[] | undefined
   missingKeysSeverity?: string | undefined
   unusedKeysSeverity?: string | undefined
 }
@@ -35,15 +35,15 @@ function buildCliConfig(path: string, cliArgs?: CliArgs) {
     path,
     localePattern: cliArgs?.localePattern,
     srcPattern: cliArgs?.srcPattern,
-    ignorePatterns: split(cliArgs?.ignorePatterns),
-    ignoreKeys: split(cliArgs?.ignoreKeys),
+    ignorePatterns: cliArgs?.ignorePatterns,
+    ignoreKeys: cliArgs?.ignoreKeys,
     checks: {
       missingKeys: {
-        ignore: split(cliArgs?.ignoreMissingKeys),
+        ignore: cliArgs?.ignoreMissingKeys,
         severity: cliArgs?.missingKeysSeverity,
       },
       unusedKeys: {
-        ignore: split(cliArgs?.ignoreUnusedKeys),
+        ignore: cliArgs?.ignoreUnusedKeys,
         severity: cliArgs?.unusedKeysSeverity,
       },
     },

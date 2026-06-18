@@ -1,11 +1,10 @@
-import { runCommand } from "citty"
-import { mainCommand } from "./command/main.ts"
-import { formatErrorMessage } from "./error.ts"
+import { run } from "@stricli/core"
+import { app } from "./app.ts"
 
-try {
-  const { result } = await runCommand(mainCommand, { rawArgs: process.argv.slice(2) })
-  process.exit(typeof result === "number" ? result : 0)
-} catch (e) {
-  console.error(formatErrorMessage(e))
-  process.exit(1)
-}
+await run(app, process.argv.slice(2), {
+  process: {
+    stdout: process.stdout,
+    stderr: process.stderr,
+    env: process.env,
+  },
+})

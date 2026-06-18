@@ -10,17 +10,6 @@ export const merge = createDefu((obj, key, value) => {
   return false
 })
 
-export function split(value: string): string[]
-export function split(value: string | null | undefined): string[] | undefined
-export function split(value: string | null | undefined): string[] | undefined {
-  if (value == null) return undefined
-
-  return value
-    .split(",")
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0)
-}
-
 /**
  * A `PrefixSet` represents a set of dot-separated keys together with all of
  * their dot-segment prefixes. For the input `["a.b.c"]` it contains
@@ -65,6 +54,10 @@ export function offsetToPosition(source: string, offset: number): { line: number
     line: lines.length,
     column: (lines[lines.length - 1]?.length ?? 0) + 1,
   }
+}
+
+export function writeLine(writer: { write(s: string): void }, line: string = ""): void {
+  writer.write(`${line}\n`)
 }
 
 export function formatFilePath(filePath: string, line?: number, column?: number) {

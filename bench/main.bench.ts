@@ -1,9 +1,9 @@
 import { copyFile, mkdir, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { runMain } from "citty"
-import { afterAll, beforeAll, bench, vi } from "vitest"
-import { mainCommand } from "../src/command/main.ts"
+import { run, type StricliProcess } from "@stricli/core"
+import { afterAll, beforeAll, bench } from "vitest"
+import { app } from "../src/app.ts"
 
 const FIXTURES = "bench/fixtures"
 const LOCALE_PATTERN = "locales/*.json"
@@ -49,23 +49,21 @@ async function generateProject(srcDirs: number, locales: number) {
   )
 }
 
-async function run() {
-  await runMain(mainCommand, {
-    rawArgs: [tmpBase, "--localePattern", LOCALE_PATTERN, "--srcPattern", SRC_PATTERN],
-  })
+async function runLint() {
+  const noopProcess: StricliProcess = {
+    stdout: { write() {} },
+    stderr: { write() {} },
+  }
+
+  await run(app, [tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN], { process: noopProcess })
 }
 
 beforeAll(async () => {
   await generateProject(1000, 20)
-
-  vi.spyOn(console, "log").mockImplementation(() => {})
-  vi.spyOn(process, "exit").mockImplementation(vi.fn<(code?: number | string | null) => never>())
 })
 
 afterAll(async () => {
   await rm(tmpBase, { recursive: true, force: true })
-
-  vi.restoreAllMocks()
 })
 
-bench("Large project", run)
+bench("Large project", runLint)

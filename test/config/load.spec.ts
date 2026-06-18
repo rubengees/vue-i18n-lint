@@ -37,7 +37,7 @@ describe("loadVueI18nLintConfig", () => {
         path: resolve(FIXTURES, "js"),
         localePattern: "cli/**/*.json",
         srcPattern: "src/**/*.ts",
-        ignorePatterns: "cli/**",
+        ignorePatterns: ["cli/**"],
       })
 
       expect(config.localePattern).toStrictEqual("cli/**/*.json")
@@ -52,38 +52,38 @@ describe("loadVueI18nLintConfig", () => {
       expect(config.ignorePatterns).toStrictEqual(["custom/node_modules/**"])
     })
 
-    test("parses comma-separated cli ignorePatterns, trims whitespace and drops empty entries", async () => {
+    test("accepts ignorePatterns", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "no-config"),
-        ignorePatterns: " a/** ,, b/** ",
+        ignorePatterns: ["a/**", "b/**"],
       })
 
       expect(config.ignorePatterns).toStrictEqual(["a/**", "b/**"])
     })
 
-    test("parses comma-separated cli ignoreKeys", async () => {
+    test("accepts ignoreKeys", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "no-config"),
-        ignoreKeys: "foo, bar",
+        ignoreKeys: ["foo", "bar"],
       })
 
       expect(config.ignoreKeys).toStrictEqual(["foo", "bar"])
     })
 
-    test("parses comma-separated cli ignoreMissingKeys into checks.missingKeys.ignore", async () => {
+    test("accepts ignoreMissingKeys into checks.missingKeys.ignore", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "no-config"),
-        ignoreMissingKeys: "foo, bar",
+        ignoreMissingKeys: ["foo", "bar"],
       })
 
       expect(config.checks.missingKeys.ignore).toStrictEqual(["foo", "bar"])
       expect(config.checks.unusedKeys.ignore).toStrictEqual([])
     })
 
-    test("parses comma-separated cli ignoreUnusedKeys into checks.unusedKeys.ignore", async () => {
+    test("accepts ignoreUnusedKeys into checks.unusedKeys.ignore", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "no-config"),
-        ignoreUnusedKeys: "foo, bar",
+        ignoreUnusedKeys: ["foo", "bar"],
       })
 
       expect(config.checks.missingKeys.ignore).toStrictEqual([])
@@ -93,8 +93,8 @@ describe("loadVueI18nLintConfig", () => {
     test("cli ignoreMissingKeys and ignoreUnusedKeys can be set independently", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "no-config"),
-        ignoreMissingKeys: "missing.key",
-        ignoreUnusedKeys: "unused.key",
+        ignoreMissingKeys: ["missing.key"],
+        ignoreUnusedKeys: ["unused.key"],
       })
 
       expect(config.checks.missingKeys.ignore).toStrictEqual(["missing.key"])
@@ -104,7 +104,7 @@ describe("loadVueI18nLintConfig", () => {
     test("cli checks override file config checks, non-overridden checks are preserved", async () => {
       const config = await loadVueI18nLintConfig({
         path: resolve(FIXTURES, "js"),
-        ignoreMissingKeys: "cli.key",
+        ignoreMissingKeys: ["cli.key"],
       })
 
       expect(config.checks.missingKeys.ignore).toStrictEqual(["cli.key"])

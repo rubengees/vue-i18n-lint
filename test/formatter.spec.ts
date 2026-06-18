@@ -1,53 +1,48 @@
 import { resolve } from "node:path"
-import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { expect, test } from "vitest"
 import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../src/formatter.ts"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "../src/types.ts"
-import { expectLogged } from "./helpers.ts"
-
-beforeEach(() => {
-  vi.spyOn(console, "log").mockImplementation(() => {})
-  vi.spyOn(console, "error").mockImplementation(() => {})
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
+import { buildTestProcess, expectStdoutContains } from "./helpers.ts"
 
 const location = { start: { line: 1, column: 1 }, end: { line: 1, column: 4 } }
 
 test("outputMissingKeys prints key location and code frame", () => {
   const file = resolve("test/fixtures/ts/script.ts")
   const key: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location }] }
+  const testProcess = buildTestProcess()
 
-  outputMissingKeys([key])
+  outputMissingKeys(testProcess, [key])
 
-  expectLogged("Missing keys (1)")
-  expectLogged("script.ts")
+  expectStdoutContains(testProcess, "Missing keys (1)")
+  expectStdoutContains(testProcess, "script.ts")
 })
 
 test("outputMissingKeys still prints location when source file cannot be read", () => {
   const file = resolve("test/fixtures/does-not-exist.ts")
   const key: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location }] }
+  const testProcess = buildTestProcess()
 
-  expect(() => outputMissingKeys([key])).not.toThrow()
-  expectLogged("Missing keys (1)")
-  expectLogged("does-not-exist.ts")
+  expect(() => outputMissingKeys(testProcess, [key])).not.toThrow()
+  expectStdoutContains(testProcess, "Missing keys (1)")
+  expectStdoutContains(testProcess, "does-not-exist.ts")
 })
 
 test("outputUnusedKeys prints a table of unused keys", () => {
   const key: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
+  const testProcess = buildTestProcess()
 
-  outputUnusedKeys([key])
+  outputUnusedKeys(testProcess, [key])
 
-  expectLogged("Unused keys (1)")
-  expectLogged("old.key")
+  expectStdoutContains(testProcess, "Unused keys (1)")
+  expectStdoutContains(testProcess, "old.key")
 })
 
 test("outputTypeWarnings prints warnings grouped by file", () => {
   const warning: LocaleTypeWarning = { key: "count", locale: "en", file: "en.json", type: "number" }
+  const testProcess = buildTestProcess()
 
-  outputTypeWarnings([warning])
+  outputTypeWarnings(testProcess, [warning])
 
-  expectLogged("Warnings (1)")
-  expectLogged("count")
+  expectStdoutContains(testProcess, "Warnings (1)")
+  expectStdoutContains(testProcess, "count")
 })

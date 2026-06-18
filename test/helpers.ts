@@ -1,32 +1,53 @@
 import { stripVTControlCharacters } from "node:util"
-import { expect, vi } from "vitest"
+import { run, type StricliProcess } from "@stricli/core"
+import { expect } from "vitest"
+import { app } from "../src/app.ts"
 
-export function expectLogged(text: string) {
-  const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args.join(" ")))
+export type TestProcess = StricliProcess & {
+  readonly getStdout: () => string
+  readonly getStderr: () => string
+}
 
-  if (lines.length === 1) {
-    expect(lines[0]).toContain(text)
-  } else {
-    expect(lines).toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
+export async function runTest(args: string[]) {
+  const testProcess = buildTestProcess()
+
+  await run(app, args, { process: testProcess })
+
+  return testProcess
+}
+
+export function buildTestProcess(): TestProcess {
+  const stdoutChunks: string[] = []
+  const stderrChunks: string[] = []
+
+  return {
+    stdout: {
+      write(s: string) {
+        stdoutChunks.push(s)
+      },
+    },
+    stderr: {
+      write(s: string) {
+        stderrChunks.push(s)
+      },
+    },
+    getStdout() {
+      return stripVTControlCharacters(stdoutChunks.join(""))
+    },
+    getStderr() {
+      return stripVTControlCharacters(stderrChunks.join(""))
+    },
   }
 }
 
-export function expectNotLogged(text: string) {
-  const lines = vi.mocked(console.log).mock.calls.map((args) => stripVTControlCharacters(args.join(" ")))
-
-  if (lines.length === 1) {
-    expect(lines[0]).not.toContain(text)
-  } else {
-    expect(lines).not.toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
-  }
+export function expectStdoutContains(testProcess: TestProcess, text: string): void {
+  expect(testProcess.getStdout()).toContain(text)
 }
 
-export function expectErrorLogged(text: string) {
-  const lines = vi.mocked(console.error).mock.calls.map((args) => stripVTControlCharacters(args.join(" ")))
+export function expectStdoutNotContains(testProcess: TestProcess, text: string): void {
+  expect(testProcess.getStdout()).not.toContain(text)
+}
 
-  if (lines.length === 1) {
-    expect(lines[0]).toContain(text)
-  } else {
-    expect(lines).toStrictEqual(expect.arrayContaining([expect.stringContaining(text)]))
-  }
+export function expectStderrContains(testProcess: TestProcess, text: string): void {
+  expect(testProcess.getStderr()).toContain(text)
 }
