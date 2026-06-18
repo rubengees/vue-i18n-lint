@@ -7,14 +7,16 @@ import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
 import { formatErrorMessage } from "../error.ts"
 import { filterResults } from "../filter.ts"
-import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
+import { outputJson, outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
 
+type Format = "text" | "json"
 type Severity = "error" | "warning" | "off"
 
 type Flags = {
+  readonly format?: Format
   readonly localePattern?: string
   readonly srcPattern?: string
   readonly ignorePatterns?: readonly string[]
@@ -62,23 +64,27 @@ export const lintCommand = buildCommand({
     const missingSeverity = config.checks.missingKeys.severity
     const unusedSeverity = config.checks.unusedKeys.severity
 
-    if (parseErrors > 0) writeLine(this.process.stdout)
-    if (typeWarnings.length > 0) outputTypeWarnings(this.process, typeWarnings)
-    if (missing.length > 0 && missingSeverity !== "off") outputMissingKeys(this.process, missing)
-    if (unused.length > 0 && unusedSeverity !== "off") outputUnusedKeys(this.process, unused)
+    if (config.format === "json") {
+      outputJson(this.process, { missing, unused })
+    } else {
+      if (parseErrors > 0) writeLine(this.process.stdout)
+      if (typeWarnings.length > 0) outputTypeWarnings(this.process, typeWarnings)
+      if (missing.length > 0 && missingSeverity !== "off") outputMissingKeys(this.process, missing)
+      if (unused.length > 0 && unusedSeverity !== "off") outputUnusedKeys(this.process, unused)
 
-    writeLine(
-      this.process.stdout,
-      `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
-    )
+      writeLine(
+        this.process.stdout,
+        `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
+      )
 
-    const errorSummary =
-      parseErrors > 0 ? ` (${parseErrors} file${parseErrors === 1 ? "" : "s"} skipped due to errors)` : ""
+      const errorSummary =
+        parseErrors > 0 ? ` (${parseErrors} file${parseErrors === 1 ? "" : "s"} skipped due to errors)` : ""
 
-    writeLine(
-      this.process.stdout,
-      `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
-    )
+      writeLine(
+        this.process.stdout,
+        `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
+      )
+    }
 
     const missingIsError = missingSeverity === "error" && missing.length > 0
     const unusedIsError = unusedSeverity === "error" && unused.length > 0
@@ -89,6 +95,12 @@ export const lintCommand = buildCommand({
   },
   parameters: {
     flags: {
+      format: {
+        kind: "enum",
+        values: ["text", "json"] as const,
+        optional: true,
+        brief: "Output format",
+      },
       localePattern: {
         kind: "parsed",
         parse: String,

@@ -5,6 +5,7 @@ import { configSchema } from "./schema.ts"
 
 type CliArgs = {
   path?: string | undefined
+  format?: string | undefined
   localePattern?: string | undefined
   srcPattern?: string | undefined
   ignorePatterns?: readonly string[] | undefined
@@ -33,6 +34,7 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
 function buildCliConfig(path: string, cliArgs?: CliArgs) {
   return {
     path,
+    format: cliArgs?.format,
     localePattern: cliArgs?.localePattern,
     srcPattern: cliArgs?.srcPattern,
     ignorePatterns: cliArgs?.ignorePatterns,

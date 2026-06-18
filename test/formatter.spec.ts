@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { expect, test } from "vitest"
-import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../src/formatter.ts"
+import { outputJson, outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../src/formatter.ts"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "../src/types.ts"
 import { buildTestProcess, expectStdoutContains } from "./helpers.ts"
 
@@ -45,4 +45,31 @@ test("outputTypeWarnings prints warnings grouped by file", () => {
 
   expectStdoutContains(testProcess, "Warnings (1)")
   expectStdoutContains(testProcess, "count")
+})
+
+test("outputJson prints machine-readable JSON", () => {
+  const testProcess = buildTestProcess()
+  const file = resolve("test/fixtures/ts/script.ts")
+  const loc = { start: { line: 1, column: 1 }, end: { line: 1, column: 4 } }
+  const missing: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location: loc }] }
+  const unused: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
+
+  outputJson(testProcess, { missing: [missing], unused: [unused] })
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output).toStrictEqual({
+    missingKeys: [{ key: "a", locales: ["de"], sources: [{ file, location: loc }] }],
+    unusedKeys: [{ key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }],
+  })
+})
+
+test("outputJson handles empty results", () => {
+  const testProcess = buildTestProcess()
+
+  outputJson(testProcess, { missing: [], unused: [] })
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output).toStrictEqual({ missingKeys: [], unusedKeys: [] })
 })

@@ -79,3 +79,7 @@ export function outputUnusedKeys(process: StricliProcess, keys: UnusedKey[]): vo
 
   writeLine(process.stdout, table([["Key", "Locales"], ...rows], config))
 }
+
+export function outputJson(process: StricliProcess, result: { missing: MissingKey[]; unused: UnusedKey[] }): void {
+  writeLine(process.stdout, JSON.stringify({ missingKeys: result.missing, unusedKeys: result.unused }, null, 2))
+}

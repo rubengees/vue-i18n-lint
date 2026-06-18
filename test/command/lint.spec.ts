@@ -286,6 +286,63 @@ test("reports a dynamic key as missing and does not report dynamically-covered l
   expect(testProcess.exitCode).toStrictEqual(1)
 })
 
+test("--format json outputs machine-readable JSON for missing keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "missing-keys"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "json",
+  ])
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output.missingKeys).toHaveLength(1)
+  expect(output.missingKeys[0]?.key).toStrictEqual("missing.key")
+  expect(output.missingKeys[0]?.locales).toContain("en")
+  expect(output.unusedKeys).toHaveLength(0)
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--format json outputs machine-readable JSON for unused keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "unused-keys"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "json",
+  ])
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output.missingKeys).toHaveLength(0)
+  expect(output.unusedKeys).toHaveLength(1)
+  expect(output.unusedKeys[0]?.key).toStrictEqual("unused")
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--format json with no issues", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "all-keys-present"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "json",
+  ])
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output.missingKeys).toHaveLength(0)
+  expect(output.unusedKeys).toHaveLength(0)
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
 test("--ignore-keys suppresses a dynamic missing key by its placeholder string", async () => {
   const testProcess = await runTest([
     resolve(FIXTURES, "dynamic-keys"),
