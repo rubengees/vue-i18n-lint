@@ -4,4 +4,7 @@
   <span v-t="'valid'"></span>
   <span v-t="['invalid']"></span>
   <span v-t="{ invalid: true }"></span>
+  <span v-t></span>
+  <span v-t=""></span>
+  <span v-t="  "></span>
 </template>

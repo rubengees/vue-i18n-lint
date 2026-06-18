@@ -84,6 +84,12 @@ test("template literal with only an expression is ignored", () => {
   expect(collectJsKeys(program)).toStrictEqual([])
 })
 
+test("empty template literal is ignored", () => {
+  const program = parseSync("script.ts", "t(``)").program
+
+  expect(collectJsKeys(program)).toStrictEqual([])
+})
+
 test("template literal with multiple expressions returns a dynamic key", () => {
   const program = parseSync("script.ts", "t(`a.${x}.${y}.c`)").program
 

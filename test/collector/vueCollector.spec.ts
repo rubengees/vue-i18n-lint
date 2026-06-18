@@ -57,3 +57,17 @@ test("ignores invalid v-t declarations", () => {
 
   expect(result).toStrictEqual([{ key: "valid", start: 78, end: 83 }])
 })
+
+test("handles non-v-t directive without expression, empty interpolation, and extra i18n-t attributes", () => {
+  const content = readFileSync("test/fixtures/vue/template-edge-cases.vue", { encoding: "utf-8" })
+  const parseResult = parse(content, {
+    filename: "template-edge-cases.vue",
+    templateParseOptions: { prefixIdentifiers: false },
+  })
+
+  const templateAst = parseResult.descriptor.template?.ast
+
+  const result = collectVueKeys("template-edge-cases.vue", templateAst!, { fileSource: content })
+
+  expect(result).toStrictEqual([{ key: "title", start: 107, end: 112 }])
+})

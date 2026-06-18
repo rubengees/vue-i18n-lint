@@ -435,6 +435,17 @@ test("a dynamic key covers local <i18n> keys (neither missing nor unused)", () =
   expect(processFiles([], [srcFile])).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
 })
 
+test("duplicate dynamic key patterns across source files are deduplicated", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["status.active", "status.inactive"])]
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART], "src/a.ts")])
+  const srcFile2 = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART], "src/b.ts")])
+
+  const result = processFiles(localeFiles, [srcFile, srcFile2])
+
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([])
+})
+
 function localeFile(file: string, keys: string[]): LocaleFile {
   return { locale: basename(file, ".json"), file, keys: keys.map((key) => ({ key, type: "string" })), scope: "global" }
 }

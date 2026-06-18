@@ -4,6 +4,7 @@
 
 <i18n lang="json">
 {
+  "en": null,
   "de": {
     "array": [1, 2, 3]
   }

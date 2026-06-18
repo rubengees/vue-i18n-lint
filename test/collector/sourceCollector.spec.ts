@@ -154,8 +154,8 @@ test("finds keys in a vue file with only <i18n-t>", async () => {
   const { keys, localeFiles } = await collectSourceFile(filePath)
 
   expect(keys).toStrictEqual([
-    { key: "a", file: filePath, location: { start: { line: 2, column: 20 }, end: { line: 2, column: 21 } } },
-    { key: "b", file: filePath, location: { start: { line: 3, column: 17 }, end: { line: 3, column: 18 } } },
+    { key: "a", file: filePath, location: { start: { line: 2, column: 30 }, end: { line: 2, column: 31 } } },
+    { key: "b", file: filePath, location: { start: { line: 3, column: 24 }, end: { line: 3, column: 25 } } },
   ])
 
   expect(localeFiles).toStrictEqual([])
@@ -230,6 +230,7 @@ test("collects <i18n> block with non-string value types", async () => {
   const { localeFiles } = await collectSourceFile(filePath)
 
   expect(localeFiles).toStrictEqual([
+    { locale: "en", file: filePath, keys: [], scope: "local" },
     {
       locale: "de",
       file: filePath,

@@ -5,13 +5,12 @@ import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import { formatErrorMessage, ParseError } from "../error.ts"
+import { formatErrorMessage } from "../error.ts"
 import { filterResults } from "../filter.ts"
 import { outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
-import { formatFilePath } from "../utils.ts"
 
 type Severity = "error" | "warning" | "off"
 
@@ -168,12 +167,7 @@ async function collectFile<T>(
   try {
     return await collect(file)
   } catch (e) {
-    if (e instanceof ParseError) {
-      writeLine(process.stderr, `Failed to process: ${formatErrorMessage(e)}`)
-    } else {
-      writeLine(process.stderr, `Failed to process ${formatFilePath(file)}: ${formatErrorMessage(e)}`)
-    }
-
+    writeLine(process.stderr, `Failed to process: ${formatErrorMessage(e)}`)
     return null
   }
 }

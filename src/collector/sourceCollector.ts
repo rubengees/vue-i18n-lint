@@ -39,16 +39,8 @@ function collectFromVue(source: string, file: string): SourceFile {
 
   if (errors.length > 0 && !descriptor.template && !descriptor.script && !descriptor.scriptSetup) {
     const messages = errors.map((e) => `  • ${e.message}`).join("\n")
-    const firstError = errors[0]!
 
-    if ("loc" in firstError) {
-      const line = firstError.loc?.start.line
-      const column = firstError.loc?.start.column != null ? firstError.loc.start.column + 1 : undefined
-
-      throw new ParseError(`Failed to parse Vue file:\n${messages}`, file, { line, column })
-    } else {
-      throw new ParseError(`Failed to parse Vue file:\n${messages}`, file)
-    }
+    throw new ParseError(`Failed to parse Vue file:\n${messages}`, file)
   }
 
   const rawKeys: SourceKey[] = []
