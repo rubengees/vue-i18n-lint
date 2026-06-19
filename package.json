@@ -45,7 +45,7 @@
     "defu": "^6.1.7",
     "globby": "^16.2.0",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.134.0",
+    "oxc-parser": "^0.136.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -53,20 +53,20 @@
   "devDependencies": {
     "@tsconfig/node22": "22.0.5",
     "@types/babel__code-frame": "7.27.0",
-    "@types/node": "22.19.19",
+    "@types/node": "22.19.21",
     "@types/regexp.escape": "^2.0.0",
-    "@typescript/native-preview": "7.0.0-dev.20260606.1",
+    "@typescript/native-preview": "7.0.0-dev.20260616.1",
     "@vitest/coverage-v8": "4.1.9",
     "husky": "9.1.7",
     "lint-staged": "17.0.7",
-    "oxfmt": "0.53.0",
-    "oxlint": "1.68.0",
+    "oxfmt": "0.55.0",
+    "oxlint": "1.70.0",
     "oxlint-tsgolint": "0.23.0",
-    "tsdown": "0.22.2",
-    "vitest": "4.1.8"
+    "tsdown": "0.22.3",
+    "vitest": "4.1.9"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+  "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620"
 }
