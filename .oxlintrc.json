@@ -12,7 +12,11 @@
   },
   "rules": {
     "typescript/consistent-type-imports": "error",
-    "vitest/prefer-strict-equal": "error"
+    "vitest/prefer-strict-equal": "error",
+    "vitest/expect-expect": [
+      "error",
+      { "assertFunctionNames": ["expect", "expectStdoutContains", "expectStdoutNotContains", "expectStderrContains"] }
+    ]
   },
   "overrides": [
     {

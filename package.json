@@ -30,22 +30,22 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "check": "tsgo --noEmit",
+    "check": "tsc --noEmit",
     "test": "vitest run",
     "bench": "vitest --run bench",
     "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test"
   },
   "dependencies": {
-    "@babel/code-frame": "^7.29.7",
-    "@stricli/core": "^1.2.7",
-    "@vue/compiler-core": "^3.5.35",
-    "@vue/compiler-sfc": "^3.5.35",
+    "@babel/code-frame": "^8.0.0",
+    "@stricli/core": "^1.2.8",
+    "@vue/compiler-core": "^3.5.38",
+    "@vue/compiler-sfc": "^3.5.38",
     "c12": "4.0.0-beta.5",
     "confbox": "^0.2.4",
     "defu": "^6.1.7",
     "globby": "^16.2.0",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.134.0",
+    "oxc-parser": "^0.137.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -53,20 +53,20 @@
   "devDependencies": {
     "@tsconfig/node22": "22.0.5",
     "@types/babel__code-frame": "7.27.0",
-    "@types/node": "22.19.19",
+    "@types/node": "22.19.21",
     "@types/regexp.escape": "^2.0.0",
-    "@typescript/native-preview": "7.0.0-dev.20260606.1",
     "@vitest/coverage-v8": "4.1.9",
     "husky": "9.1.7",
     "lint-staged": "17.0.7",
-    "oxfmt": "0.53.0",
-    "oxlint": "1.68.0",
+    "oxfmt": "0.55.0",
+    "oxlint": "1.70.0",
     "oxlint-tsgolint": "0.23.0",
-    "tsdown": "0.22.2",
-    "vitest": "4.1.8"
+    "tsdown": "0.22.3",
+    "typescript": "7.0.1-rc",
+    "vitest": "4.1.9"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+  "packageManager": "pnpm@11.8.0+sha512.c1f5e7c4cb241c8f174b743851d82f42b802324afc8b0f116b96adb15aa06664948dde36960a3ba1079ba5b4b29dd0140135b94b5b5f5263592249d68e555f26"
 }
