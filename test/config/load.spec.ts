@@ -31,6 +31,15 @@ describe("loadVueI18nLintConfig", () => {
     })
   })
 
+  describe("transform", () => {
+    test("allows false for checks and transforms config", async () => {
+      const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "checks-false") })
+
+      expect(config.checks.missingKeys.severity).toStrictEqual("off")
+      expect(config.checks.unusedKeys.severity).toStrictEqual("off")
+    })
+  })
+
   describe("cli overrides", () => {
     test("cli params override config file values", async () => {
       const config = await loadVueI18nLintConfig({

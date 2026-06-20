@@ -4,6 +4,17 @@ const severityEnum = z.enum(["error", "warning", "off"])
 
 export const formatEnum = z.enum(["text", "json"])
 
+const checkSchema = (defaultSeverity: z.infer<typeof severityEnum>) =>
+  z
+    .union([
+      z.object({
+        severity: severityEnum.default(defaultSeverity),
+        ignore: z.array(z.string().nonempty()).default([]),
+      }),
+      z.literal(false).transform(() => ({ severity: "off" as const, ignore: [] as string[] })),
+    ])
+    .default({ severity: defaultSeverity, ignore: [] })
+
 export const configSchema = z.object({
   path: z.string().nonempty(),
   format: formatEnum.default("text"),
@@ -13,18 +24,8 @@ export const configSchema = z.object({
   ignoreKeys: z.array(z.string().nonempty()).default([]),
   checks: z
     .object({
-      missingKeys: z
-        .object({
-          severity: severityEnum.default("error"),
-          ignore: z.array(z.string().nonempty()).default([]),
-        })
-        .default({ severity: "error", ignore: [] }),
-      unusedKeys: z
-        .object({
-          severity: severityEnum.default("warning"),
-          ignore: z.array(z.string().nonempty()).default([]),
-        })
-        .default({ severity: "warning", ignore: [] }),
+      missingKeys: checkSchema("error"),
+      unusedKeys: checkSchema("warning"),
     })
     .default({
       missingKeys: { severity: "error", ignore: [] },

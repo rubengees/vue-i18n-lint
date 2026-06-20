@@ -20,15 +20,20 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   const path = cliArgs?.path || process.cwd()
 
   const cliConfig = buildCliConfig(path, cliArgs)
-  const fileConfig = (await loadFileConfig(path)) ?? {}
 
-  const result = configSchema.safeParse(merge(cliConfig, fileConfig))
-
-  if (!result.success) {
-    throw new Error(`Failed to load config:\n${z.prettifyError(result.error)}`)
+  const rawFileConfig = (await loadFileConfig(path)) ?? {}
+  const parsedFileConfig = configSchema.safeParse({ path, ...rawFileConfig })
+  if (!parsedFileConfig.success) {
+    throw new Error(`Failed to load config:\n${z.prettifyError(parsedFileConfig.error)}`)
   }
 
-  return result.data
+  const mergedConfig = merge(cliConfig, parsedFileConfig.data)
+  const parsedMergedConfig = configSchema.safeParse(mergedConfig)
+  if (!parsedMergedConfig.success) {
+    throw new Error(`Failed to load config:\n${z.prettifyError(parsedMergedConfig.error)}`)
+  }
+
+  return parsedMergedConfig.data
 }
 
 function buildCliConfig(path: string, cliArgs?: CliArgs) {
