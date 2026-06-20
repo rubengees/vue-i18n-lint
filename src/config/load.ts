@@ -1,20 +1,7 @@
 import { loadConfig } from "c12"
 import { z } from "zod"
 import { merge } from "../utils.ts"
-import { configSchema } from "./schema.ts"
-
-type CliArgs = {
-  path?: string | undefined
-  format?: string | undefined
-  localePattern?: string | undefined
-  srcPattern?: string | undefined
-  ignorePatterns?: readonly string[] | undefined
-  ignoreKeys?: readonly string[] | undefined
-  ignoreMissingKeys?: readonly string[] | undefined
-  ignoreUnusedKeys?: readonly string[] | undefined
-  missingKeysSeverity?: string | undefined
-  unusedKeysSeverity?: string | undefined
-}
+import { configSchema, type CliArgs, type ConfigInput } from "./schema.ts"
 
 export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   const path = cliArgs?.path || process.cwd()
@@ -36,7 +23,7 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
   return parsedMergedConfig.data
 }
 
-function buildCliConfig(path: string, cliArgs?: CliArgs) {
+function buildCliConfig(path: string, cliArgs?: CliArgs): ConfigInput {
   return {
     path,
     format: cliArgs?.format,

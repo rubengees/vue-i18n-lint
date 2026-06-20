@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
 import { describe, expect, test } from "vitest"
 import { loadVueI18nLintConfig } from "../../src/config/load.ts"
+import type { CliArgs } from "../../src/config/schema.ts"
 
 const FIXTURES = resolve("test/fixtures/config")
 
@@ -130,6 +131,45 @@ describe("loadVueI18nLintConfig", () => {
 
     test("throws when cli srcPattern is empty", async () => {
       await expect(loadVueI18nLintConfig({ srcPattern: "" })).rejects.toThrow(/Failed to load config[\s\S]*srcPattern/)
+    })
+
+    test("throws when cli ignoreKeys contains an empty string", async () => {
+      await expect(loadVueI18nLintConfig({ ignoreKeys: [""] })).rejects.toThrow(
+        /Failed to load config[\s\S]*ignoreKeys/,
+      )
+    })
+
+    test("throws when cli ignoreMissingKeys contains an empty string", async () => {
+      await expect(loadVueI18nLintConfig({ ignoreMissingKeys: [""] })).rejects.toThrow(
+        /Failed to load config[\s\S]*missingKeys.*ignore/,
+      )
+    })
+
+    test("throws when cli ignoreUnusedKeys contains an empty string", async () => {
+      await expect(loadVueI18nLintConfig({ ignoreUnusedKeys: [""] })).rejects.toThrow(
+        /Failed to load config[\s\S]*unusedKeys.*ignore/,
+      )
+    })
+
+    test("throws when cli missingKeysSeverity is invalid", async () => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const invalidArgs = { missingKeysSeverity: "invalid" } as unknown as CliArgs
+
+      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*missingKeys/)
+    })
+
+    test("throws when cli unusedKeysSeverity is invalid", async () => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const invalidArgs = { unusedKeysSeverity: "invalid" } as unknown as CliArgs
+
+      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*unusedKeys/)
+    })
+
+    test("throws when cli format is invalid", async () => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const invalidArgs = { format: "xml" } as unknown as CliArgs
+
+      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*format/)
     })
 
     test("throws when config file has an empty string in ignorePatterns", async () => {

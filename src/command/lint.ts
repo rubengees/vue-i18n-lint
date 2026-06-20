@@ -5,6 +5,7 @@ import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
+import { formatEnum, severityEnum, type CliArgs } from "../config/schema.ts"
 import { formatErrorMessage } from "../error.ts"
 import { filterResults } from "../filter.ts"
 import { outputJson, outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
@@ -12,20 +13,7 @@ import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
 
-type Format = "text" | "json"
-type Severity = "error" | "warning" | "off"
-
-type Flags = {
-  readonly format?: Format
-  readonly localePattern?: string
-  readonly srcPattern?: string
-  readonly ignorePatterns?: readonly string[]
-  readonly ignoreKeys?: readonly string[]
-  readonly ignoreMissingKeys?: readonly string[]
-  readonly ignoreUnusedKeys?: readonly string[]
-  readonly missingKeysSeverity?: Severity
-  readonly unusedKeysSeverity?: Severity
-}
+type Flags = Omit<CliArgs, "path">
 
 export const lintCommand = buildCommand({
   async func(this: ApplicationContext, flags: Flags, path?: string) {
@@ -95,24 +83,9 @@ export const lintCommand = buildCommand({
   },
   parameters: {
     flags: {
-      format: {
-        kind: "enum",
-        values: ["text", "json"] as const,
-        optional: true,
-        brief: "Output format",
-      },
-      localePattern: {
-        kind: "parsed",
-        parse: String,
-        optional: true,
-        brief: "Glob pattern for i18n locale files",
-      },
-      srcPattern: {
-        kind: "parsed",
-        parse: String,
-        optional: true,
-        brief: "Glob pattern for source files",
-      },
+      format: { kind: "enum", values: formatEnum.options, optional: true, brief: "Output format" },
+      localePattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for i18n locale files" },
+      srcPattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for source files" },
       ignorePatterns: {
         kind: "parsed",
         parse: String,
@@ -143,15 +116,15 @@ export const lintCommand = buildCommand({
       },
       missingKeysSeverity: {
         kind: "enum",
-        values: ["error", "warning", "off"] as const,
+        values: severityEnum.options,
         optional: true,
-        brief: "Severity for missing keys: error, warning, or off",
+        brief: "Severity for missing keys",
       },
       unusedKeysSeverity: {
         kind: "enum",
-        values: ["error", "warning", "off"] as const,
+        values: severityEnum.options,
         optional: true,
-        brief: "Severity for unused keys: error, warning, or off",
+        brief: "Severity for unused keys",
       },
     },
     positional: {

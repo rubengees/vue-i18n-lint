@@ -1,7 +1,6 @@
 import { z } from "zod"
 
-const severityEnum = z.enum(["error", "warning", "off"])
-
+export const severityEnum = z.enum(["error", "warning", "off"])
 export const formatEnum = z.enum(["text", "json"])
 
 const checkSchema = (defaultSeverity: z.infer<typeof severityEnum>) =>
@@ -32,3 +31,19 @@ export const configSchema = z.object({
       unusedKeys: { severity: "warning", ignore: [] },
     }),
 })
+
+export const cliArgsSchema = z.object({
+  path: z.string().optional(),
+  format: formatEnum.optional(),
+  localePattern: z.string().optional(),
+  srcPattern: z.string().optional(),
+  ignorePatterns: z.array(z.string()).optional(),
+  ignoreKeys: z.array(z.string()).optional(),
+  ignoreMissingKeys: z.array(z.string()).optional(),
+  ignoreUnusedKeys: z.array(z.string()).optional(),
+  missingKeysSeverity: severityEnum.optional(),
+  unusedKeysSeverity: severityEnum.optional(),
+})
+
+export type CliArgs = z.input<typeof cliArgsSchema>
+export type ConfigInput = z.input<typeof configSchema>
