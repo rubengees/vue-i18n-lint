@@ -17,6 +17,9 @@ importers:
       '@stricli/core':
         specifier: ^1.2.8
         version: 1.2.8
+      '@toon-format/toon':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@vue/compiler-core':
         specifier: ^3.5.38
         version: 3.5.38
@@ -803,6 +806,9 @@ packages:
 
   '@stricli/core@1.2.8':
     resolution: {integrity: sha512-zqEZu9x+UAAZrzQlfD/iDXIyb6Y3560MzfvFpNfWXJdZuJ0SSxGOGse+0P/5kwlufsSXQF8Wn5jK1NZF4vcqnw==}
+
+  '@toon-format/toon@2.3.0':
+    resolution: {integrity: sha512-/Ew9etdRQKVMnm9fDaCG0JjyAOK/O7T0M97oum1aW4W+UR8ZhVVPBanIV7oWgHBiGlnVxV9M55PWQCHofDV07w==}
 
   '@tsconfig/node22@22.0.5':
     resolution: {integrity: sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw==}
@@ -2610,6 +2616,8 @@ snapshots:
   '@standard-schema/spec@1.1.0': {}
 
   '@stricli/core@1.2.8': {}
+
+  '@toon-format/toon@2.3.0': {}
 
   '@tsconfig/node22@22.0.5': {}
 

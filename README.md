@@ -86,6 +86,7 @@ vue-i18n-lint [options] [path]
 
 | Option                    | Description                                                   | Default                            |
 | ------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| `--format`                | Output format: `text`, `json`, or `toon`                      | `text`                             |
 | `--locale-pattern`        | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
 | `--src-pattern`           | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
 | `--ignore-patterns`       | Comma-separated glob patterns to ignore                       |                                    |

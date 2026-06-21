@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import { styleText } from "node:util"
 import { codeFrameColumns } from "@babel/code-frame"
 import type { StricliProcess } from "@stricli/core"
+import { encode } from "@toon-format/toon"
 import { table, type TableUserConfig } from "table"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "./types.ts"
 import { formatFilePath, writeLine } from "./utils.ts"
@@ -82,4 +83,8 @@ export function outputUnusedKeys(process: StricliProcess, keys: UnusedKey[]): vo
 
 export function outputJson(process: StricliProcess, result: { missing: MissingKey[]; unused: UnusedKey[] }): void {
   writeLine(process.stdout, JSON.stringify({ missingKeys: result.missing, unusedKeys: result.unused }, null, 2))
+}
+
+export function outputToon(process: StricliProcess, result: { missing: MissingKey[]; unused: UnusedKey[] }): void {
+  writeLine(process.stdout, encode({ missingKeys: result.missing, unusedKeys: result.unused }))
 }

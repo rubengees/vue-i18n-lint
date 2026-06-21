@@ -8,7 +8,7 @@ import { loadVueI18nLintConfig } from "../config/load.ts"
 import { formatEnum, severityEnum, type CliArgs } from "../config/schema.ts"
 import { formatErrorMessage } from "../error.ts"
 import { filterResults } from "../filter.ts"
-import { outputJson, outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
+import { outputJson, outputMissingKeys, outputToon, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
@@ -54,6 +54,8 @@ export const lintCommand = buildCommand({
 
     if (config.format === "json") {
       outputJson(this.process, { missing, unused })
+    } else if (config.format === "toon") {
+      outputToon(this.process, { missing, unused })
     } else {
       if (parseErrors > 0) writeLine(this.process.stdout)
       if (typeWarnings.length > 0) outputTypeWarnings(this.process, typeWarnings)

@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 export const severityEnum = z.enum(["error", "warning", "off"])
-export const formatEnum = z.enum(["text", "json"])
+export const formatEnum = z.enum(["text", "json", "toon"])
 
 const checkSchema = (defaultSeverity: z.infer<typeof severityEnum>) =>
   z
