@@ -4,8 +4,16 @@ import { codeFrameColumns } from "@babel/code-frame"
 import type { StricliProcess } from "@stricli/core"
 import { encode } from "@toon-format/toon"
 import { table, type TableUserConfig } from "table"
+import type { z } from "zod"
+import type { severityEnum } from "./config/schema.ts"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "./types.ts"
 import { formatFilePath, writeLine } from "./utils.ts"
+
+export function formatSummaryPart(value: number, severity: z.infer<typeof severityEnum>) {
+  const color = value === 0 ? "green" : severity === "warning" ? "yellow" : "red"
+
+  return styleText(color, String(value))
+}
 
 export function outputTypeWarnings(process: StricliProcess, warnings: LocaleTypeWarning[]): void {
   writeLine(process.stdout, styleText("bold", `Warnings (${warnings.length}):\n`))
@@ -81,10 +89,16 @@ export function outputUnusedKeys(process: StricliProcess, keys: UnusedKey[]): vo
   writeLine(process.stdout, table([["Key", "Locales"], ...rows], config))
 }
 
-export function outputJson(process: StricliProcess, result: { missing: MissingKey[]; unused: UnusedKey[] }): void {
-  writeLine(process.stdout, JSON.stringify({ missingKeys: result.missing, unusedKeys: result.unused }, null, 2))
+export function outputJson(
+  process: StricliProcess,
+  data: { missingKeys: MissingKey[] | undefined; unusedKeys: UnusedKey[] | undefined },
+): void {
+  writeLine(process.stdout, JSON.stringify(data, null, 2))
 }
 
-export function outputToon(process: StricliProcess, result: { missing: MissingKey[]; unused: UnusedKey[] }): void {
-  writeLine(process.stdout, encode({ missingKeys: result.missing, unusedKeys: result.unused }))
+export function outputToon(
+  process: StricliProcess,
+  data: { missingKeys: MissingKey[] | undefined; unusedKeys: UnusedKey[] | undefined },
+): void {
+  writeLine(process.stdout, encode(data))
 }

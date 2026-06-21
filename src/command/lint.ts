@@ -1,14 +1,19 @@
 import { resolve } from "node:path"
-import { styleText } from "node:util"
 import { type ApplicationContext, buildCommand, type StricliProcess } from "@stricli/core"
 import { globby } from "globby"
 import { collectLocaleFile } from "../collector/localeCollector.ts"
 import { collectSourceFile } from "../collector/sourceCollector.ts"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import { formatEnum, severityEnum, type CliArgs } from "../config/schema.ts"
+import { type CliArgs, formatEnum, severityEnum } from "../config/schema.ts"
 import { formatErrorMessage } from "../error.ts"
-import { filterResults } from "../filter.ts"
-import { outputJson, outputMissingKeys, outputToon, outputTypeWarnings, outputUnusedKeys } from "../formatter.ts"
+import {
+  formatSummaryPart,
+  outputJson,
+  outputMissingKeys,
+  outputToon,
+  outputTypeWarnings,
+  outputUnusedKeys,
+} from "../formatter.ts"
 import { processFiles } from "../processor.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
@@ -41,31 +46,30 @@ export const lintCommand = buildCommand({
     const validSourceFiles = sourceFiles.filter((f): f is SourceFile => f != null)
     const parseErrors = localeFiles.filter((f) => f == null).length + sourceFiles.filter((f) => f == null).length
 
-    const { typeWarnings, missing, unused } = filterResults(processFiles(validLocaleFiles, validSourceFiles), {
-      ignoreKeys: config.ignoreKeys,
-      missingKeys: { ignore: config.checks.missingKeys.ignore },
-      unusedKeys: { ignore: config.checks.unusedKeys.ignore },
-    })
+    const result = processFiles(validLocaleFiles, validSourceFiles, config)
 
     const elapsed = Math.round(performance.now() - startTime)
 
     const missingSeverity = config.checks.missingKeys.severity
     const unusedSeverity = config.checks.unusedKeys.severity
 
-    if (config.format === "json") {
-      outputJson(this.process, { missing, unused })
-    } else if (config.format === "toon") {
-      outputToon(this.process, { missing, unused })
-    } else {
+    if (config.format === "text") {
       if (parseErrors > 0) writeLine(this.process.stdout)
-      if (typeWarnings.length > 0) outputTypeWarnings(this.process, typeWarnings)
-      if (missing.length > 0 && missingSeverity !== "off") outputMissingKeys(this.process, missing)
-      if (unused.length > 0 && unusedSeverity !== "off") outputUnusedKeys(this.process, unused)
+      if (result.typeWarnings.length > 0) outputTypeWarnings(this.process, result.typeWarnings)
+      if (result.missing && result.missing.length > 0) outputMissingKeys(this.process, result.missing)
+      if (result.unused && result.unused.length > 0) outputUnusedKeys(this.process, result.unused)
 
-      writeLine(
-        this.process.stdout,
-        `Found ${styleText("red", `${missing.length} missing`)} and ${styleText("yellow", `${unused.length} unused`)} keys.`,
-      )
+      const summaryParts: string[] = []
+
+      if (result.missing != null)
+        summaryParts.push(`${formatSummaryPart(result.missing.length, config.checks.missingKeys.severity)} missing`)
+
+      if (result.unused != null)
+        summaryParts.push(`${formatSummaryPart(result.unused.length, config.checks.unusedKeys.severity)} unused`)
+
+      if (summaryParts.length > 0) {
+        writeLine(this.process.stdout, `Found ${summaryParts.join(" and ")} keys.`)
+      }
 
       const errorSummary =
         parseErrors > 0 ? ` (${parseErrors} file${parseErrors === 1 ? "" : "s"} skipped due to errors)` : ""
@@ -74,10 +78,18 @@ export const lintCommand = buildCommand({
         this.process.stdout,
         `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
       )
+    } else {
+      const outputData = { missingKeys: result.missing, unusedKeys: result.unused }
+
+      if (config.format === "json") {
+        outputJson(this.process, outputData)
+      } else if (config.format === "toon") {
+        outputToon(this.process, outputData)
+      }
     }
 
-    const missingIsError = missingSeverity === "error" && missing.length > 0
-    const unusedIsError = unusedSeverity === "error" && unused.length > 0
+    const missingIsError = missingSeverity === "error" && result.missing && result.missing.length > 0
+    const unusedIsError = unusedSeverity === "error" && result.unused && result.unused.length > 0
 
     if (missingIsError || unusedIsError || parseErrors > 0) {
       this.process.exitCode = 1

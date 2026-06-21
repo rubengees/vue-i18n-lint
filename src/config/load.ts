@@ -1,9 +1,9 @@
 import { loadConfig } from "c12"
 import { z } from "zod"
 import { merge } from "../utils.ts"
-import { configSchema, type CliArgs, type ConfigInput } from "./schema.ts"
+import { configSchema, type CliArgs, type ConfigInput, type ConfigOutput } from "./schema.ts"
 
-export async function loadVueI18nLintConfig(cliArgs?: CliArgs) {
+export async function loadVueI18nLintConfig(cliArgs?: CliArgs): Promise<ConfigOutput> {
   const path = cliArgs?.path || process.cwd()
 
   const cliConfig = buildCliConfig(path, cliArgs)

@@ -51,10 +51,10 @@ test("outputJson prints machine-readable JSON", () => {
   const testProcess = buildTestProcess()
   const file = resolve("test/fixtures/ts/script.ts")
   const loc = { start: { line: 1, column: 1 }, end: { line: 1, column: 4 } }
-  const missing: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location: loc }] }
+  const missingKeys: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location: loc }] }
   const unused: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
 
-  outputJson(testProcess, { missing: [missing], unused: [unused] })
+  outputJson(testProcess, { missingKeys: [missingKeys], unusedKeys: [unused] })
 
   const output = JSON.parse(testProcess.getStdout())
 
@@ -67,7 +67,7 @@ test("outputJson prints machine-readable JSON", () => {
 test("outputJson handles empty results", () => {
   const testProcess = buildTestProcess()
 
-  outputJson(testProcess, { missing: [], unused: [] })
+  outputJson(testProcess, { missingKeys: [], unusedKeys: [] })
 
   const output = JSON.parse(testProcess.getStdout())
 

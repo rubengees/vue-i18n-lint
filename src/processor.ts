@@ -1,4 +1,5 @@
 import escape from "regexp.escape"
+import type { ConfigOutput } from "./config/schema.ts"
 import type {
   DynamicKey,
   LocaleFile,
@@ -10,12 +11,26 @@ import type {
 } from "./types.ts"
 import { getOrInsertComputed, mapGetOrInsert, newPrefixSet } from "./utils.ts"
 
-export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): ProcessResult {
-  return {
+export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[], config: ConfigOutput) {
+  const result: ProcessResult = {
     typeWarnings: calcTypeWarnings(localeFiles),
-    missing: calcMissingKeys(localeFiles, sourceFiles),
-    unused: calcUnusedKeys(localeFiles, sourceFiles),
   }
+
+  if (config.checks.missingKeys.severity !== "off") {
+    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.missingKeys.ignore ?? [])])
+    const missingKeys = calcMissingKeys(localeFiles, sourceFiles)
+
+    result.missing = missingKeys.filter((entry) => !ignoreSet.has(entry.key))
+  }
+
+  if (config.checks.unusedKeys.severity !== "off") {
+    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.unusedKeys.ignore ?? [])])
+    const unusedKeys = calcUnusedKeys(localeFiles, sourceFiles)
+
+    result.unused = unusedKeys.filter((entry) => !ignoreSet.has(entry.key))
+  }
+
+  return result
 }
 
 function calcTypeWarnings(localeFiles: LocaleFile[]): LocaleTypeWarning[] {

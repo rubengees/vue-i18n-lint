@@ -47,3 +47,4 @@ export const cliArgsSchema = z.object({
 
 export type CliArgs = z.input<typeof cliArgsSchema>
 export type ConfigInput = z.input<typeof configSchema>
+export type ConfigOutput = z.output<typeof configSchema>

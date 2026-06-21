@@ -68,6 +68,6 @@ export type LocaleTypeWarning = {
 
 export type ProcessResult = {
   typeWarnings: LocaleTypeWarning[]
-  missing: MissingKey[]
-  unused: UnusedKey[]
+  missing?: MissingKey[]
+  unused?: UnusedKey[]
 }
