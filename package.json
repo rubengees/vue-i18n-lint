@@ -55,7 +55,7 @@
     "@tsconfig/node22": "22.0.5",
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "22.19.21",
-    "@types/regexp.escape": "^2.0.0",
+    "@types/regexp.escape": "2.0.0",
     "@vitest/coverage-v8": "4.1.9",
     "husky": "9.1.7",
     "lint-staged": "17.0.7",
