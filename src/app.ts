@@ -1,7 +1,8 @@
-import { buildApplication, buildRouteMap } from "@stricli/core"
+import { buildApplication, buildRouteMap, text_en } from "@stricli/core"
 import { initCommand } from "./command/init.ts"
 import { lintCommand } from "./command/lint.ts"
 import { removeUnusedCommand } from "./command/removeUnused.ts"
+import { formatErrorMessage } from "./error.ts"
 
 const root = buildRouteMap({
   routes: {
@@ -22,5 +23,11 @@ export const app = buildApplication(root, {
   },
   documentation: {
     caseStyle: "convert-camel-to-kebab",
+  },
+  localization: {
+    text: {
+      ...text_en,
+      formatException: formatErrorMessage,
+    },
   },
 })
