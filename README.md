@@ -6,6 +6,8 @@ code.
 Intended for use in CI pipelines, pre-commit hooks, or as part of your development workflow to maintain translation
 integrity.
 
+Runs in under 1s for medium-sized projects thanks to the [OXC toolchain](https://oxc.rs/) and optimized algorithms.
+
 ## Quick start
 
 ```sh
@@ -151,11 +153,6 @@ Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
 
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
 in addition to any `ignorePatterns` you configure.
-
-## What it checks
-
-- **Missing keys**: Translation keys used in source code but not defined in any locale file
-- **Unused keys**: Translation keys defined in locale files but never referenced in source code
 
 ## Dynamic keys
 
