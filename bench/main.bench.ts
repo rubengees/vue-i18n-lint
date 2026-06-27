@@ -63,9 +63,11 @@ async function runLint() {
 }
 
 async function runRemoveUnused() {
-  await run(app, ["removeUnused", tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN], {
-    process: makeNoopProcess(),
-  })
+  await run(
+    app,
+    ["removeUnused", tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN, "--dry-run"],
+    { process: makeNoopProcess() },
+  )
 }
 
 beforeAll(async () => {
