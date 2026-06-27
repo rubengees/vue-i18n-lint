@@ -1,11 +1,13 @@
 import { buildApplication, buildRouteMap } from "@stricli/core"
 import { initCommand } from "./command/init.ts"
 import { lintCommand } from "./command/lint.ts"
+import { removeUnusedCommand } from "./command/removeUnused.ts"
 
 const root = buildRouteMap({
   routes: {
     lint: lintCommand,
     init: initCommand,
+    removeUnused: removeUnusedCommand,
   },
   defaultCommand: "lint",
   docs: {

@@ -1,0 +1,7 @@
+{
+  "hello": "Hello",
+  "nested": {
+    "used": "Used",
+    "unused": "Unused"
+  }
+}

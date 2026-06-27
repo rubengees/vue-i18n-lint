@@ -186,7 +186,15 @@ test("a key defined in a local <i18n> block is not reported missing from global 
   const globalLocaleFiles = [localeFile("i18n/en.json", ["global.key"])]
   const srcFile = sourceFile(
     [fileKey("global.key"), fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: "test" } },
+        keys: [{ key: "local.key", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles(globalLocaleFiles, [srcFile], config())
@@ -199,7 +207,15 @@ test("a key used in a file with an <i18n> block but absent from both local and g
   const globalLocaleFiles = [localeFile("i18n/en.json", ["global.key"])]
   const srcFile = sourceFile(
     [fileKey("missing.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: "test" } },
+        keys: [{ key: "local.key", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles(globalLocaleFiles, [srcFile], config())
@@ -210,7 +226,15 @@ test("a key used in a file with an <i18n> block but absent from both local and g
 test("a local <i18n> key that is not used in its component is reported as unused", () => {
   const srcFile = sourceFile(
     [fileKey("other.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "unused.local", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { unused: { local: "test" } },
+        keys: [{ key: "unused.local", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles([], [srcFile], config())
@@ -223,7 +247,15 @@ test("a local <i18n> key that is not used in its component is reported as unused
 test("a local <i18n> key used in its component is not reported as unused", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: "test" } },
+        keys: [{ key: "local.key", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   expect(processFiles([], [srcFile], config())).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
@@ -232,7 +264,15 @@ test("a local <i18n> key used in its component is not reported as unused", () =>
 test("a local <i18n> key is not counted towards another component", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: "test" } },
+        keys: [{ key: "local.key", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const srcFile2 = sourceFile([fileKey("local.key", "src/missing.vue")])
@@ -262,7 +302,15 @@ test("an unused local <i18n> key is reported as unused even if used in another c
   const srcFile = sourceFile([fileKey("unused.key", "src/comp.vue")])
   const srcFile2 = sourceFile(
     [],
-    [{ locale: "en", file: "src/unused.vue", keys: [{ key: "unused.key", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/unused.vue",
+        rawData: { unused: { key: "test" } },
+        keys: [{ key: "unused.key", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles([], [srcFile, srcFile2], config())
@@ -300,7 +348,15 @@ test("an unused local <i18n> key is reported as unused even if used in another c
 test("a prefix source key is not reported missing when the <i18n> block has a matching leaf key", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key.0", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: { "0": "test" } } },
+        keys: [{ key: "local.key.0", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles([], [srcFile], config())
@@ -311,7 +367,15 @@ test("a prefix source key is not reported missing when the <i18n> block has a ma
 test("a local <i18n> leaf key is not reported as unused when source uses a prefix of it", () => {
   const srcFile = sourceFile(
     [fileKey("local.key", "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.key.0", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { key: { "0": "test" } } },
+        keys: [{ key: "local.key.0", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   const result = processFiles([], [srcFile], config())
@@ -333,6 +397,11 @@ test("returns typeWarnings for keys with non-string types", () => {
     locale: "en",
     file: "i18n/en.json",
     scope: "global",
+    rawData: {
+      count: 1,
+      active: true,
+      label: "test",
+    },
     keys: [
       { key: "count", type: "number" },
       { key: "active", type: "boolean" },
@@ -344,6 +413,7 @@ test("returns typeWarnings for keys with non-string types", () => {
     locale: "de",
     file: "i18n/de.json",
     scope: "global",
+    rawData: { count: 1 },
     keys: [{ key: "count", type: "number" }],
   }
 
@@ -435,7 +505,15 @@ test("dynamic source key covers matched locale keys (including deep ones via pre
 test("a dynamic key covers local <i18n> keys (neither missing nor unused)", () => {
   const srcFile = sourceFile(
     [dynamicFileKey(["local.", DYNAMIC_PART], "src/comp.vue")],
-    [{ locale: "en", file: "src/comp.vue", keys: [{ key: "local.title", type: "string" }], scope: "local" }],
+    [
+      {
+        locale: "en",
+        file: "src/comp.vue",
+        rawData: { local: { title: "test" } },
+        keys: [{ key: "local.title", type: "string" }],
+        scope: "local",
+      },
+    ],
   )
 
   expect(processFiles([], [srcFile], config())).toStrictEqual({ typeWarnings: [], missing: [], unused: [] })
@@ -478,11 +556,16 @@ test("when both checks are off, only typeWarnings are computed", () => {
     locale: "en",
     file: "i18n/en.json",
     scope: "global",
+    rawData: {
+      count: 1,
+      label: "test",
+    },
     keys: [
       { key: "count", type: "number" },
       { key: "label", type: "string" },
     ],
   }
+
   const srcFile = sourceFile([fileKey("missing.key"), fileKey("label")])
 
   const result = processFiles(
@@ -627,7 +710,13 @@ test("unusedKeys.ignore does not suppress a dynamic missing key", () => {
 })
 
 function localeFile(file: string, keys: string[]): LocaleFile {
-  return { locale: basename(file, ".json"), file, keys: keys.map((key) => ({ key, type: "string" })), scope: "global" }
+  return {
+    locale: basename(file, ".json"),
+    rawData: Object.fromEntries(keys.map((key) => [key, "test"])),
+    file,
+    keys: keys.map((key) => ({ key, type: "string" })),
+    scope: "global",
+  }
 }
 
 function sourceFile(keys: FileKey[], localeFiles: LocaleFile[] = []): SourceFile {

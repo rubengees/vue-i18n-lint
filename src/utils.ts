@@ -68,3 +68,7 @@ export function formatFilePath(filePath: string, line?: number, column?: number)
 
   return base
 }
+
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+}

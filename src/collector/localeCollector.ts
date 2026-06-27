@@ -10,6 +10,7 @@ export async function collectLocaleFile(filePath: string): Promise<LocaleFile> {
   return {
     locale,
     file: filePath,
+    rawData: data,
     keys: extractLocaleKeys(data),
     scope: "global",
   }

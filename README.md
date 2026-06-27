@@ -6,10 +6,10 @@ code.
 Intended for use in CI pipelines, pre-commit hooks, or as part of your development workflow to maintain translation
 integrity.
 
-## Usage
+## Quick start
 
 ```sh
-npx vue-i18n-lint [options] [path]
+npx vue-i18n-lint [command] [options] [path]
 ```
 
 `path` defaults to the current working directory.
@@ -18,7 +18,7 @@ npx vue-i18n-lint [options] [path]
 <summary>pnpm</summary>
 
 ```sh
-pnpm dlx vue-i18n-lint [options] [path]
+pnpm dlx vue-i18n-lint [command] [options] [path]
 ```
 
 </details>
@@ -27,7 +27,7 @@ pnpm dlx vue-i18n-lint [options] [path]
 <summary>yarn</summary>
 
 ```sh
-yarn dlx vue-i18n-lint [options] [path]
+yarn dlx vue-i18n-lint [command] [options] [path]
 ```
 
 </details>
@@ -36,7 +36,7 @@ yarn dlx vue-i18n-lint [options] [path]
 <summary>Bun</summary>
 
 ```sh
-bunx vue-i18n-lint [options] [path]
+bunx vue-i18n-lint [command] [options] [path]
 ```
 
 </details>
@@ -53,7 +53,7 @@ npm install -D vue-i18n-lint
 <summary>pnpm</summary>
 
 ```sh
-pnpm add -D vue-i18n-lint [options] [path]
+pnpm add -D vue-i18n-lint
 ```
 
 </details>
@@ -62,7 +62,7 @@ pnpm add -D vue-i18n-lint [options] [path]
 <summary>yarn</summary>
 
 ```sh
-yarn add -D vue-i18n-lint [options] [path]
+yarn add -D vue-i18n-lint
 ```
 
 </details>
@@ -71,7 +71,7 @@ yarn add -D vue-i18n-lint [options] [path]
 <summary>Bun</summary>
 
 ```sh
-bun add -D vue-i18n-lint [options] [path]
+bun add -D vue-i18n-lint
 ```
 
 </details>
@@ -79,8 +79,16 @@ bun add -D vue-i18n-lint [options] [path]
 You can run it like this:
 
 ```sh
-vue-i18n-lint [options] [path]
+vue-i18n-lint [command] [options] [path]
 ```
+
+### Subcommands
+
+| Command          | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `lint` (default) | Detect missing and unused translation keys       |
+| `remove-unused`  | Remove unused translation keys from locale files |
+| `init`           | Scaffold a configuration file                    |
 
 ### Options
 
@@ -187,6 +195,21 @@ Each check (`missingKeys`, `unusedKeys`) supports a `severity` setting:
 | `"error"`   | Prints output and sets exit code to `1` if issues are found |
 | `"warning"` | Prints output but does not set exit code to `1`             |
 | `"off"`     | Does not print output and does not affect exit code         |
+
+## Removing unused keys
+
+The `remove-unused` subcommand removes unused translation keys directly from your locale files. Only the simple
+file types (JSON, JSONC, JSON5, YAML) are supported (JS/TS files and `<i18n>` blocks are ignored).
+
+```sh
+npx vue-i18n-lint remove-unused [options] [path]
+```
+
+Pass `--dry-run` to see how many keys would be removed without making changes:
+
+```sh
+npx vue-i18n-lint remove-unused --dry-run
+```
 
 ## Requirements
 

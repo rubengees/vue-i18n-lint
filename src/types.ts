@@ -6,6 +6,7 @@ export type SourceFile = {
 export type LocaleFile = {
   locale: string
   file: string
+  rawData: Record<string, unknown>
   keys: LocaleKey[]
   scope: "global" | "local"
   sourceFile?: string

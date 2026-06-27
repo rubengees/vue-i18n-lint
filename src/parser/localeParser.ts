@@ -3,6 +3,7 @@ import { extname, resolve } from "node:path"
 import { parseJSON, parseJSON5, parseJSONC, parseYAML } from "confbox"
 import { createJiti } from "jiti"
 import { ParseError } from "../error.ts"
+import { isPlainObject } from "../utils.ts"
 
 const jiti = createJiti(import.meta.url)
 
@@ -65,8 +66,4 @@ export function parseLocale(content: string, file: string, options: ParseLocaleO
   }
 
   return result
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return value != null && typeof value === "object" && !Array.isArray(value)
 }

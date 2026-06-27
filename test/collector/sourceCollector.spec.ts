@@ -178,8 +178,22 @@ test("finds keys and collects <i18n> block locales from a vue file", async () =>
   ])
 
   expect(localeFiles).toStrictEqual([
-    { locale: "en", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
-    { locale: "ja", file: filePath, keys: [{ key: "block", type: "string" }], scope: "local", sourceFile: filePath },
+    {
+      locale: "en",
+      file: filePath,
+      keys: [{ key: "block", type: "string" }],
+      rawData: { block: "Block" },
+      scope: "local",
+      sourceFile: filePath,
+    },
+    {
+      locale: "ja",
+      file: filePath,
+      keys: [{ key: "block", type: "string" }],
+      rawData: { block: "ブロック" },
+      scope: "local",
+      sourceFile: filePath,
+    },
   ])
 })
 
@@ -192,8 +206,22 @@ test("collects <i18n lang='yaml'> block locales", async () => {
   ])
 
   expect(localeFiles).toStrictEqual([
-    { locale: "en", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
-    { locale: "de", file: filePath, keys: [{ key: "greeting", type: "string" }], scope: "local", sourceFile: filePath },
+    {
+      locale: "en",
+      file: filePath,
+      keys: [{ key: "greeting", type: "string" }],
+      rawData: { greeting: "Hello" },
+      scope: "local",
+      sourceFile: filePath,
+    },
+    {
+      locale: "de",
+      file: filePath,
+      keys: [{ key: "greeting", type: "string" }],
+      rawData: { greeting: "Hallo" },
+      scope: "local",
+      sourceFile: filePath,
+    },
   ])
 })
 
@@ -206,7 +234,14 @@ test("collects <i18n lang='json5'> block locales", async () => {
   ])
 
   expect(localeFiles).toStrictEqual([
-    { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
+    {
+      locale: "en",
+      file: filePath,
+      keys: [{ key: "title", type: "string" }],
+      rawData: { title: "Hello" },
+      scope: "local",
+      sourceFile: filePath,
+    },
   ])
 })
 
@@ -230,7 +265,7 @@ test("collects <i18n> block with non-string value types", async () => {
   const { localeFiles } = await collectSourceFile(filePath)
 
   expect(localeFiles).toStrictEqual([
-    { locale: "en", file: filePath, keys: [], scope: "local" },
+    { locale: "en", file: filePath, keys: [], rawData: {}, scope: "local" },
     {
       locale: "de",
       file: filePath,
@@ -239,6 +274,7 @@ test("collects <i18n> block with non-string value types", async () => {
         { key: "array.1", type: "number" },
         { key: "array.2", type: "number" },
       ],
+      rawData: { array: [1, 2, 3] },
       scope: "local",
       sourceFile: filePath,
     },
@@ -264,7 +300,14 @@ test("can handle partially invalid vue file", async () => {
   ])
 
   expect(result.localeFiles).toStrictEqual([
-    { locale: "en", file: filePath, keys: [{ key: "title", type: "string" }], scope: "local", sourceFile: filePath },
+    {
+      locale: "en",
+      file: filePath,
+      keys: [{ key: "title", type: "string" }],
+      rawData: { title: "Hello" },
+      scope: "local",
+      sourceFile: filePath,
+    },
   ])
 })
 

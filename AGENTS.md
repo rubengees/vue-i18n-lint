@@ -47,7 +47,7 @@ src/
   error.ts               # ParseError + formatErrorMessage
   utils.ts               # merge, writeLine, PrefixSet, position helpers
   types.ts               # Domain types (SourceFile, LocaleFile, FileKey, DynamicKey)
-  command/{lint,init}.ts # @stricli/core commands
+   command/{lint,init,removeUnused}.ts # @stricli/core commands
   config/{schema,load}.ts # zod schema + c12 loader
   collector/             # Source/locale/Vue/JS collectors
   parser/                # oxc-parser + confbox/jiti wrappers
@@ -91,7 +91,8 @@ Key concepts:
 - **Translation function detection**: `TRANSLATION_FUNCTIONS = Set(['t','te','tm','tc','$t','$te','$tm','$tc'])`. A regex fast-path (`/\$?t[emc]?\s*\(/`) gates the full oxc parser.
 - **Errors**: `ParseError` carries `file/line/column`; unparseable files are _skipped_ (logged, exit bumped to 1) — one bad file does not abort the run.
 - **Config**: `c12` loads `vue-i18n-lint.config.{ts,js,json,yaml}`. CLI args take precedence. Merge via `merge` in `utils.ts` (defu-based) where **arrays from higher-priority layers replace, not concatenate**. Final result validated by zod.
-- **CLI**: `@stricli/core` `buildCommand` / `buildRouteMap` / `buildApplication`. `init` and `lint` are proper routes; `lint` is the default command.
+- **CLI**: `@stricli/core` `buildCommand` / `buildRouteMap` / `buildApplication`. `init`, `lint`, and `removeUnused` are proper routes; `lint` is the default command.
+- **`removeUnused` command**: Detects unused keys via `processFiles` (with `missingKeys` severity off), then removes them from global locale files in-place. Uses `confbox` stringifiers (JSON/JSONC/JSON5/YAML) to preserve formatting. Handles nested key deletion and cleans up empty parents. `--dry-run` flag skips writes and only prints the count. Array elements are reindexed on removal; fully unused arrays are deleted.
 
 ## Git & Workflow
 

@@ -49,13 +49,23 @@ async function generateProject(srcDirs: number, locales: number) {
   )
 }
 
-async function runLint() {
-  const noopProcess: StricliProcess = {
+function makeNoopProcess(): StricliProcess {
+  return {
     stdout: { write() {} },
     stderr: { write() {} },
   }
+}
 
-  await run(app, [tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN], { process: noopProcess })
+async function runLint() {
+  await run(app, [tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN], {
+    process: makeNoopProcess(),
+  })
+}
+
+async function runRemoveUnused() {
+  await run(app, ["removeUnused", tmpBase, "--locale-pattern", LOCALE_PATTERN, "--src-pattern", SRC_PATTERN], {
+    process: makeNoopProcess(),
+  })
 }
 
 beforeAll(async () => {
@@ -66,4 +76,5 @@ afterAll(async () => {
   await rm(tmpBase, { recursive: true, force: true })
 })
 
-bench("Large project", runLint)
+bench("Remove unused keys from large project", runRemoveUnused)
+bench("Lint large project", runLint)

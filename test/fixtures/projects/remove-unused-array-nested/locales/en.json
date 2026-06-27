@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "name": "A",
+      "desc": "Desc A"
+    },
+    {
+      "name": "B"
+    }
+  ]
+}

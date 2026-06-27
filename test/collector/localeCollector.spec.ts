@@ -8,6 +8,10 @@ test("collects keys from .json", async () => {
   expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json",
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World", deep: { key: "Deep" } },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -23,6 +27,10 @@ test("collects keys from .jsonc", async () => {
   expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.jsonc",
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World" },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -37,6 +45,10 @@ test("collects keys from .json5", async () => {
   expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.json5",
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World" },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -51,6 +63,10 @@ test("collects keys from .yaml", async () => {
   expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yaml",
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World" },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -65,6 +81,10 @@ test("collects keys from .yml", async () => {
   expect(result).toStrictEqual({
     locale: "en",
     file: "test/fixtures/locales/en.yml",
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World" },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -79,6 +99,10 @@ test.each([".js", ".mjs", ".cjs", ".ts", ".mts", ".cts"])("collects keys from %s
   expect(result).toStrictEqual({
     locale: "en",
     file: `test/fixtures/locales/en${ext}`,
+    rawData: {
+      hello: "Hello",
+      nested: { world: "World" },
+    },
     keys: [
       { key: "hello", type: "string" },
       { key: "nested.world", type: "string" },
@@ -93,6 +117,7 @@ test("collects keys with non-string value types", async () => {
   expect(result).toStrictEqual({
     locale: "badtype",
     file: "test/fixtures/locales/badtype.json",
+    rawData: { count: 42 },
     keys: [{ key: "count", type: "number" }],
     scope: "global",
   })

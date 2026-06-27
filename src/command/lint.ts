@@ -1,11 +1,6 @@
-import { resolve } from "node:path"
-import { type ApplicationContext, buildCommand, type StricliProcess } from "@stricli/core"
-import { globby } from "globby"
-import { collectLocaleFile } from "../collector/localeCollector.ts"
-import { collectSourceFile } from "../collector/sourceCollector.ts"
+import { type ApplicationContext, buildCommand } from "@stricli/core"
 import { loadVueI18nLintConfig } from "../config/load.ts"
 import { type CliArgs, formatEnum, severityEnum } from "../config/schema.ts"
-import { formatErrorMessage } from "../error.ts"
 import {
   formatSummaryPart,
   outputJson,
@@ -15,8 +10,8 @@ import {
   outputUnusedKeys,
 } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
-import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
+import { collectFiles } from "./shared.ts"
 
 type Flags = Omit<CliArgs, "path">
 
@@ -26,27 +21,9 @@ export const lintCommand = buildCommand({
 
     const config = await loadVueI18nLintConfig({ path, ...flags })
 
-    const globOptions = {
-      cwd: config.path,
-      ignore: config.ignorePatterns,
-      gitignore: true,
-    }
+    const { localeFiles, sourceFiles, parseErrors } = await collectFiles(config, this.process)
 
-    const [rawLocalePaths, rawSrcPaths] = await Promise.all([
-      globby(config.localePattern, globOptions),
-      globby(config.srcPattern, globOptions),
-    ])
-
-    const [localeFiles, sourceFiles] = await Promise.all([
-      Promise.all(rawLocalePaths.map((p) => collectFile(this.process, resolve(config.path, p), collectLocaleFile))),
-      Promise.all(rawSrcPaths.map((p) => collectFile(this.process, resolve(config.path, p), collectSourceFile))),
-    ])
-
-    const validLocaleFiles = localeFiles.filter((f): f is LocaleFile => f != null)
-    const validSourceFiles = sourceFiles.filter((f): f is SourceFile => f != null)
-    const parseErrors = localeFiles.filter((f) => f == null).length + sourceFiles.filter((f) => f == null).length
-
-    const result = processFiles(validLocaleFiles, validSourceFiles, config)
+    const result = processFiles(localeFiles, sourceFiles, config)
 
     const elapsed = Math.round(performance.now() - startTime)
 
@@ -157,16 +134,3 @@ export const lintCommand = buildCommand({
     brief: "Lint i18n keys in your project",
   },
 })
-
-async function collectFile<T>(
-  process: StricliProcess,
-  file: string,
-  collect: (file: string) => Promise<T>,
-): Promise<T | null> {
-  try {
-    return await collect(file)
-  } catch (e) {
-    writeLine(process.stderr, `Failed to process: ${formatErrorMessage(e)}`)
-    return null
-  }
-}

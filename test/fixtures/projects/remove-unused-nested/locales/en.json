@@ -1,0 +1,9 @@
+{
+  "hello": "Hello",
+  "nested": {
+    "world": "World",
+    "extra": {
+      "deep": "Deep"
+    }
+  }
+}

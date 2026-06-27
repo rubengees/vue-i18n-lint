@@ -6,7 +6,7 @@ import { ParseError } from "../error.ts"
 import { parseLocale } from "../parser/localeParser.ts"
 import { parseScript } from "../parser/scriptParser.ts"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
-import { offsetToPosition } from "../utils.ts"
+import { isPlainObject, offsetToPosition } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
 import { extractLocaleKeys } from "./localeExtractor.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
@@ -85,8 +85,8 @@ function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
   const data = parseLocale(block.content, file, { ext: `.${lang}` })
 
   return Object.entries(data).map(([locale, localeData]) => {
-    if (localeData == null) {
-      return { locale, file: file, keys: [], scope: "local" }
+    if (!isPlainObject(localeData)) {
+      return { locale, file: file, keys: [], rawData: {}, scope: "local" }
     }
 
     return {
@@ -94,6 +94,7 @@ function parseI18nBlock(block: SFCBlock, file: string): LocaleFile[] {
       file,
       scope: "local",
       sourceFile: file,
+      rawData: localeData,
       keys: extractLocaleKeys(localeData),
     }
   })
