@@ -76,19 +76,23 @@ function collectFromElementNode(node: ElementNode): SourceKey[] {
 function collectFromDirective(file: string, node: DirectiveNode, options?: VueCollectorOptions): SourceKey[] {
   if (!node.exp || node.exp.type !== NodeTypes.SIMPLE_EXPRESSION) return []
 
-  const content = node.exp.content.trim()
+  const rawContent = node.exp.content
+  const content = rawContent.trim()
   if (!content) return []
+
+  const trimStart = rawContent.length - rawContent.trimStart().length
+  const adjustedOffset = node.exp.loc.start.offset - 1 + trimStart
 
   const program = parseScript(file, content, {
     wrapInParens: true,
-    offset: node.exp.loc.start.offset - 1,
+    offset: adjustedOffset,
     fileSource: options?.fileSource,
   })
 
   const bodyPart = program.body[0]
   if (!bodyPart || bodyPart.type !== "ExpressionStatement") return []
 
-  return walkDirective(bodyPart.expression, node.exp.loc.start.offset - 1)
+  return walkDirective(bodyPart.expression, adjustedOffset)
 }
 
 function walkDirective(expression: Expression, offset: number): SourceKey[] {

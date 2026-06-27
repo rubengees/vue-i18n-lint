@@ -58,6 +58,25 @@ test("ignores invalid v-t declarations", () => {
   expect(result).toStrictEqual([{ key: "valid", start: 78, end: 83 }])
 })
 
+test("handles v-t directive with leading and trailing whitespace", () => {
+  const content = readFileSync("test/fixtures/vue/v-t-whitespace.vue", { encoding: "utf-8" })
+  const parseResult = parse(content, {
+    filename: "v-t-whitespace.vue",
+    templateParseOptions: { prefixIdentifiers: false },
+  })
+
+  const templateAst = parseResult.descriptor.template?.ast
+
+  const result = collectVueKeys("v-t-whitespace.vue", templateAst!, { fileSource: content })
+
+  expect(result).toStrictEqual([
+    { key: "key1", start: 25, end: 29 },
+    { key: "key2", start: 55, end: 59 },
+    { key: "key3", start: 93, end: 97 },
+    { key: "key4", start: 133, end: 137 },
+  ])
+})
+
 test("handles non-v-t directive without expression, empty interpolation, and extra i18n-t attributes", () => {
   const content = readFileSync("test/fixtures/vue/template-edge-cases.vue", { encoding: "utf-8" })
   const parseResult = parse(content, {
