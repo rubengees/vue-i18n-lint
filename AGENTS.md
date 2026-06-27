@@ -4,7 +4,7 @@ CLI tool that lints Vue i18n projects: detects missing keys, unused keys, and no
 
 ## Tech Stack
 
-This project deliberately uses the **OXC toolchain** plus **tsgo** instead of the mainstream JS/TS tools. Do not swap them out.
+This project deliberately uses the **OXC toolchain** instead of the mainstream JS/TS tools. Do not swap them out.
 
 - **Language**: TypeScript, ESM only (`"type": "module"`)
 - **Runtime**: Node.js >= 22 (CI tests 22, 24, 26)
@@ -12,7 +12,7 @@ This project deliberately uses the **OXC toolchain** plus **tsgo** instead of th
 - **Build**: `tsdown` (rolldown-based) → `dist/cli.mjs`, `dist/index.mjs`, `dist/index.d.mts`
 - **Lint**: `oxlint` (+ `oxlint-tsgolint` for type-aware rules) — _not_ ESLint
 - **Format**: `oxfmt` — _not_ Prettier
-- **Type check**: `tsgo` (`@typescript/native-preview`) — _not_ `tsc`
+- **Type check**: `tsc`
 - **Test/bench**: `vitest`
 - **Dev runner**: `jiti` (runs CLI from source, no build needed)
 - **Key deps**: `@stricli/core` (CLI), `c12` (config), `globby`, `@vue/compiler-sfc`, `oxc-parser`, `zod` v4, `defu`, `confbox`
@@ -28,7 +28,7 @@ This project deliberately uses the **OXC toolchain** plus **tsgo** instead of th
 | `pnpm lint`         | Run oxlint (`maxWarnings: 0`, type-aware)             |
 | `pnpm format`       | Run oxfmt in place                                    |
 | `pnpm format:check` | Check formatting only                                 |
-| `pnpm check`        | Type check via tsgo                                   |
+| `pnpm check`        | Type check via `tsc --noEmit`                         |
 | `pnpm verify`       | `format:check && lint && check && test` — the CI gate |
 | `pnpm bench`        | Run benchmarks                                        |
 
@@ -86,7 +86,7 @@ Key concepts:
 
 - **`FileKey.key`** is `string` (static) or `DynamicKey = (string | typeof DYNAMIC_PART)[]` (template literals / concatenations with runtime parts). `DYNAMIC_PART` is a `unique symbol`.
 - **Dynamic key matching**: regex built per dynamic key (`^prefix.*suffix$`), cached in a `Map`; combined via alternation for unused-key checks.
-- **Prefix coverage**: `aa.bb` covers `aa.bb.cc` and vice versa for missing-key checks. Implemented by `PrefixSet`, which pre-expands all dot-segment prefixes.
+- **Prefix coverage**: `aa.bb` covers `aa.bb.cc` for missing-key checks, not vice versa. A source key `t("a.b.cc")` with only `a.b` in the locale is genuinely missing (the locale value might be a leaf string, not an object). The unused-key check works the same way: a locale key `aa.bb.cc` is covered by source `aa.bb`, but a locale key `aa.bb` is NOT covered by source `aa.bb.cc`. Implemented by `PrefixSet`, which pre-expands all dot-segment prefixes. This asymmetry also applies to dynamic keys — a dynamic regex `^a\.b\..*$` does not match a static locale key `a.b`.
 - **Scope**: locale files are `"global"` (matched by `localePattern`) or `"local"` (`<i18n>` SFC blocks scoped to their component).
 - **Translation function detection**: `TRANSLATION_FUNCTIONS = Set(['t','te','tm','tc','$t','$te','$tm','$tc'])`. A regex fast-path (`/\$?t[emc]?\s*\(/`) gates the full oxc parser.
 - **Errors**: `ParseError` carries `file/line/column`; unparseable files are _skipped_ (logged, exit bumped to 1) — one bad file does not abort the run.
@@ -98,6 +98,6 @@ Key concepts:
 
 - Default branch: `main`. Author: Ruben Gees.
 - **Commit messages**: short, imperative, sentence-cased, **no Conventional Commit prefixes**. Examples: `Implement init command`, `Fix position edge case`, `Add support for v-t directive`.
-- Pre-commit (`.husky/pre-commit` → `lint-staged`): runs `oxfmt`, `oxlint --fix`, and `tsgo --noEmit` (full project) on staged changes.
+- Pre-commit (`.husky/pre-commit` → `lint-staged`): runs `oxfmt`, `oxlint --fix`, and `tsc --noEmit` (full project) on staged changes.
 - CI (`.github/workflows/ci.yml`): `pnpm install` → `pnpm verify` → `pnpm build` on Node 22/24/26.
 - Only commit/push when explicitly asked.
