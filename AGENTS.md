@@ -93,6 +93,7 @@ Key concepts:
 - **Config**: `c12` loads `vue-i18n-lint.config.{ts,js,json,yaml}`. CLI args take precedence. Merge via `merge` in `utils.ts` (defu-based) where **arrays from higher-priority layers replace, not concatenate**. Final result validated by zod.
 - **CLI**: `@stricli/core` `buildCommand` / `buildRouteMap` / `buildApplication`. `init`, `lint`, and `removeUnused` are proper routes; `lint` is the default command.
 - **`removeUnused` command**: Detects unused keys via `processFiles` (with `missingKeys` severity off), then removes them from global locale files in-place. Uses `confbox` stringifiers (JSON/JSONC/JSON5/YAML) to preserve formatting. Handles nested key deletion and cleans up empty parents. `--dry-run` flag skips writes and only prints the count. Array elements are reindexed on removal; fully unused arrays are deleted.
+- **Known limitation**: confbox's `stringifyJSONC` and `stringifyJSON5` do not preserve comments — they reconstruct the data from the parsed object. Files with no keys removed are skipped (no write), but when comments exist in a file that does get modified, they are lost. Use `jsonc-parser` if AST-level comment preservation is needed.
 
 ## Git & Workflow
 

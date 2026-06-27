@@ -211,6 +211,9 @@ Pass `--dry-run` to see how many keys would be removed without making changes:
 npx vue-i18n-lint remove-unused --dry-run
 ```
 
+> [!NOTE]
+> The remove command is naively implemented. Files are reconstructed so comments or special formatting are lost.
+
 ## Requirements
 
 - Node.js >= 22
