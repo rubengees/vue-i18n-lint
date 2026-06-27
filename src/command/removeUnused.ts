@@ -65,6 +65,10 @@ export const removeUnusedCommand = buildCommand({
         ? `Would remove ${unusedSet.size} unused key${unusedSet.size === 1 ? "" : "s"}.`
         : `Removed ${unusedSet.size} unused key${unusedSet.size === 1 ? "" : "s"}.`,
     )
+
+    if (parseErrors > 0) {
+      this.process.exitCode = 1
+    }
   },
   parameters: {
     flags: {
