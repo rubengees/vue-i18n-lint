@@ -32,19 +32,18 @@ export const configSchema = z.object({
     }),
 })
 
-export const cliArgsSchema = z.object({
-  path: z.string().optional(),
-  format: formatEnum.optional(),
-  localePattern: z.string().optional(),
-  srcPattern: z.string().optional(),
-  ignorePatterns: z.array(z.string()).optional(),
-  ignoreKeys: z.array(z.string()).optional(),
-  ignoreMissingKeys: z.array(z.string()).optional(),
-  ignoreUnusedKeys: z.array(z.string()).optional(),
-  missingKeysSeverity: severityEnum.optional(),
-  unusedKeysSeverity: severityEnum.optional(),
-})
+export type CliArgs = {
+  path?: string | undefined
+  format?: z.infer<typeof formatEnum> | undefined
+  localePattern?: string | undefined
+  srcPattern?: string | undefined
+  ignorePatterns?: string[] | undefined
+  ignoreKeys?: string[] | undefined
+  ignoreMissingKeys?: string[] | undefined
+  ignoreUnusedKeys?: string[] | undefined
+  missingKeysSeverity?: z.infer<typeof severityEnum> | undefined
+  unusedKeysSeverity?: z.infer<typeof severityEnum> | undefined
+}
 
-export type CliArgs = z.input<typeof cliArgsSchema>
 export type ConfigInput = z.input<typeof configSchema>
 export type ConfigOutput = z.output<typeof configSchema>
