@@ -57,20 +57,26 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
   const regexCache = new Map<string, RegExp>()
 
   for (const sourceFile of sourceFiles) {
-    const localLocalePrefixes = new Map(
-      sourceFile.localeFiles.map((it) => [it.locale, newPrefixSet(it.keys.map((k) => k.key))]),
-    )
+    const localLocalePrefixes =
+      sourceFile.localeFiles.length > 0
+        ? new Map(sourceFile.localeFiles.map((it) => [it.locale, newPrefixSet(it.keys.map((k) => k.key))]))
+        : undefined
 
     for (const { key, file, location } of sourceFile.keys) {
       if (typeof key !== "string") {
         const keyStr = dynamicKeyToString(key)
         const regex = getOrInsertComputed(regexCache, keyStr, () => buildDynamicKeyRegex(key))
 
-        const missingLocales = Array.from(locales).filter(
-          (locale) =>
-            !setMatchesRegex(localLocalePrefixes.get(locale), regex) &&
-            !setMatchesRegex(globalLocalePrefixes.get(locale), regex),
-        )
+        const missingLocales: string[] = []
+
+        for (const locale of locales) {
+          const local = localLocalePrefixes?.get(locale)
+          const global = globalLocalePrefixes.get(locale)
+
+          if (!setMatchesRegex(local, regex) && !setMatchesRegex(global, regex)) {
+            missingLocales.push(locale)
+          }
+        }
 
         if (missingLocales.length > 0) {
           const missingKey = mapGetOrInsert(missingKeys, keyStr, {
@@ -82,9 +88,16 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
           missingKey.sources.push({ file, location })
         }
       } else {
-        const missingLocales = Array.from(locales).filter(
-          (locale) => !localLocalePrefixes.get(locale)?.has(key) && !globalLocalePrefixes.get(locale)?.has(key),
-        )
+        const missingLocales: string[] = []
+
+        for (const locale of locales) {
+          const local = localLocalePrefixes?.get(locale)
+          const global = globalLocalePrefixes.get(locale)
+
+          if (!local?.has(key) && !global?.has(key)) {
+            missingLocales.push(locale)
+          }
+        }
 
         if (missingLocales.length > 0) {
           const missingKey = mapGetOrInsert(missingKeys, key, { key, locales: missingLocales, sources: [] })
