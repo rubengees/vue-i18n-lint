@@ -12,6 +12,7 @@
   },
   "rules": {
     "typescript/consistent-type-imports": "error",
+    "typescript/no-explicit-any": "error",
     "vitest/prefer-strict-equal": "error",
     "vitest/expect-expect": [
       "error",
