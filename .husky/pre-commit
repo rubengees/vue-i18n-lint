@@ -1,1 +1,3 @@
-pnpm exec lint-staged
+pnpm lint-staged
+pnpm generate-schema
+git add config.schema.json

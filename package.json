@@ -27,6 +27,8 @@
     "dev": "vitest",
     "start": "jiti src/cli.ts",
     "build": "tsdown",
+    "generate-schema": "jiti generate-schema.ts",
+    "generate-schema:check": "jiti generate-schema.ts --check",
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",

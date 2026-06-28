@@ -6,7 +6,7 @@ import { configSchema, type CliArgs, type ConfigInput, type ConfigOutput } from 
 export async function loadVueI18nLintConfig(cliArgs?: CliArgs): Promise<ConfigOutput> {
   const path = cliArgs?.path || process.cwd()
 
-  const cliConfig = buildCliConfig(path, cliArgs)
+  const cliConfig = buildCliConfig(cliArgs)
 
   const rawFileConfig = (await loadFileConfig(path)) ?? {}
   const parsedFileConfig = configSchema.safeParse({ path, ...rawFileConfig })
@@ -23,9 +23,9 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs): Promise<ConfigOu
   return parsedMergedConfig.data
 }
 
-function buildCliConfig(path: string, cliArgs?: CliArgs): ConfigInput {
+function buildCliConfig(cliArgs?: CliArgs): ConfigInput {
   return {
-    path,
+    path: cliArgs?.path ?? process.cwd(),
     format: cliArgs?.format,
     localePattern: cliArgs?.localePattern,
     srcPattern: cliArgs?.srcPattern,

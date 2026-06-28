@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/rubengees/vue-i18n-lint/main/config.schema.json",
+  "title": "vue-i18n-lint configuration",
+  "description": "Configuration schema for vue-i18n-lint",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "format": {
+      "default": "text",
+      "type": "string",
+      "enum": ["text", "json", "toon"]
+    },
+    "localePattern": {
+      "default": "**/locales/*.json",
+      "type": "string",
+      "minLength": 1
+    },
+    "srcPattern": {
+      "default": "**/*.{ts,cts,mts,js,cjs,mjs,vue}",
+      "type": "string",
+      "minLength": 1
+    },
+    "ignorePatterns": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "ignoreKeys": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "missingKeys": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "severity": {
+                  "default": "error",
+                  "type": "string",
+                  "enum": ["error", "warning", "off"]
+                },
+                "ignore": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            {
+              "type": "boolean",
+              "const": false
+            }
+          ]
+        },
+        "unusedKeys": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "severity": {
+                  "default": "warning",
+                  "type": "string",
+                  "enum": ["error", "warning", "off"]
+                },
+                "ignore": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            {
+              "type": "boolean",
+              "const": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "required": ["path"]
+}
