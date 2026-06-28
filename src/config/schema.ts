@@ -15,7 +15,6 @@ const checkSchema = (defaultSeverity: z.infer<typeof severityEnum>) =>
     .default({ severity: defaultSeverity, ignore: [] })
 
 export const configSchema = z.object({
-  path: z.string().nonempty(),
   format: formatEnum.default("text"),
   localePattern: z.string().nonempty().default("**/locales/*.json"),
   srcPattern: z.string().nonempty().default("**/*.{ts,cts,mts,js,cjs,mjs,vue}"),
@@ -33,7 +32,6 @@ export const configSchema = z.object({
 })
 
 export type CliArgs = {
-  path?: string | undefined
   format?: z.infer<typeof formatEnum> | undefined
   localePattern?: string | undefined
   srcPattern?: string | undefined

@@ -7,14 +7,8 @@ const FIXTURES = resolve("test/fixtures/config")
 
 describe("loadVueI18nLintConfig", () => {
   describe("defaults", () => {
-    test("uses cwd as path when none provided", async () => {
-      const config = await loadVueI18nLintConfig()
-
-      expect(config.path).toStrictEqual(process.cwd())
-    })
-
     test("applies default localePattern, srcPattern, and ignorePatterns when no config file exists", async () => {
-      const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "no-config") })
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"))
 
       expect(config.localePattern).toStrictEqual("**/locales/*.json")
       expect(config.srcPattern).toStrictEqual("**/*.{ts,cts,mts,js,cjs,mjs,vue}")
@@ -24,7 +18,7 @@ describe("loadVueI18nLintConfig", () => {
 
   describe("file formats", () => {
     test.each(["js", "ts", "yaml", "json"])("reads vue-i18n-lint.config.%s", async (ext) => {
-      const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, ext) })
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, ext))
 
       expect(config.localePattern).toStrictEqual("custom/locales/**/*.json")
       expect(config.srcPattern).toStrictEqual("custom/src/**/*.ts")
@@ -34,7 +28,7 @@ describe("loadVueI18nLintConfig", () => {
 
   describe("transform", () => {
     test("allows false for checks and transforms config", async () => {
-      const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "checks-false") })
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "checks-false"))
 
       expect(config.checks.missingKeys.severity).toStrictEqual("off")
       expect(config.checks.unusedKeys.severity).toStrictEqual("off")
@@ -43,8 +37,7 @@ describe("loadVueI18nLintConfig", () => {
 
   describe("cli overrides", () => {
     test("cli params override config file values", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "js"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "js"), {
         localePattern: "cli/**/*.json",
         srcPattern: "src/**/*.ts",
         ignorePatterns: ["cli/**"],
@@ -56,15 +49,14 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("file config values are preserved when cli does not override them", async () => {
-      const config = await loadVueI18nLintConfig({ path: resolve(FIXTURES, "js") })
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "js"))
       expect(config.localePattern).toStrictEqual("custom/locales/**/*.json")
       expect(config.srcPattern).toStrictEqual("custom/src/**/*.ts")
       expect(config.ignorePatterns).toStrictEqual(["custom/node_modules/**"])
     })
 
     test("accepts ignorePatterns", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "no-config"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
         ignorePatterns: ["a/**", "b/**"],
       })
 
@@ -72,8 +64,7 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("accepts ignoreKeys", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "no-config"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
         ignoreKeys: ["foo", "bar"],
       })
 
@@ -81,8 +72,7 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("accepts ignoreMissingKeys into checks.missingKeys.ignore", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "no-config"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
         ignoreMissingKeys: ["foo", "bar"],
       })
 
@@ -91,8 +81,7 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("accepts ignoreUnusedKeys into checks.unusedKeys.ignore", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "no-config"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
         ignoreUnusedKeys: ["foo", "bar"],
       })
 
@@ -101,8 +90,7 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("cli ignoreMissingKeys and ignoreUnusedKeys can be set independently", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "no-config"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
         ignoreMissingKeys: ["missing.key"],
         ignoreUnusedKeys: ["unused.key"],
       })
@@ -112,8 +100,7 @@ describe("loadVueI18nLintConfig", () => {
     })
 
     test("cli checks override file config checks, non-overridden checks are preserved", async () => {
-      const config = await loadVueI18nLintConfig({
-        path: resolve(FIXTURES, "js"),
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "js"), {
         ignoreMissingKeys: ["cli.key"],
       })
 
@@ -124,29 +111,31 @@ describe("loadVueI18nLintConfig", () => {
 
   describe("validation", () => {
     test("throws when cli localePattern is empty", async () => {
-      await expect(loadVueI18nLintConfig({ localePattern: "" })).rejects.toThrow(
+      await expect(loadVueI18nLintConfig(process.cwd(), { localePattern: "" })).rejects.toThrow(
         /Failed to load config[\s\S]*localePattern/,
       )
     })
 
     test("throws when cli srcPattern is empty", async () => {
-      await expect(loadVueI18nLintConfig({ srcPattern: "" })).rejects.toThrow(/Failed to load config[\s\S]*srcPattern/)
+      await expect(loadVueI18nLintConfig(process.cwd(), { srcPattern: "" })).rejects.toThrow(
+        /Failed to load config[\s\S]*srcPattern/,
+      )
     })
 
     test("throws when cli ignoreKeys contains an empty string", async () => {
-      await expect(loadVueI18nLintConfig({ ignoreKeys: [""] })).rejects.toThrow(
+      await expect(loadVueI18nLintConfig(process.cwd(), { ignoreKeys: [""] })).rejects.toThrow(
         /Failed to load config[\s\S]*ignoreKeys/,
       )
     })
 
     test("throws when cli ignoreMissingKeys contains an empty string", async () => {
-      await expect(loadVueI18nLintConfig({ ignoreMissingKeys: [""] })).rejects.toThrow(
+      await expect(loadVueI18nLintConfig(process.cwd(), { ignoreMissingKeys: [""] })).rejects.toThrow(
         /Failed to load config[\s\S]*missingKeys.*ignore/,
       )
     })
 
     test("throws when cli ignoreUnusedKeys contains an empty string", async () => {
-      await expect(loadVueI18nLintConfig({ ignoreUnusedKeys: [""] })).rejects.toThrow(
+      await expect(loadVueI18nLintConfig(process.cwd(), { ignoreUnusedKeys: [""] })).rejects.toThrow(
         /Failed to load config[\s\S]*unusedKeys.*ignore/,
       )
     })
@@ -155,25 +144,31 @@ describe("loadVueI18nLintConfig", () => {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const invalidArgs = { missingKeysSeverity: "invalid" } as unknown as CliArgs
 
-      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*missingKeys/)
+      await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
+        /Failed to load config[\s\S]*missingKeys/,
+      )
     })
 
     test("throws when cli unusedKeysSeverity is invalid", async () => {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const invalidArgs = { unusedKeysSeverity: "invalid" } as unknown as CliArgs
 
-      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*unusedKeys/)
+      await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
+        /Failed to load config[\s\S]*unusedKeys/,
+      )
     })
 
     test("throws when cli format is invalid", async () => {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const invalidArgs = { format: "xml" } as unknown as CliArgs
 
-      await expect(loadVueI18nLintConfig(invalidArgs)).rejects.toThrow(/Failed to load config[\s\S]*format/)
+      await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
+        /Failed to load config[\s\S]*format/,
+      )
     })
 
     test("throws when config file has an empty string in ignorePatterns", async () => {
-      await expect(loadVueI18nLintConfig({ path: resolve(FIXTURES, "invalid") })).rejects.toThrow(
+      await expect(loadVueI18nLintConfig(resolve(FIXTURES, "invalid"))).rejects.toThrow(
         /Failed to load config[\s\S]*ignorePatterns/,
       )
     })
@@ -181,9 +176,7 @@ describe("loadVueI18nLintConfig", () => {
 
   describe("error handling", () => {
     test("throws when config file fails to load", async () => {
-      await expect(loadVueI18nLintConfig({ path: resolve(FIXTURES, "error") })).rejects.toThrow(
-        "Failed to load config file",
-      )
+      await expect(loadVueI18nLintConfig(resolve(FIXTURES, "error"))).rejects.toThrow("Failed to load config file")
     })
   })
 })

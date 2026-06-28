@@ -13,15 +13,15 @@ import { processFiles } from "../processor.ts"
 import { writeLine } from "../utils.ts"
 import { collectFiles } from "./shared.ts"
 
-type Flags = Omit<CliArgs, "path">
-
 export const lintCommand = buildCommand({
-  async func(this: ApplicationContext, flags: Flags, path?: string) {
+  async func(this: ApplicationContext, flags: CliArgs, path?: string) {
+    const targetPath = path || process.cwd()
+
     const startTime = performance.now()
 
-    const config = await loadVueI18nLintConfig({ path, ...flags })
+    const config = await loadVueI18nLintConfig(targetPath, flags)
 
-    const { localeFiles, sourceFiles, parseErrors } = await collectFiles(config, this.process)
+    const { localeFiles, sourceFiles, parseErrors } = await collectFiles(targetPath, config, this.process)
 
     const result = processFiles(localeFiles, sourceFiles, config)
 

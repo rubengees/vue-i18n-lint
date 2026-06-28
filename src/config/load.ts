@@ -3,9 +3,7 @@ import { z } from "zod"
 import { merge } from "../utils.ts"
 import { configSchema, type CliArgs, type ConfigInput, type ConfigOutput } from "./schema.ts"
 
-export async function loadVueI18nLintConfig(cliArgs?: CliArgs): Promise<ConfigOutput> {
-  const path = cliArgs?.path || process.cwd()
-
+export async function loadVueI18nLintConfig(path: string, cliArgs?: CliArgs): Promise<ConfigOutput> {
   const cliConfig = buildCliConfig(cliArgs)
 
   const rawFileConfig = (await loadFileConfig(path)) ?? {}
@@ -25,7 +23,6 @@ export async function loadVueI18nLintConfig(cliArgs?: CliArgs): Promise<ConfigOu
 
 function buildCliConfig(cliArgs?: CliArgs): ConfigInput {
   return {
-    path: cliArgs?.path ?? process.cwd(),
     format: cliArgs?.format,
     localePattern: cliArgs?.localePattern,
     srcPattern: cliArgs?.srcPattern,

@@ -15,8 +15,9 @@ type Flags = Pick<CliArgs, "localePattern" | "srcPattern" | "ignorePatterns" | "
 
 export const removeUnusedCommand = buildCommand({
   async func(this: ApplicationContext, flags: Flags, path?: string) {
-    const config = await loadVueI18nLintConfig({
-      path,
+    const targetPath = path || process.cwd()
+
+    const config = await loadVueI18nLintConfig(targetPath, {
       localePattern: flags.localePattern,
       srcPattern: flags.srcPattern,
       ignorePatterns: flags.ignorePatterns,
@@ -24,7 +25,7 @@ export const removeUnusedCommand = buildCommand({
       ignoreUnusedKeys: flags.ignoreUnusedKeys,
     })
 
-    const { localeFiles, sourceFiles, parseErrors } = await collectFiles(config, this.process)
+    const { localeFiles, sourceFiles, parseErrors } = await collectFiles(targetPath, config, this.process)
 
     const { unused } = processFiles(
       localeFiles,

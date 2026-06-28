@@ -8,9 +8,9 @@ import { formatErrorMessage } from "../error.ts"
 import type { LocaleFile, SourceFile } from "../types.ts"
 import { writeLine } from "../utils.ts"
 
-export async function collectFiles(config: ConfigOutput, process: StricliProcess) {
+export async function collectFiles(path: string, config: ConfigOutput, process: StricliProcess) {
   const globOptions = {
-    cwd: config.path,
+    cwd: path,
     ignore: config.ignorePatterns,
     gitignore: true,
   }
@@ -21,8 +21,8 @@ export async function collectFiles(config: ConfigOutput, process: StricliProcess
   ])
 
   const [localeFiles, sourceFiles] = await Promise.all([
-    Promise.all(rawLocalePaths.map((p) => collectFile(resolve(config.path, p), collectLocaleFile, process))),
-    Promise.all(rawSrcPaths.map((p) => collectFile(resolve(config.path, p), collectSourceFile, process))),
+    Promise.all(rawLocalePaths.map((p) => collectFile(resolve(path, p), collectLocaleFile, process))),
+    Promise.all(rawSrcPaths.map((p) => collectFile(resolve(path, p), collectSourceFile, process))),
   ])
 
   const validLocaleFiles = localeFiles.filter((f): f is LocaleFile => f != null)

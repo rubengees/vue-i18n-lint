@@ -43,7 +43,7 @@ srcPattern: "**/*.{ts,cts,mts,js,cjs,mjs,vue}"
 
 export const initCommand = buildCommand({
   async func(this: ApplicationContext, flags: Flags, path?: string) {
-    const targetPath = path || "."
+    const targetPath = path || process.cwd()
     const format = flags.format ?? detectFormat(targetPath)
     const configName = `vue-i18n-lint.config.${format}`
     const configPath = join(targetPath, configName)

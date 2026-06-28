@@ -746,7 +746,6 @@ function config(overrides?: {
   }
 }): ConfigOutput {
   return {
-    path: "",
     format: "text",
     localePattern: "",
     srcPattern: "",
