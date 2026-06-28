@@ -1,6 +1,7 @@
 import { cp, mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { resolve } from "node:path"
+import { parseJSON5, parseYAML } from "confbox"
 import { afterEach, beforeEach, expect, test } from "vitest"
 import { expectStdoutContains, runTest } from "../helpers.ts"
 
@@ -54,6 +55,63 @@ test("removes unused key from locale file", async () => {
 
   const content = await readFixture(projectDir, "locales/en.json")
   expect(JSON.parse(content)).toStrictEqual({ hello: "Hello" })
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("removes unused key from jsonc locale file", async () => {
+  const projectDir = await copyFixture("remove-unused-jsonc")
+
+  const testProcess = await runTest([
+    "remove-unused",
+    projectDir,
+    "--locale-pattern",
+    "**/locales/*.jsonc",
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectStdoutContains(testProcess, "Removed 1 unused key.")
+
+  const content = await readFixture(projectDir, "locales/en.jsonc")
+  expect(JSON.parse(content)).toStrictEqual({ hello: "Hello" })
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("removes unused key from json5 locale file", async () => {
+  const projectDir = await copyFixture("remove-unused-json5")
+
+  const testProcess = await runTest([
+    "remove-unused",
+    projectDir,
+    "--locale-pattern",
+    "**/locales/*.json5",
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectStdoutContains(testProcess, "Removed 1 unused key.")
+
+  const content = await readFixture(projectDir, "locales/en.json5")
+  expect(parseJSON5(content)).toStrictEqual({ hello: "Hello" })
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("removes unused key from yaml locale file", async () => {
+  const projectDir = await copyFixture("remove-unused-yaml")
+
+  const testProcess = await runTest([
+    "remove-unused",
+    projectDir,
+    "--locale-pattern",
+    "**/locales/*.yaml",
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectStdoutContains(testProcess, "Removed 1 unused key.")
+
+  const content = await readFixture(projectDir, "locales/en.yaml")
+  expect(parseYAML(content)).toStrictEqual({ hello: "Hello" })
   expect(testProcess.exitCode).toBeFalsy()
 })
 

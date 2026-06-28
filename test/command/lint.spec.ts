@@ -1,6 +1,12 @@
 import { resolve } from "node:path"
 import { expect, test } from "vitest"
-import { expectStderrContains, expectStdoutContains, expectStdoutNotContains, runTest } from "../helpers.ts"
+import {
+  decodeToonObject,
+  expectStderrContains,
+  expectStdoutContains,
+  expectStdoutNotContains,
+  runTest,
+} from "../helpers.ts"
 
 const FIXTURES = "test/fixtures/projects"
 const DEFAULT_LOCALE_PATTERN = "**/locales/*.json"
@@ -340,6 +346,60 @@ test("--format json with no issues", async () => {
 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(0)
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--format toon outputs machine-readable Toon format for missing keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "missing-keys"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "toon",
+  ])
+
+  const output = decodeToonObject(testProcess.getStdout())
+
+  expect(output.missingKeys).toMatchObject([{ key: "missing.key", locales: ["en"] }])
+  expect(output.unusedKeys).toMatchObject([])
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--format toon outputs machine-readable Toon format for unused keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "unused-keys"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "toon",
+  ])
+
+  const output = decodeToonObject(testProcess.getStdout())
+
+  expect(output.missingKeys).toMatchObject([])
+  expect(output.unusedKeys).toMatchObject([{ key: "unused" }])
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--format toon with no issues", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "all-keys-present"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "toon",
+  ])
+
+  const output = decodeToonObject(testProcess.getStdout())
+
+  expect(output.missingKeys).toMatchObject([])
+  expect(output.unusedKeys).toMatchObject([])
   expect(testProcess.exitCode).toBeFalsy()
 })
 

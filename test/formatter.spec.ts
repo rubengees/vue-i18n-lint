@@ -1,6 +1,7 @@
 import { resolve } from "node:path"
+import { decode } from "@toon-format/toon"
 import { expect, test } from "vitest"
-import { outputJson, outputMissingKeys, outputTypeWarnings, outputUnusedKeys } from "../src/formatter.ts"
+import { outputJson, outputMissingKeys, outputToon, outputTypeWarnings, outputUnusedKeys } from "../src/formatter.ts"
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "../src/types.ts"
 import { buildTestProcess, expectStdoutContains } from "./helpers.ts"
 
@@ -70,6 +71,33 @@ test("outputJson handles empty results", () => {
   outputJson(testProcess, { missingKeys: [], unusedKeys: [] })
 
   const output = JSON.parse(testProcess.getStdout())
+
+  expect(output).toStrictEqual({ missingKeys: [], unusedKeys: [] })
+})
+
+test("outputToon prints machine-readable Toon format", () => {
+  const testProcess = buildTestProcess()
+  const file = resolve("test/fixtures/ts/script.ts")
+  const loc = { start: { line: 1, column: 1 }, end: { line: 1, column: 4 } }
+  const missingKeys: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location: loc }] }
+  const unused: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
+
+  outputToon(testProcess, { missingKeys: [missingKeys], unusedKeys: [unused] })
+
+  const output = decode(testProcess.getStdout())
+
+  expect(output).toStrictEqual({
+    missingKeys: [{ key: "a", locales: ["de"], sources: [{ file, location: loc }] }],
+    unusedKeys: [{ key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }],
+  })
+})
+
+test("outputToon handles empty results", () => {
+  const testProcess = buildTestProcess()
+
+  outputToon(testProcess, { missingKeys: [], unusedKeys: [] })
+
+  const output = decode(testProcess.getStdout())
 
   expect(output).toStrictEqual({ missingKeys: [], unusedKeys: [] })
 })

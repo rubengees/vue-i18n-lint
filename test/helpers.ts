@@ -1,7 +1,9 @@
 import { stripVTControlCharacters } from "node:util"
 import { run, type StricliProcess } from "@stricli/core"
+import { decode } from "@toon-format/toon"
 import { expect } from "vitest"
 import { app } from "../src/app.ts"
+import { isPlainObject } from "../src/utils.ts"
 
 export type TestProcess = StricliProcess & {
   readonly getStdout: () => string
@@ -50,4 +52,14 @@ export function expectStdoutNotContains(testProcess: TestProcess, text: string):
 
 export function expectStderrContains(testProcess: TestProcess, text: string): void {
   expect(testProcess.getStderr()).toContain(text)
+}
+
+export function decodeToonObject(input: string): Record<string, unknown> {
+  const raw: unknown = decode(input)
+
+  if (!isPlainObject(raw)) {
+    throw new Error("Expected an object")
+  }
+
+  return raw
 }
