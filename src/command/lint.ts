@@ -39,10 +39,9 @@ export const lintCommand = buildCommand({
       const summaryParts: string[] = []
 
       if (result.missing != null)
-        summaryParts.push(`${formatSummaryPart(result.missing.length, config.checks.missingKeys.severity)} missing`)
+        summaryParts.push(`${formatSummaryPart(result.missing.length, missingSeverity)} missing`)
 
-      if (result.unused != null)
-        summaryParts.push(`${formatSummaryPart(result.unused.length, config.checks.unusedKeys.severity)} unused`)
+      if (result.unused != null) summaryParts.push(`${formatSummaryPart(result.unused.length, unusedSeverity)} unused`)
 
       if (summaryParts.length > 0) {
         writeLine(this.process.stdout, `Found ${summaryParts.join(" and ")} keys.`)
