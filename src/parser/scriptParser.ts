@@ -36,5 +36,9 @@ function asLang(lang: string | undefined): ParserOptions["lang"] | undefined {
     return lang
   }
 
+  if (lang !== undefined) {
+    throw new ParseError(`Unsupported script lang: "${lang}"`, "", { line: 0, column: 0 })
+  }
+
   return undefined
 }
