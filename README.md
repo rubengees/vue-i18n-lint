@@ -193,6 +193,18 @@ Each check (`missingKeys`, `unusedKeys`) supports a `severity` setting:
 | `"warning"` | Prints output but does not set exit code to `1`             |
 | `"off"`     | Does not print output and does not affect exit code         |
 
+## Creating configuration file
+
+```sh
+npx vue-i18n-lint init [path]
+```
+
+This command creates a config file with the defaults in the specified path
+(or current working directory if not specified). The file format is auto-detected: If a `tsconfig.json` exists, a
+TypeScript config file is created; otherwise, a JavaScript config file is created.
+
+The `--format` option can be used to specify the file format (`ts`, `js`, `json`, or `yaml`).
+
 ## Removing unused keys
 
 The `remove-unused` subcommand removes unused translation keys directly from your locale files. Only the simple
