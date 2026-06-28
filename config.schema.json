@@ -7,21 +7,25 @@
   "properties": {
     "format": {
       "default": "text",
+      "description": "Output format for lint results",
       "type": "string",
       "enum": ["text", "json", "toon"]
     },
     "localePattern": {
       "default": "**/locales/*.json",
+      "description": "Glob pattern for i18n locale files",
       "type": "string",
       "minLength": 1
     },
     "srcPattern": {
       "default": "**/*.{ts,cts,mts,js,cjs,mjs,vue}",
+      "description": "Glob pattern for source files",
       "type": "string",
       "minLength": 1
     },
     "ignorePatterns": {
       "default": [],
+      "description": "Glob patterns to ignore",
       "type": "array",
       "items": {
         "type": "string",
@@ -30,6 +34,7 @@
     },
     "ignoreKeys": {
       "default": [],
+      "description": "Keys to ignore in all checks",
       "type": "array",
       "items": {
         "type": "string",
@@ -37,20 +42,24 @@
       }
     },
     "checks": {
+      "description": "Severity and per-check ignore configuration",
       "type": "object",
       "properties": {
         "missingKeys": {
+          "description": "Severity and ignore list for missing keys",
           "anyOf": [
             {
               "type": "object",
               "properties": {
                 "severity": {
                   "default": "error",
+                  "description": "Severity level for this check",
                   "type": "string",
                   "enum": ["error", "warning", "off"]
                 },
                 "ignore": {
                   "default": [],
+                  "description": "Keys to ignore in this check",
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -66,17 +75,20 @@
           ]
         },
         "unusedKeys": {
+          "description": "Severity and ignore list for unused keys",
           "anyOf": [
             {
               "type": "object",
               "properties": {
                 "severity": {
                   "default": "warning",
+                  "description": "Severity level for this check",
                   "type": "string",
                   "enum": ["error", "warning", "off"]
                 },
                 "ignore": {
                   "default": [],
+                  "description": "Keys to ignore in this check",
                   "type": "array",
                   "items": {
                     "type": "string",
