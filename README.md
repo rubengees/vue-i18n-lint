@@ -1,5 +1,7 @@
 # vue-i18n-lint
 
+[![NPM](https://img.shields.io/npm/v/vue-i18n-lint)](https://www.npmjs.com/package/vue-i18n-lint)
+
 Fast and accurate linting for Vue i18n. Detects missing and unused translation keys across your locale files and source
 code.
 
