@@ -39,16 +39,16 @@
   },
   "dependencies": {
     "@babel/code-frame": "^8.0.0",
-    "@stricli/core": "^1.2.8",
+    "@stricli/core": "^1.2.9",
     "@toon-format/toon": "^2.3.0",
     "@vue/compiler-core": "^3.5.39",
     "@vue/compiler-sfc": "^3.5.39",
     "c12": "4.0.0-beta.5",
     "confbox": "^0.2.4",
     "defu": "^6.1.7",
-    "globby": "^16.2.0",
+    "globby": "^16.2.1",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.138.0",
+    "oxc-parser": "^0.139.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -58,18 +58,18 @@
     "@types/babel__code-frame": "7.27.0",
     "@types/node": "22.20.0",
     "@types/regexp.escape": "2.0.0",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "4.1.10",
     "husky": "9.1.7",
     "lint-staged": "17.0.8",
-    "oxfmt": "0.57.0",
-    "oxlint": "1.72.0",
+    "oxfmt": "0.58.0",
+    "oxlint": "1.73.0",
     "oxlint-tsgolint": "0.24.0",
-    "tsdown": "0.22.3",
-    "typescript": "7.0.1-rc",
-    "vitest": "4.1.9"
+    "tsdown": "0.22.5",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
+  "packageManager": "pnpm@11.12.0+sha512.820a6fbd0d9f04c226638002aead1e45340a9139dd5dc077c1d83ef44aa2481c8eb6637b4c9aa696a3c7e35ba818e49cf27213e5f2b91138d09b7a3e26e898ba"
 }
