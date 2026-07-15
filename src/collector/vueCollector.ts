@@ -18,6 +18,7 @@ type WalkableNode = TemplateChildNode | AttributeNode | DirectiveNode | Expressi
 
 export type VueCollectorOptions = {
   fileSource?: string | undefined
+  lang?: string | undefined
 }
 
 export function collectVueKeys(file: string, templateAst: RootNode, options?: VueCollectorOptions): SourceKey[] {
@@ -87,6 +88,7 @@ function collectFromDirective(file: string, node: DirectiveNode, options?: VueCo
     wrapInParens: true,
     offset: adjustedOffset,
     fileSource: options?.fileSource,
+    lang: options?.lang,
   })
 
   const bodyPart = program.body[0]
@@ -140,6 +142,7 @@ function collectFromExpression(file: string, node: SimpleExpressionNode, options
     wrapInParens: true,
     offset: node.loc.start.offset - 1,
     fileSource: options?.fileSource,
+    lang: options?.lang,
   })
 
   return collectJsKeys(program, node.loc.start.offset - 1)

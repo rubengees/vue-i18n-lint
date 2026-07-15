@@ -68,6 +68,17 @@ test("finds keys in a vue file with object literal directive", async () => {
   expect(localeFiles).toStrictEqual([])
 })
 
+test("finds keys in a vue file with complex attribute", async () => {
+  const filePath = resolve("test/fixtures/vue/template-complex-attribute.vue")
+  const { keys, localeFiles } = await collectSourceFile(filePath)
+
+  expect(keys).toStrictEqual([
+    { key: "label", file: filePath, location: { start: { line: 6, column: 36 }, end: { line: 6, column: 41 } } },
+  ])
+
+  expect(localeFiles).toStrictEqual([])
+})
+
 test("finds keys in a vue file with ts syntax", async () => {
   const filePath = resolve("test/fixtures/vue/ts-syntax.vue")
   const { keys, localeFiles } = await collectSourceFile(filePath)

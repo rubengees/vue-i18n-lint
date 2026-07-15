@@ -4,7 +4,7 @@ import type { SFCBlock, SFCDescriptor } from "@vue/compiler-sfc"
 import { parse } from "@vue/compiler-sfc"
 import { ParseError } from "../error.ts"
 import { parseLocale } from "../parser/localeParser.ts"
-import { parseScript } from "../parser/scriptParser.ts"
+import { asLang, parseScript } from "../parser/scriptParser.ts"
 import type { FileKey, LocaleFile, SourceFile, SourceKey } from "../types.ts"
 import { isPlainObject, offsetToPosition } from "../utils.ts"
 import { collectJsKeys } from "./jsCollector.ts"
@@ -46,7 +46,14 @@ function collectFromVue(source: string, file: string): SourceFile {
   const rawKeys: SourceKey[] = []
 
   const templateAst = descriptor.template?.ast
-  if (templateAst) rawKeys.push(...collectVueKeys(file, templateAst, { fileSource: source }))
+  if (templateAst) {
+    const templateLang = [descriptor.script, descriptor.scriptSetup].reduce<string | undefined>(
+      (lang, block) => lang ?? asLang(block?.lang),
+      undefined,
+    )
+
+    rawKeys.push(...collectVueKeys(file, templateAst, { fileSource: source, lang: templateLang }))
+  }
 
   for (const script of [descriptor.script, descriptor.scriptSetup]) {
     if (!script) continue

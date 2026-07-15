@@ -31,7 +31,7 @@ export function parseScript(file: string, content: string, options: ScriptParser
   return program
 }
 
-function asLang(lang: string | undefined): ParserOptions["lang"] | undefined {
+export function asLang(lang: string | undefined): ParserOptions["lang"] | undefined {
   if (lang === "js" || lang === "jsx" || lang === "ts" || lang === "tsx" || lang === "dts") {
     return lang
   }
