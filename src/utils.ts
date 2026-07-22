@@ -1,4 +1,5 @@
 import { resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { createDefu } from "defu"
 
 export const merge = createDefu((obj, key, value) => {
@@ -61,7 +62,7 @@ export function writeLine(writer: { write(s: string): void }, line: string = "")
 }
 
 export function formatFilePath(filePath: string, line?: number, column?: number) {
-  const base = `file://${resolve(filePath)}`
+  const base = pathToFileURL(resolve(filePath)).href
 
   if (line != null && column != null) return `${base}:${line}:${column}`
   if (line != null) return `${base}:${line}`

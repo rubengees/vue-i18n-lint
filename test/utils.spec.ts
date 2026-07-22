@@ -83,3 +83,7 @@ test("formatFilePath appends line and column when both are given", () => {
 test("formatFilePath resolves relative paths", () => {
   expect(formatFilePath("src/file.ts")).toStrictEqual(`file://${resolve("src/file.ts")}`)
 })
+
+test("formatFilePath percent-encodes special characters like brackets", () => {
+  expect(formatFilePath("/some/[slug]/file.ts")).toStrictEqual("file:///some/%5Bslug%5D/file.ts")
+})
