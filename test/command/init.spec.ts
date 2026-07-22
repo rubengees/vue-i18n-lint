@@ -20,7 +20,7 @@ test("creates a default .ts config when tsconfig.json exists", async () => {
   const testProcess = await runTest(["init", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.ts in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.ts.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.ts"), "utf-8")
   expect(content).toContain("defineConfig")
@@ -32,7 +32,7 @@ test("creates a default .js config when no tsconfig.json exists", async () => {
   const testProcess = await runTest(["init", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.js in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.js.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.js"), "utf-8")
   expect(content).toContain("defineConfig")
@@ -44,7 +44,7 @@ test("creates a .ts config with --format ts", async () => {
   const testProcess = await runTest(["init", "--format", "ts", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.ts in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.ts.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.ts"), "utf-8")
   expect(content).toContain("defineConfig")
@@ -54,7 +54,7 @@ test("creates a .js config with --format js", async () => {
   const testProcess = await runTest(["init", "--format", "js", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.js in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.js.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.js"), "utf-8")
   expect(content).toContain("defineConfig")
@@ -64,7 +64,7 @@ test("creates a .json config with --format json", async () => {
   const testProcess = await runTest(["init", "--format", "json", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.json in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.json.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.json"), "utf-8")
   expect(content).toContain("localePattern")
@@ -75,7 +75,7 @@ test("creates a .yaml config with --format yaml", async () => {
   const testProcess = await runTest(["init", "--format", "yaml", tempDir])
 
   expect(testProcess.exitCode).toBeFalsy()
-  expectStdoutContains(testProcess, `Created vue-i18n-lint.config.yaml in file://${tempDir}.`)
+  expectStdoutContains(testProcess, `Created file://${tempDir}/vue-i18n-lint.config.yaml.`)
 
   const content = await readFile(resolve(tempDir, "vue-i18n-lint.config.yaml"), "utf-8")
   expect(content).toContain("localePattern")
@@ -88,5 +88,5 @@ test("errors when config already exists", async () => {
   const testProcess = await runTest(["init", tempDir])
 
   expect(testProcess.exitCode).toStrictEqual(1)
-  expectStderrContains(testProcess, `vue-i18n-lint.config.js already exists in file://${tempDir}.`)
+  expectStderrContains(testProcess, `Config already exists at file://${tempDir}/vue-i18n-lint.config.js.`)
 })

@@ -49,7 +49,7 @@ export const initCommand = buildCommand({
     const configPath = join(targetPath, configName)
 
     if (existsSync(configPath)) {
-      writeLine(this.process.stderr, `${configName} already exists in ${formatFilePath(targetPath)}.`)
+      writeLine(this.process.stderr, `Config already exists at ${formatFilePath(configPath)}.`)
       this.process.exitCode = 1
       return
     }
@@ -57,7 +57,7 @@ export const initCommand = buildCommand({
     await mkdir(targetPath, { recursive: true })
     await writeFile(configPath, configTemplates[format], "utf-8")
 
-    writeLine(this.process.stdout, `Created ${configName} in ${formatFilePath(targetPath)}.`)
+    writeLine(this.process.stdout, `Created ${formatFilePath(configPath)}.`)
   },
   parameters: {
     flags: {
