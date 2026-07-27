@@ -48,7 +48,7 @@
     "defu": "^6.1.7",
     "globby": "^16.2.1",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.139.0",
+    "oxc-parser": "^0.141.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -60,16 +60,16 @@
     "@types/regexp.escape": "2.0.0",
     "@vitest/coverage-v8": "4.1.10",
     "husky": "9.1.7",
-    "lint-staged": "17.0.8",
-    "oxfmt": "0.58.0",
-    "oxlint": "1.73.0",
-    "oxlint-tsgolint": "0.24.0",
-    "tsdown": "0.22.5",
+    "lint-staged": "17.2.0",
+    "oxfmt": "0.60.0",
+    "oxlint": "1.75.0",
+    "oxlint-tsgolint": "0.25.0",
+    "tsdown": "0.22.14",
     "typescript": "7.0.2",
     "vitest": "4.1.10"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882"
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
 }
