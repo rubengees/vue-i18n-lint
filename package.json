@@ -40,7 +40,7 @@
   "dependencies": {
     "@babel/code-frame": "^8.0.0",
     "@stricli/core": "^1.2.9",
-    "@toon-format/toon": "^2.3.0",
+    "@toon-format/toon": "^4.0.0",
     "@vue/compiler-core": "^3.5.39",
     "@vue/compiler-sfc": "^3.5.39",
     "c12": "4.0.0-beta.5",
