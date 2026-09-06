@@ -43,12 +43,12 @@
     "@toon-format/toon": "^4.0.0",
     "@vue/compiler-core": "^3.5.39",
     "@vue/compiler-sfc": "^3.5.39",
-    "c12": "4.0.0-beta.5",
-    "confbox": "^0.2.4",
+    "c12": "4.0.0-rc.1",
+    "confbox": "^0.3.0",
     "defu": "^6.1.7",
     "globby": "^16.2.1",
     "jiti": "^2.7.0",
-    "oxc-parser": "^0.146.0",
+    "oxc-parser": "^0.148.0",
     "regexp.escape": "^2.0.1",
     "table": "^6.9.0",
     "zod": "^4.4.3"
@@ -60,16 +60,16 @@
     "@types/regexp.escape": "2.0.0",
     "@vitest/coverage-v8": "4.1.11",
     "husky": "9.1.7",
-    "lint-staged": "17.3.0",
-    "oxfmt": "0.64.0",
-    "oxlint": "1.79.0",
+    "lint-staged": "17.4.1",
+    "oxfmt": "0.66.0",
+    "oxlint": "1.81.0",
     "oxlint-tsgolint": "7.0.2001",
-    "tsdown": "0.22.14",
+    "tsdown": "0.23.0",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621"
+  "packageManager": "pnpm@11.25.0"
 }
