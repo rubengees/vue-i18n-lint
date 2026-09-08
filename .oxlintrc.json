@@ -16,7 +16,15 @@
     "vitest/prefer-strict-equal": "error",
     "vitest/expect-expect": [
       "error",
-      { "assertFunctionNames": ["expect", "expectStdoutContains", "expectStdoutNotContains", "expectStderrContains"] }
+      {
+        "assertFunctionNames": [
+          "expect",
+          "expectStdoutContains",
+          "expectStdoutNotContains",
+          "expectStderrContains",
+          "bench"
+        ]
+      }
     ]
   },
   "overrides": [

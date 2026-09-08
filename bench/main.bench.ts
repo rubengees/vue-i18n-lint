@@ -2,7 +2,7 @@ import { copyFile, mkdir, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { run, type StricliProcess } from "@stricli/core"
-import { afterAll, beforeAll, bench } from "vitest"
+import { afterAll, beforeAll, test } from "vitest"
 import { app } from "../src/app.ts"
 
 const FIXTURES = "bench/fixtures"
@@ -78,5 +78,10 @@ afterAll(async () => {
   await rm(tmpBase, { recursive: true, force: true })
 })
 
-bench("Remove unused keys from large project", runRemoveUnused)
-bench("Lint large project", runLint)
+test("Remove unused keys from large project", async ({ bench }) => {
+  await bench("Remove unused keys from large project", runRemoveUnused).run()
+})
+
+test("Lint large project", async ({ bench }) => {
+  await bench("Remove unused keys from large project", runLint).run()
+})

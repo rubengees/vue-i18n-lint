@@ -2,6 +2,6 @@
   // A comment
   "hello": "Hello",
   "nested": {
-    "world": "World",
-  },
+    "world": "World"
+  }
 }
