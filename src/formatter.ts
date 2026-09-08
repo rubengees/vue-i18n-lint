@@ -6,7 +6,7 @@ import { encode } from "@toon-format/toon"
 import { table, type TableUserConfig } from "table"
 import type { z } from "zod"
 import type { severityEnum } from "./config/schema.ts"
-import type { LocaleTypeWarning, MissingKey, UnusedKey } from "./types.ts"
+import type { LocaleTypeWarning, MissingKey, SourceLocation, UnusedKey } from "./types.ts"
 import { formatFilePath, writeLine } from "./utils.ts"
 
 export function formatSummaryPart(value: number, severity: z.infer<typeof severityEnum>) {
@@ -54,7 +54,7 @@ function outputMissingKey(process: StricliProcess, key: MissingKey) {
     if (content != null) {
       writeLine(
         process.stdout,
-        codeFrameColumns(content, source.location, {
+        codeFrameColumns(content, toCodeFrameLocation(source.location), {
           highlightCode: true,
           linesAbove: 1,
           linesBelow: 1,
@@ -72,6 +72,13 @@ function readSourceFile(file: string): string | null {
     return readFileSync(file, { encoding: "utf-8" })
   } catch {
     return null
+  }
+}
+
+function toCodeFrameLocation(location: SourceLocation) {
+  return {
+    start: { line: location.start.line, column: location.start.column - 1 },
+    end: { line: location.end.line, column: location.end.column - 1 },
   }
 }
 

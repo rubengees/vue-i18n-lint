@@ -5,7 +5,7 @@ import { outputJson, outputMissingKeys, outputToon, outputTypeWarnings, outputUn
 import type { LocaleTypeWarning, MissingKey, UnusedKey } from "../src/types.ts"
 import { buildTestProcess, expectStdoutContains } from "./helpers.ts"
 
-const location = { start: { line: 1, column: 1 }, end: { line: 1, column: 4 } }
+const location = { start: { line: 5, column: 19 }, end: { line: 5, column: 20 } }
 
 test("outputMissingKeys prints key location and code frame", () => {
   const file = resolve("test/fixtures/ts/script.ts")
@@ -14,8 +14,11 @@ test("outputMissingKeys prints key location and code frame", () => {
 
   outputMissingKeys(testProcess, [key])
 
+  const output = testProcess.getStdout()
   expectStdoutContains(testProcess, "Missing keys (1)")
-  expectStdoutContains(testProcess, "script.ts")
+  expect(output).toContain("script.ts:5:19")
+  expect(output).toContain('> 5 | const a = i18n.t("a")')
+  expect(output).toContain("    |                   ^ Missing in de")
 })
 
 test("outputMissingKeys still prints location when source file cannot be read", () => {
