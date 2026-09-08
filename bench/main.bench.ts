@@ -78,10 +78,7 @@ afterAll(async () => {
   await rm(tmpBase, { recursive: true, force: true })
 })
 
-test("Remove unused keys from large project", async ({ bench }) => {
+test("main", async ({ bench }) => {
+  await bench("Lint large project", runLint).run()
   await bench("Remove unused keys from large project", runRemoveUnused).run()
-})
-
-test("Lint large project", async ({ bench }) => {
-  await bench("Remove unused keys from large project", runLint).run()
 })
