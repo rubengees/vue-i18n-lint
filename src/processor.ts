@@ -1,7 +1,9 @@
 import escape from "regexp.escape"
-import type { ConfigOutput } from "./config/schema.ts"
+import type { z } from "zod"
+import type { ConfigOutput, dynamicKeysModeEnum } from "./config/schema.ts"
 import type {
   DynamicKey,
+  DynamicKeyOccurrence,
   LocaleFile,
   LocaleTypeWarning,
   MissingKey,
@@ -9,6 +11,7 @@ import type {
   SourceFile,
   UnusedKey,
 } from "./types.ts"
+import { DYNAMIC_PART } from "./types.ts"
 import { getOrInsertComputed, mapGetOrInsert, newPrefixSet } from "./utils.ts"
 
 export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[], config: ConfigOutput) {
@@ -28,6 +31,13 @@ export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[
     const unusedKeys = calcUnusedKeys(localeFiles, sourceFiles)
 
     result.unused = unusedKeys.filter((entry) => !ignoreSet.has(entry.key))
+  }
+
+  if (config.checks.dynamicKeys.severity !== "off") {
+    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.dynamicKeys.ignore ?? [])])
+    const dynamicKeys = calcDynamicKeys(sourceFiles, config.checks.dynamicKeys.mode)
+
+    result.dynamicKeys = dynamicKeys.filter((entry) => !ignoreSet.has(entry.key))
   }
 
   return result
@@ -64,6 +74,8 @@ function calcMissingKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]) {
 
     for (const { key, file, location } of sourceFile.keys) {
       if (typeof key !== "string") {
+        if (isFullyDynamicKey(key)) continue
+
         const keyStr = dynamicKeyToString(key)
         const regex = getOrInsertComputed(regexCache, keyStr, () => buildDynamicKeyRegex(key))
 
@@ -138,6 +150,8 @@ function calcUnusedKeys(localeFiles: LocaleFile[], sourceFiles: SourceFile[]): U
       if (typeof k.key === "string") {
         sourceFileKeys.add(k.key)
       } else {
+        if (isFullyDynamicKey(k.key)) continue
+
         const keyStr = dynamicKeyToString(k.key)
 
         if (!sourceFileDynamicKeys.has(keyStr)) sourceFileDynamicKeys.set(keyStr, buildDynamicKeyRegex(k.key))
@@ -195,4 +209,25 @@ function calcUnusedKeysInLocaleFiles(
       }
     }
   }
+}
+
+function calcDynamicKeys(sourceFiles: SourceFile[], mode: z.infer<typeof dynamicKeysModeEnum>): DynamicKeyOccurrence[] {
+  const occurrences: DynamicKeyOccurrence[] = []
+
+  for (const sourceFile of sourceFiles) {
+    for (const { key, file, location } of sourceFile.keys) {
+      if (typeof key === "string") continue
+
+      const partial = !isFullyDynamicKey(key)
+      if (mode === "full" && partial) continue
+
+      occurrences.push({ key: dynamicKeyToString(key), partial, source: { file, location } })
+    }
+  }
+
+  return occurrences
+}
+
+function isFullyDynamicKey(dynamicKey: DynamicKey): boolean {
+  return dynamicKey.every((part) => part === DYNAMIC_PART)
 }

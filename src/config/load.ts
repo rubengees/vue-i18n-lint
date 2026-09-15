@@ -37,6 +37,11 @@ function buildCliConfig(cliArgs?: CliArgs): ConfigInput {
         ignore: cliArgs?.ignoreUnusedKeys,
         severity: cliArgs?.unusedKeysSeverity,
       },
+      dynamicKeys: {
+        ignore: cliArgs?.ignoreDynamicKeys,
+        severity: cliArgs?.dynamicKeysSeverity,
+        mode: cliArgs?.dynamicKeysMode,
+      },
     },
   }
 }

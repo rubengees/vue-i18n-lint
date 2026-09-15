@@ -6,7 +6,7 @@ import { encode } from "@toon-format/toon"
 import { table, type TableUserConfig } from "table"
 import type { z } from "zod"
 import type { severityEnum } from "./config/schema.ts"
-import type { LocaleTypeWarning, MissingKey, SourceLocation, UnusedKey } from "./types.ts"
+import type { DynamicKeyOccurrence, LocaleTypeWarning, MissingKey, SourceLocation, UnusedKey } from "./types.ts"
 import { formatFilePath, writeLine } from "./utils.ts"
 
 export function formatSummaryPart(value: number, severity: z.infer<typeof severityEnum>) {
@@ -96,16 +96,53 @@ export function outputUnusedKeys(process: StricliProcess, keys: UnusedKey[]): vo
   writeLine(process.stdout, table([["Key", "Locales"], ...rows], config))
 }
 
+export function outputDynamicKeys(process: StricliProcess, keys: DynamicKeyOccurrence[]): void {
+  writeLine(process.stdout, styleText("bold", `Dynamic keys (${keys.length}):\n`))
+
+  for (const occurrence of keys) {
+    const source = occurrence.source
+
+    writeLine(
+      process.stdout,
+      `  ${formatFilePath(source.file)}:${source.location.start.line}:${source.location.start.column}`,
+    )
+
+    const content = readSourceFile(source.file)
+
+    if (content != null) {
+      writeLine(
+        process.stdout,
+        codeFrameColumns(content, toCodeFrameLocation(source.location), {
+          highlightCode: true,
+          linesAbove: 1,
+          linesBelow: 1,
+          message: occurrence.partial ? "Partial dynamic key" : "Dynamic key",
+        }),
+      )
+    }
+
+    writeLine(process.stdout)
+  }
+}
+
 export function outputJson(
   process: StricliProcess,
-  data: { missingKeys: MissingKey[] | undefined; unusedKeys: UnusedKey[] | undefined },
+  data: {
+    missingKeys: MissingKey[] | undefined
+    unusedKeys: UnusedKey[] | undefined
+    dynamicKeys: DynamicKeyOccurrence[] | undefined
+  },
 ): void {
   writeLine(process.stdout, JSON.stringify(data, null, 2))
 }
 
 export function outputToon(
   process: StricliProcess,
-  data: { missingKeys: MissingKey[] | undefined; unusedKeys: UnusedKey[] | undefined },
+  data: {
+    missingKeys: MissingKey[] | undefined
+    unusedKeys: UnusedKey[] | undefined
+    dynamicKeys: DynamicKeyOccurrence[] | undefined
+  },
 ): void {
   writeLine(process.stdout, encode(data))
 }

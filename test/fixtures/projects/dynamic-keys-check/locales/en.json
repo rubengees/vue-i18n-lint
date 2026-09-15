@@ -1,0 +1,6 @@
+{
+  "status": { "active": "Active" },
+  "a": { "b": "Value" },
+  "not": { "dynamic": "Test" },
+  "deep": {"dynamic": {"key": "Test"} }
+}

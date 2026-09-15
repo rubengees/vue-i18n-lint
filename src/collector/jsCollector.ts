@@ -49,7 +49,6 @@ function extractKey(arg: Argument, offset: number): SourceKey[] {
   }, [])
 
   if (normalizedParts.length === 0) return []
-  if (normalizedParts.every((p) => typeof p !== "string")) return []
 
   const start = offset + arg.start
   const end = offset + arg.end

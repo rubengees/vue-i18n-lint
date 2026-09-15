@@ -2,9 +2,8 @@ import { writeFile } from "node:fs/promises"
 import { extname } from "node:path"
 import { type ApplicationContext, buildCommand } from "@stricli/core"
 import { stringifyJSON, stringifyJSON5, stringifyJSONC, stringifyYAML } from "confbox"
-import { defu } from "defu"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import type { CliArgs } from "../config/schema.ts"
+import type { CliArgs, ConfigOutput } from "../config/schema.ts"
 import { processFiles } from "../processor.ts"
 import { isPlainObject, writeLine } from "../utils.ts"
 import { collectFiles } from "./shared.ts"
@@ -27,11 +26,17 @@ export const removeUnusedCommand = buildCommand({
 
     const { localeFiles, sourceFiles, parseErrors } = await collectFiles(targetPath, config, this.process)
 
-    const { unused } = processFiles(
-      localeFiles,
-      sourceFiles,
-      defu({ checks: { missingKeys: { severity: "off" }, unusedKeys: { severity: "error" } } }, config),
-    )
+    const configForRemoval: ConfigOutput = {
+      ...config,
+      checks: {
+        ...config.checks,
+        missingKeys: { ...config.checks.missingKeys, severity: "off" },
+        unusedKeys: { ...config.checks.unusedKeys, severity: "error" },
+        dynamicKeys: { ...config.checks.dynamicKeys, severity: "off" },
+      },
+    }
+
+    const { unused } = processFiles(localeFiles, sourceFiles, configForRemoval)
 
     const unusedSet = new Set(
       unused?.filter((it) => it.files.some((file) => file.scope === "global")).map((it) => it.key) ?? [],

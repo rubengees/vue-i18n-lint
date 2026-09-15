@@ -70,6 +70,10 @@
             },
             {
               "type": "boolean",
+              "const": true
+            },
+            {
+              "type": "boolean",
               "const": false
             }
           ]
@@ -96,6 +100,49 @@
                   }
                 }
               }
+            },
+            {
+              "type": "boolean",
+              "const": true
+            },
+            {
+              "type": "boolean",
+              "const": false
+            }
+          ]
+        },
+        "dynamicKeys": {
+          "description": "Severity, ignore list and reporting mode for dynamic keys",
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "severity": {
+                  "default": "off",
+                  "description": "Severity level for this check",
+                  "type": "string",
+                  "enum": ["error", "warning", "off"]
+                },
+                "ignore": {
+                  "default": [],
+                  "description": "Keys to ignore in this check",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "mode": {
+                  "default": "full",
+                  "description": "Which dynamic keys to report: Fully dynamic, or any with dynamic parts",
+                  "type": "string",
+                  "enum": ["full", "partial"]
+                }
+              }
+            },
+            {
+              "type": "boolean",
+              "const": true
             },
             {
               "type": "boolean",

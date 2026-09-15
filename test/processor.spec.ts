@@ -709,6 +709,128 @@ test("unusedKeys.ignore does not suppress a dynamic missing key", () => {
   expect(result.missing?.map((k) => k.key)).toStrictEqual(["status.<dynamic>"])
 })
 
+test("does not report dynamic keys by default", () => {
+  const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART]), dynamicFileKey([DYNAMIC_PART])])
+
+  const result = processFiles([], [srcFile], config())
+
+  expect(result.dynamicKeys).toBeUndefined()
+})
+
+test("does not report dynamic keys when severity is off even if mode is set", () => {
+  const srcFile = sourceFile([dynamicFileKey([DYNAMIC_PART])])
+
+  const result = processFiles([], [srcFile], config({ checks: { dynamicKeys: { mode: "partial", severity: "off" } } }))
+
+  expect(result.dynamicKeys).toBeUndefined()
+})
+
+test("reports only fully dynamic keys in full mode", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey([DYNAMIC_PART], "src/plain.ts"),
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/partial.ts"),
+    fileKey("static.key", "src/static.ts"),
+  ])
+
+  const result = processFiles([], [srcFile], config({ checks: { dynamicKeys: { severity: "error", mode: "full" } } }))
+
+  expect(result.dynamicKeys).toStrictEqual([
+    {
+      key: "<dynamic>",
+      partial: false,
+      source: {
+        file: "src/plain.ts",
+        location: { start: { line: 1, column: 1 }, end: { line: 1, column: 2 } },
+      },
+    },
+  ])
+})
+
+test("reports all keys containing dynamic parts in partial mode", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey([DYNAMIC_PART], "src/plain.ts"),
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/partial.ts"),
+    fileKey("static.key", "src/static.ts"),
+  ])
+
+  const result = processFiles(
+    [],
+    [srcFile],
+    config({ checks: { dynamicKeys: { severity: "error", mode: "partial" } } }),
+  )
+
+  expect(result.dynamicKeys?.map((k) => k.key)).toStrictEqual(["<dynamic>", "status.<dynamic>"])
+})
+
+test("marks occurrences as fully dynamic or partial", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey([DYNAMIC_PART], "src/plain.ts"),
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/partial.ts"),
+  ])
+
+  const result = processFiles(
+    [],
+    [srcFile],
+    config({ checks: { dynamicKeys: { severity: "error", mode: "partial" } } }),
+  )
+
+  expect(result.dynamicKeys).toStrictEqual([
+    expect.objectContaining({ key: "<dynamic>", partial: false }),
+    expect.objectContaining({ key: "status.<dynamic>", partial: true }),
+  ])
+})
+
+test("each occurrence of the same dynamic key is reported separately", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey([DYNAMIC_PART], "src/a.ts"),
+    dynamicFileKey([DYNAMIC_PART], "src/b.ts"),
+    dynamicFileKey([DYNAMIC_PART], "src/c.ts"),
+  ])
+
+  const result = processFiles(
+    [],
+    [srcFile],
+    config({ checks: { dynamicKeys: { severity: "error", mode: "partial" } } }),
+  )
+
+  expect(result.dynamicKeys).toHaveLength(3)
+  expect(result.dynamicKeys?.map((k) => k.source.file)).toStrictEqual(["src/a.ts", "src/b.ts", "src/c.ts"])
+})
+
+test("ignoreKeys and dynamicKeys.ignore suppress dynamic key reports", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey([DYNAMIC_PART], "src/plain.ts"),
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/partial.ts"),
+    dynamicFileKey(["other.", DYNAMIC_PART], "src/other.ts"),
+  ])
+
+  const result = processFiles(
+    [],
+    [srcFile],
+    config({
+      ignoreKeys: ["<dynamic>"],
+      checks: { dynamicKeys: { severity: "error", mode: "partial", ignore: ["status.<dynamic>"] } },
+    }),
+  )
+
+  expect(result.dynamicKeys?.map((k) => k.key)).toStrictEqual(["other.<dynamic>"])
+})
+
+test("fully dynamic keys are not reported as missing or unused", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["existing.key", "unused.key"])]
+  const srcFile = sourceFile([dynamicFileKey([DYNAMIC_PART], "src/plain.ts"), fileKey("existing.key")])
+
+  const result = processFiles(
+    localeFiles,
+    [srcFile],
+    config({ checks: { dynamicKeys: { severity: "error", mode: "partial" } } }),
+  )
+
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused?.map((k) => k.key)).toStrictEqual(["unused.key"])
+  expect(result.dynamicKeys?.map((k) => k.key)).toStrictEqual(["<dynamic>"])
+})
+
 function localeFile(file: string, keys: string[]): LocaleFile {
   return {
     locale: basename(file, ".json"),
@@ -743,6 +865,7 @@ function config(overrides?: {
   checks?: {
     missingKeys?: Partial<ConfigOutput["checks"]["missingKeys"]>
     unusedKeys?: Partial<ConfigOutput["checks"]["unusedKeys"]>
+    dynamicKeys?: Partial<ConfigOutput["checks"]["dynamicKeys"]>
   }
 }): ConfigOutput {
   return {
@@ -759,6 +882,11 @@ function config(overrides?: {
       unusedKeys: {
         severity: overrides?.checks?.unusedKeys?.severity ?? "warning",
         ignore: overrides?.checks?.unusedKeys?.ignore ?? [],
+      },
+      dynamicKeys: {
+        severity: overrides?.checks?.dynamicKeys?.severity ?? "off",
+        ignore: overrides?.checks?.dynamicKeys?.ignore ?? [],
+        mode: overrides?.checks?.dynamicKeys?.mode ?? "full",
       },
     },
   }

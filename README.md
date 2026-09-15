@@ -105,8 +105,11 @@ vue-i18n-lint [command] [options] [path]
 | `--ignore-keys`           | Comma-separated keys to ignore in all checks                  |                                    |
 | `--ignore-missing-keys`   | Comma-separated keys to ignore only in the missing keys check |                                    |
 | `--ignore-unused-keys`    | Comma-separated keys to ignore only in the unused keys check  |                                    |
+| `--ignore-dynamic-keys`   | Comma-separated keys to ignore only in the dynamic keys check |                                    |
 | `--missing-keys-severity` | Severity for missing keys: `error`, `warning`, or `off`       | `error`                            |
 | `--unused-keys-severity`  | Severity for unused keys: `error`, `warning`, or `off`        | `warning`                          |
+| `--dynamic-keys-severity` | Severity for dynamic keys: `error`, `warning`, or `off`       | `off`                              |
+| `--dynamic-keys-mode`     | Which dynamic keys to report: `full` or `partial`             | `full`                             |
 
 ### Example
 
@@ -142,11 +145,26 @@ export default defineConfig({
       severity: "warning",
       ignore: ["only.unused"],
     },
+    dynamicKeys: {
+      severity: "warning",
+      ignore: ["status.<dynamic>"],
+      mode: "partial",
+    },
   },
 })
 ```
 
 Use the exported `defineConfig` helper for TypeScript autocompletion.
+
+Checks also accept `true` or `false` as shorthand. `true` enables the check with `error` severity, while `false` disables it:
+
+```ts
+checks: {
+  missingKeys: true,
+  unusedKeys: false,
+  dynamicKeys: true,
+}
+```
 
 Dynamic missing keys are reported with `<dynamic>` as a placeholder (e.g. `status.<dynamic>`).
 Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
@@ -171,12 +189,26 @@ that match a dynamic pattern are not reported as unused.
 If no locale key matches, the missing key is reported with `<dynamic>` as a placeholder,
 e.g. `status.<dynamic>`.
 
-Purely dynamic expressions with no static fragments (e.g. `t(variable)`) are ignored.
+Purely dynamic expressions with no static fragments (e.g. `t(variable)`) are ignored for the missing and unused key
+checks.
 
 Dynamic key support is best-effort. There are many more complex cases that can't be detected by vue-i18n-lint (yet).
 
 > [!TIP]
 > Ignoring dynamic keys is done using the `<dynamic>` placeholder, e.g. `ignoreKeys: ["status.<dynamic>"]`
+
+### Dynamic keys check
+
+The `dynamicKeys` check optionally finds usages of dynamic keys. This is helpful during initial setup to find code that
+needs to be rewritten or when dynamic keys should not be allowed at all. The check is off by default and can be enabled
+via the `severity` setting.
+
+It supports two modes via the `mode` setting:
+
+| Mode        | Reports                                                                    |
+| ----------- | -------------------------------------------------------------------------- |
+| `"full"`    | Only keys built entirely from runtime parts, e.g. `t(variable)` (default)  |
+| `"partial"` | Any key containing at least one dynamic part, including fully dynamic ones |
 
 ## Supported locale file formats
 
@@ -187,7 +219,7 @@ Dynamic key support is best-effort. There are many more complex cases that can't
 
 ## Severity levels
 
-Each check (`missingKeys`, `unusedKeys`) supports a `severity` setting:
+Each check (`missingKeys`, `unusedKeys`, `dynamicKeys`) supports a `severity` setting:
 
 | Value       | Behavior                                                    |
 | ----------- | ----------------------------------------------------------- |

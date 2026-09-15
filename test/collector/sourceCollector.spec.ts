@@ -106,6 +106,11 @@ test("finds dynamic keys in a vue file", async () => {
       location: { start: { line: 22, column: 15 }, end: { line: 22, column: 53 } },
     },
     {
+      key: [DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 23, column: 15 }, end: { line: 23, column: 19 } },
+    },
+    {
       key: ["s.b.", DYNAMIC_PART, ".d"],
       file: filePath,
       location: { start: { line: 24, column: 15 }, end: { line: 24, column: 35 } },
@@ -136,6 +141,11 @@ test("finds dynamic keys in a vue file", async () => {
       location: { start: { line: 10, column: 18 }, end: { line: 10, column: 32 } },
     },
     {
+      key: [DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 11, column: 18 }, end: { line: 11, column: 27 } },
+    },
+    {
       key: ["u.b.", DYNAMIC_PART, ".d"],
       file: filePath,
       location: { start: { line: 13, column: 18 }, end: { line: 13, column: 38 } },
@@ -149,6 +159,11 @@ test("finds dynamic keys in a vue file", async () => {
       key: ["u.b.", DYNAMIC_PART, "d"],
       file: filePath,
       location: { start: { line: 15, column: 18 }, end: { line: 15, column: 37 } },
+    },
+    {
+      key: [DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 16, column: 18 }, end: { line: 16, column: 22 } },
     },
     {
       key: ["x.", DYNAMIC_PART, "yx.y.za.", DYNAMIC_PART, ".b", DYNAMIC_PART],

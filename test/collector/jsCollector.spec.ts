@@ -78,10 +78,10 @@ test("template literal with expression at the end returns a dynamic key", () => 
   expect(collectJsKeys(program)).toMatchObject([{ key: ["a.", DYNAMIC_PART] }])
 })
 
-test("template literal with only an expression is ignored", () => {
+test("template literal with only an expression returns a fully dynamic key", () => {
   const program = parseSync("script.ts", "t(`${x}`)").program
 
-  expect(collectJsKeys(program)).toStrictEqual([])
+  expect(collectJsKeys(program)).toMatchObject([{ key: [DYNAMIC_PART] }])
 })
 
 test("empty template literal is ignored", () => {
@@ -120,16 +120,16 @@ test("variable + string returns a dynamic key", () => {
   expect(collectJsKeys(program)).toMatchObject([{ key: [DYNAMIC_PART, ".b"] }])
 })
 
-test("concatenation of two variables is ignored", () => {
+test("concatenation of two variables returns a fully dynamic key", () => {
   const program = parseSync("script.ts", "t(x + y)").program
 
-  expect(collectJsKeys(program)).toStrictEqual([])
+  expect(collectJsKeys(program)).toMatchObject([{ key: [DYNAMIC_PART] }])
 })
 
-test("non-+ binary expression is ignored", () => {
+test("non-+ binary expression returns a fully dynamic key", () => {
   const program = parseSync("script.ts", "t(a - b)").program
 
-  expect(collectJsKeys(program)).toStrictEqual([])
+  expect(collectJsKeys(program)).toMatchObject([{ key: [DYNAMIC_PART] }])
 })
 
 test("number literal argument returns a static key", () => {
@@ -144,10 +144,10 @@ test("boolean literal argument returns a static key", () => {
   expect(collectJsKeys(program)).toMatchObject([{ key: "true" }])
 })
 
-test("identifier argument is ignored", () => {
+test("identifier argument returns a fully dynamic key", () => {
   const program = parseSync("script.ts", "t(x)").program
 
-  expect(collectJsKeys(program)).toStrictEqual([])
+  expect(collectJsKeys(program)).toMatchObject([{ key: [DYNAMIC_PART] }])
 })
 
 test("conditional expression with string branches returns both keys", () => {
@@ -156,10 +156,10 @@ test("conditional expression with string branches returns both keys", () => {
   expect(collectJsKeys(program)).toMatchObject([{ key: "a" }, { key: "b" }])
 })
 
-test("conditional expression with one dynamic branch returns only the string key", () => {
+test("conditional expression with one dynamic branch returns the string key and a fully dynamic key", () => {
   const program = parseSync("script.ts", 't(condition ? "a" : x)').program
 
-  expect(collectJsKeys(program)).toMatchObject([{ key: "a" }])
+  expect(collectJsKeys(program)).toMatchObject([{ key: "a" }, { key: [DYNAMIC_PART] }])
 })
 
 test("nested conditional expression returns all string keys", () => {

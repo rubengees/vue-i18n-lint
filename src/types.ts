@@ -43,10 +43,15 @@ export type SourceKey = {
   end: number
 }
 
+export type KeySource = {
+  file: string
+  location: SourceLocation
+}
+
 export type MissingKey = {
   key: string
   locales: string[]
-  sources: { file: string; location: SourceLocation }[]
+  sources: KeySource[]
 }
 
 export type UnusedKey = {
@@ -67,8 +72,15 @@ export type LocaleTypeWarning = {
   type: string
 }
 
+export type DynamicKeyOccurrence = {
+  key: string
+  partial: boolean
+  source: KeySource
+}
+
 export type ProcessResult = {
   typeWarnings: LocaleTypeWarning[]
   missing?: MissingKey[]
   unused?: UnusedKey[]
+  dynamicKeys?: DynamicKeyOccurrence[]
 }

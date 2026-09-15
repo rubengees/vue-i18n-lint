@@ -417,3 +417,189 @@ test("--ignore-keys suppresses a dynamic missing key by its placeholder string",
   expectStdoutContains(testProcess, "Found 0 missing and 0 unused keys.")
   expect(testProcess.exitCode).toBeFalsy()
 })
+
+test("dynamic keys check is off by default", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+  ])
+
+  expectStdoutNotContains(testProcess, "Dynamic keys")
+  expectStdoutContains(testProcess, "Found 0 missing and 0 unused keys.")
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--dynamic-keys-severity alone enables the check in default full mode", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-severity",
+    "error",
+  ])
+
+  expectStdoutContains(testProcess, "Dynamic keys (2):")
+  expectStdoutContains(testProcess, "app.ts:11:3")
+  expectStdoutContains(testProcess, "app.ts:12:3")
+  expectStdoutNotContains(testProcess, "app.ts:9:3")
+  expectStdoutNotContains(testProcess, "app.ts:10:3")
+  expectStdoutNotContains(testProcess, "app.vue")
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--dynamic-keys-mode=partial reports all dynamic keys with source locations and exits 1 on error", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "partial",
+    "--dynamic-keys-severity",
+    "error",
+  ])
+
+  expectStdoutContains(testProcess, "Dynamic keys (5):")
+  expectStdoutContains(testProcess, "app.ts:9:3")
+  expectStdoutContains(testProcess, "app.ts:10:3")
+  expectStdoutContains(testProcess, "app.ts:11:3")
+  expectStdoutContains(testProcess, "app.ts:12:3")
+  expectStdoutContains(testProcess, "app.vue:3:15")
+  expectStdoutContains(testProcess, "Found 0 missing, 0 unused, and 5 dynamic keys.")
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--dynamic-keys-mode=full reports only fully dynamic keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "full",
+    "--dynamic-keys-severity",
+    "error",
+  ])
+
+  expectStdoutContains(testProcess, "Dynamic keys (2):")
+  expectStdoutContains(testProcess, "app.ts:11:3")
+  expectStdoutContains(testProcess, "app.ts:12:3")
+  expectStdoutNotContains(testProcess, "app.ts:9:3")
+  expectStdoutNotContains(testProcess, "app.ts:10:3")
+  expectStdoutNotContains(testProcess, "app.vue")
+  expectStdoutContains(testProcess, "Found 0 missing, 0 unused, and 2 dynamic keys.")
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--dynamic-keys-severity=warning does not set exit code to 1", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "partial",
+    "--dynamic-keys-severity",
+    "warning",
+  ])
+
+  expectStdoutContains(testProcess, "Dynamic keys (5):")
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--dynamic-keys-severity=off suppresses dynamic keys output", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "partial",
+    "--dynamic-keys-severity",
+    "off",
+  ])
+
+  expectStdoutNotContains(testProcess, "Dynamic keys")
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--ignore-dynamic-keys and --ignore-keys suppress dynamic key reports", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "partial",
+    "--dynamic-keys-severity",
+    "error",
+    "--ignore-dynamic-keys",
+    "<dynamic>",
+    "--ignore-keys",
+    "status.<dynamic>",
+  ])
+
+  expectStdoutContains(testProcess, "Dynamic keys (2):")
+  expectStdoutContains(testProcess, "app.ts:10:3")
+  expectStdoutContains(testProcess, "app.vue:3:15")
+  expectStdoutNotContains(testProcess, "app.ts:9:3")
+  expectStdoutNotContains(testProcess, "app.ts:11:3")
+  expectStdoutNotContains(testProcess, "app.ts:12:3")
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--format json includes dynamic keys", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--dynamic-keys-mode",
+    "full",
+    "--dynamic-keys-severity",
+    "error",
+    "--format",
+    "json",
+  ])
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output.missingKeys).toHaveLength(0)
+  expect(output.unusedKeys).toHaveLength(0)
+  expect(output.dynamicKeys).toHaveLength(2)
+  expect(output.dynamicKeys[0]?.key).toStrictEqual("<dynamic>")
+  expect(output.dynamicKeys[0]?.partial).toStrictEqual(false)
+  expect(output.dynamicKeys[0]?.source.file).toContain("app.ts")
+  expect(output.dynamicKeys[1]?.key).toStrictEqual("<dynamic>")
+  expect(testProcess.exitCode).toStrictEqual(1)
+})
+
+test("--format json omits dynamic keys when the check is disabled", async () => {
+  const testProcess = await runTest([
+    resolve(FIXTURES, "dynamic-keys-check"),
+    "--locale-pattern",
+    DEFAULT_LOCALE_PATTERN,
+    "--src-pattern",
+    DEFAULT_SRC_PATTERN,
+    "--format",
+    "json",
+  ])
+
+  const output = JSON.parse(testProcess.getStdout())
+
+  expect(output.missingKeys).toHaveLength(0)
+  expect(output.unusedKeys).toHaveLength(0)
+  expect(output.dynamicKeys).toBeUndefined()
+  expect(testProcess.exitCode).toBeFalsy()
+})

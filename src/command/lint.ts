@@ -1,8 +1,9 @@
 import { type ApplicationContext, buildCommand } from "@stricli/core"
 import { loadVueI18nLintConfig } from "../config/load.ts"
-import { type CliArgs, formatEnum, severityEnum } from "../config/schema.ts"
+import { type CliArgs, dynamicKeysModeEnum, formatEnum, severityEnum } from "../config/schema.ts"
 import {
   formatSummaryPart,
+  outputDynamicKeys,
   outputJson,
   outputMissingKeys,
   outputToon,
@@ -29,12 +30,15 @@ export const lintCommand = buildCommand({
 
     const missingSeverity = config.checks.missingKeys.severity
     const unusedSeverity = config.checks.unusedKeys.severity
+    const dynamicSeverity = config.checks.dynamicKeys.severity
+    const dynamicCount = result.dynamicKeys?.length ?? 0
 
     if (config.format === "text") {
       if (parseErrors > 0) writeLine(this.process.stdout)
       if (result.typeWarnings.length > 0) outputTypeWarnings(this.process, result.typeWarnings)
       if (result.missing && result.missing.length > 0) outputMissingKeys(this.process, result.missing)
       if (result.unused && result.unused.length > 0) outputUnusedKeys(this.process, result.unused)
+      if (result.dynamicKeys && result.dynamicKeys.length > 0) outputDynamicKeys(this.process, result.dynamicKeys)
 
       const summaryParts: string[] = []
 
@@ -43,8 +47,12 @@ export const lintCommand = buildCommand({
 
       if (result.unused != null) summaryParts.push(`${formatSummaryPart(result.unused.length, unusedSeverity)} unused`)
 
+      if (result.dynamicKeys != null) summaryParts.push(`${formatSummaryPart(dynamicCount, dynamicSeverity)} dynamic`)
+
       if (summaryParts.length > 0) {
-        writeLine(this.process.stdout, `Found ${summaryParts.join(" and ")} keys.`)
+        const summary = new Intl.ListFormat("en").format(summaryParts)
+
+        writeLine(this.process.stdout, `Found ${summary} keys.`)
       }
 
       const errorSummary =
@@ -55,7 +63,7 @@ export const lintCommand = buildCommand({
         `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
       )
     } else {
-      const outputData = { missingKeys: result.missing, unusedKeys: result.unused }
+      const outputData = { missingKeys: result.missing, unusedKeys: result.unused, dynamicKeys: result.dynamicKeys }
 
       if (config.format === "json") {
         outputJson(this.process, outputData)
@@ -66,8 +74,9 @@ export const lintCommand = buildCommand({
 
     const missingIsError = missingSeverity === "error" && result.missing && result.missing.length > 0
     const unusedIsError = unusedSeverity === "error" && result.unused && result.unused.length > 0
+    const dynamicIsError = dynamicSeverity === "error" && dynamicCount > 0
 
-    if (missingIsError || unusedIsError || parseErrors > 0) {
+    if (missingIsError || unusedIsError || dynamicIsError || parseErrors > 0) {
       this.process.exitCode = 1
     }
   },
@@ -104,6 +113,13 @@ export const lintCommand = buildCommand({
         variadic: ",",
         brief: "Comma-separated keys to ignore in the unused keys check",
       },
+      ignoreDynamicKeys: {
+        kind: "parsed",
+        parse: String,
+        optional: true,
+        variadic: ",",
+        brief: "Comma-separated keys to ignore in the dynamic keys check",
+      },
       missingKeysSeverity: {
         kind: "enum",
         values: severityEnum.options,
@@ -115,6 +131,18 @@ export const lintCommand = buildCommand({
         values: severityEnum.options,
         optional: true,
         brief: "Severity for unused keys",
+      },
+      dynamicKeysSeverity: {
+        kind: "enum",
+        values: severityEnum.options,
+        optional: true,
+        brief: "Severity for dynamic keys",
+      },
+      dynamicKeysMode: {
+        kind: "enum",
+        values: dynamicKeysModeEnum.options,
+        optional: true,
+        brief: "Which dynamic keys to report: full or partial",
       },
     },
     positional: {

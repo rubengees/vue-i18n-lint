@@ -7,12 +7,13 @@ const FIXTURES = resolve("test/fixtures/config")
 
 describe("loadVueI18nLintConfig", () => {
   describe("defaults", () => {
-    test("applies default localePattern, srcPattern, and ignorePatterns when no config file exists", async () => {
+    test("applies default configuration when no config file exists", async () => {
       const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"))
 
       expect(config.localePattern).toStrictEqual("**/locales/*.json")
       expect(config.srcPattern).toStrictEqual("**/*.{ts,cts,mts,js,cjs,mjs,vue}")
       expect(config.ignorePatterns).toStrictEqual([])
+      expect(config.checks.dynamicKeys).toStrictEqual({ severity: "off", ignore: [], mode: "full" })
     })
   })
 
@@ -32,6 +33,14 @@ describe("loadVueI18nLintConfig", () => {
 
       expect(config.checks.missingKeys.severity).toStrictEqual("off")
       expect(config.checks.unusedKeys.severity).toStrictEqual("off")
+    })
+
+    test("allows true for checks and transforms config to error severity", async () => {
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "checks-true"))
+
+      expect(config.checks.missingKeys).toStrictEqual({ severity: "error", ignore: [] })
+      expect(config.checks.unusedKeys).toStrictEqual({ severity: "error", ignore: [] })
+      expect(config.checks.dynamicKeys).toStrictEqual({ severity: "error", ignore: [], mode: "full" })
     })
   })
 
@@ -89,14 +98,26 @@ describe("loadVueI18nLintConfig", () => {
       expect(config.checks.unusedKeys.ignore).toStrictEqual(["foo", "bar"])
     })
 
-    test("cli ignoreMissingKeys and ignoreUnusedKeys can be set independently", async () => {
+    test("cli check ignore lists can be set independently", async () => {
       const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
+        ignoreDynamicKeys: ["dynamic.key"],
         ignoreMissingKeys: ["missing.key"],
         ignoreUnusedKeys: ["unused.key"],
       })
 
+      expect(config.checks.dynamicKeys.ignore).toStrictEqual(["dynamic.key"])
       expect(config.checks.missingKeys.ignore).toStrictEqual(["missing.key"])
       expect(config.checks.unusedKeys.ignore).toStrictEqual(["unused.key"])
+    })
+
+    test("accepts dynamicKeysSeverity and dynamicKeysMode", async () => {
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "no-config"), {
+        dynamicKeysSeverity: "error",
+        dynamicKeysMode: "partial",
+      })
+
+      expect(config.checks.dynamicKeys.severity).toStrictEqual("error")
+      expect(config.checks.dynamicKeys.mode).toStrictEqual("partial")
     })
 
     test("cli checks override file config checks, non-overridden checks are preserved", async () => {
@@ -146,6 +167,30 @@ describe("loadVueI18nLintConfig", () => {
 
       await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
         /Failed to load config[\s\S]*missingKeys/,
+      )
+    })
+
+    test("throws when cli ignoreDynamicKeys contains an empty string", async () => {
+      await expect(loadVueI18nLintConfig(process.cwd(), { ignoreDynamicKeys: [""] })).rejects.toThrow(
+        /Failed to load config[\s\S]*dynamicKeys.*ignore/,
+      )
+    })
+
+    test("throws when cli dynamicKeysSeverity is invalid", async () => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const invalidArgs = { dynamicKeysSeverity: "invalid" } as unknown as CliArgs
+
+      await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
+        /Failed to load config[\s\S]*dynamicKeys/,
+      )
+    })
+
+    test("throws when cli dynamicKeysMode is invalid", async () => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      const invalidArgs = { dynamicKeysMode: "invalid" } as unknown as CliArgs
+
+      await expect(loadVueI18nLintConfig(process.cwd(), invalidArgs)).rejects.toThrow(
+        /Failed to load config[\s\S]*dynamicKeys/,
       )
     })
 
