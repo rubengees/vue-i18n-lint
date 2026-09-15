@@ -159,11 +159,15 @@ Use the exported `defineConfig` helper for TypeScript autocompletion.
 Checks also accept `true` or `false` as shorthand. `true` enables the check with `error` severity, while `false` disables it:
 
 ```ts
-checks: {
-  missingKeys: true,
-  unusedKeys: false,
-  dynamicKeys: true,
-}
+import { defineConfig } from "vue-i18n-lint"
+
+export default defineConfig({
+  checks: {
+    missingKeys: true,
+    unusedKeys: false,
+    dynamicKeys: true,
+  },
+})
 ```
 
 Dynamic missing keys are reported with `<dynamic>` as a placeholder (e.g. `status.<dynamic>`).
