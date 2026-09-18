@@ -8,10 +8,9 @@ import {
   type SimpleExpressionNode,
   type TemplateChildNode,
 } from "@vue/compiler-core"
-import type { Expression } from "oxc-parser"
 import { parseScript } from "../parser/scriptParser.ts"
 import type { SourceKey } from "../types.ts"
-import { collectJsKeys } from "./jsCollector.ts"
+import { collectJsKeys, extractKey } from "./jsCollector.ts"
 import { TRANSLATION_CALL_REGEX } from "./translationFunctions.ts"
 
 type WalkableNode = TemplateChildNode | AttributeNode | DirectiveNode | ExpressionNode
@@ -31,7 +30,7 @@ function walkVueNode(file: string, node: WalkableNode, options?: VueCollectorOpt
       return [
         ...node.children.flatMap((c) => walkVueNode(file, c, options)),
         ...node.props.flatMap((c) => walkVueNode(file, c, options)),
-        ...collectFromElementNode(node),
+        ...collectFromElementNode(file, node, options),
       ]
     }
 
@@ -52,14 +51,13 @@ function walkVueNode(file: string, node: WalkableNode, options?: VueCollectorOpt
   }
 }
 
-function collectFromElementNode(node: ElementNode): SourceKey[] {
+function collectFromElementNode(file: string, node: ElementNode, options?: VueCollectorOptions): SourceKey[] {
   if (node.tag === "i18n-t") {
     for (const prop of node.props) {
-      if (
-        prop.type === NodeTypes.ATTRIBUTE &&
-        (prop.name === "keypath" || prop.name === "path") &&
-        prop.value?.content
-      ) {
+      if (prop.type === NodeTypes.ATTRIBUTE) {
+        if (prop.name !== "keypath" && prop.name !== "path") continue
+        if (!prop.value?.content) continue
+
         return [
           {
             key: prop.value.content,
@@ -67,6 +65,11 @@ function collectFromElementNode(node: ElementNode): SourceKey[] {
             end: prop.value.loc.end.offset - 1,
           },
         ]
+      } else if (prop.type === NodeTypes.DIRECTIVE) {
+        if (prop.arg?.type !== NodeTypes.SIMPLE_EXPRESSION) continue
+        if (prop.arg.content !== "keypath" && prop.arg.content !== "path") continue
+
+        return collectFromDirective(file, prop, options)
       }
     }
   }
@@ -94,22 +97,12 @@ function collectFromDirective(file: string, node: DirectiveNode, options?: VueCo
   const bodyPart = program.body[0]
   if (!bodyPart || bodyPart.type !== "ExpressionStatement") return []
 
-  return walkDirective(bodyPart.expression, adjustedOffset)
-}
+  const parensPart = bodyPart.expression
+  if (parensPart.type !== "ParenthesizedExpression") return []
 
-function walkDirective(expression: Expression, offset: number): SourceKey[] {
-  if (expression.type === "ParenthesizedExpression") return walkDirective(expression.expression, offset)
+  const expression = parensPart.expression
 
-  if (expression.type === "Literal" && typeof expression.value === "string") {
-    return [
-      {
-        key: expression.value,
-        start: expression.start + offset + 1,
-        end: expression.end + offset - 1,
-      },
-    ]
-  }
-
+  // Special case for v-t directive with object expression, e.g. v-t="{ path: 'my.key' }".
   if (expression.type === "ObjectExpression") {
     for (const prop of expression.properties) {
       if (
@@ -122,15 +115,15 @@ function walkDirective(expression: Expression, offset: number): SourceKey[] {
         return [
           {
             key: prop.value.value,
-            start: prop.value.start + offset + 1,
-            end: prop.value.end + offset - 1,
+            start: prop.value.start + adjustedOffset + 1,
+            end: prop.value.end + adjustedOffset - 1,
           },
         ]
       }
     }
   }
 
-  return []
+  return extractKey(expression, adjustedOffset)
 }
 
 function collectFromExpression(file: string, node: SimpleExpressionNode, options?: VueCollectorOptions) {

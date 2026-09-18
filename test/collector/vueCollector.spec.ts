@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import { parse } from "@vue/compiler-sfc"
 import { expect, test } from "vitest"
 import { collectVueKeys } from "../../src/collector/vueCollector.ts"
+import { DYNAMIC_PART } from "../../src/types.ts"
 
 test("finds keys in template", () => {
   const content = readFileSync("test/fixtures/vue/template.vue", { encoding: "utf-8" })
@@ -55,7 +56,13 @@ test("ignores invalid v-t declarations", () => {
 
   const result = collectVueKeys("v-t-invalid.vue", templateAst!, { fileSource: content })
 
-  expect(result).toStrictEqual([{ key: "valid", start: 78, end: 83 }])
+  expect(result).toStrictEqual([
+    { key: "123", start: 24, end: 27 },
+    { key: "true", start: 50, end: 54 },
+    { key: "valid", start: 78, end: 83 },
+    { key: [DYNAMIC_PART], start: 107, end: 118 },
+    { key: [DYNAMIC_PART], start: 141, end: 158 },
+  ])
 })
 
 test("handles v-t directive with leading and trailing whitespace", () => {

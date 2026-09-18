@@ -32,7 +32,7 @@ function isTranslationFunction(node: CallExpression): boolean {
   return false
 }
 
-function extractKey(arg: Argument, offset: number): SourceKey[] {
+export function extractKey(arg: Argument, offset: number): SourceKey[] {
   if (arg.type === "ConditionalExpression") {
     return [...extractKey(arg.consequent, offset), ...extractKey(arg.alternate, offset)]
   }

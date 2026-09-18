@@ -182,6 +182,19 @@ test("finds keys in a vue file with only <i18n-t>", async () => {
   expect(keys).toStrictEqual([
     { key: "a", file: filePath, location: { start: { line: 2, column: 30 }, end: { line: 2, column: 31 } } },
     { key: "b", file: filePath, location: { start: { line: 3, column: 24 }, end: { line: 3, column: 25 } } },
+    {
+      key: ["c.", DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 4, column: 21 }, end: { line: 4, column: 34 } },
+    },
+    { key: [DYNAMIC_PART], file: filePath, location: { start: { line: 5, column: 21 }, end: { line: 5, column: 27 } } },
+    { key: [DYNAMIC_PART], file: filePath, location: { start: { line: 6, column: 27 }, end: { line: 6, column: 33 } } },
+    { key: "d", file: filePath, location: { start: { line: 9, column: 10 }, end: { line: 9, column: 11 } } },
+    {
+      key: ["e.", DYNAMIC_PART],
+      file: filePath,
+      location: { start: { line: 10, column: 9 }, end: { line: 10, column: 22 } },
+    },
   ])
 
   expect(localeFiles).toStrictEqual([])
