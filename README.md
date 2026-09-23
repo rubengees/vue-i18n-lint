@@ -178,6 +178,14 @@ Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
 in addition to any `ignorePatterns` you configure.
 
+## Ignoring keys
+
+You can suppress specific keys from being reported using `ignoreKeys` (applies to all checks) or per-check
+`ignore` options. Both support a `*` wildcard that matches any sequence of characters (including dots):
+
+- `user.*` matches `user.name` and `user.a.b`
+- `a.*.c` matches `a.b.c` and `a.x.y.c`, but not `a.b.d`
+
 ## Dynamic keys
 
 Keys built from template literals or string concatenation with runtime variables are understood:

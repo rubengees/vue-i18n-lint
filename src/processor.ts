@@ -20,24 +20,27 @@ export function processFiles(localeFiles: LocaleFile[], sourceFiles: SourceFile[
   }
 
   if (config.checks.missingKeys.severity !== "off") {
-    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.missingKeys.ignore ?? [])])
     const missingKeys = calcMissingKeys(localeFiles, sourceFiles)
 
-    result.missing = missingKeys.filter((entry) => !ignoreSet.has(entry.key))
+    result.missing = missingKeys.filter(
+      (entry) => !isIgnored(entry.key, [...config.ignoreKeys, ...config.checks.missingKeys.ignore]),
+    )
   }
 
   if (config.checks.unusedKeys.severity !== "off") {
-    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.unusedKeys.ignore ?? [])])
     const unusedKeys = calcUnusedKeys(localeFiles, sourceFiles)
 
-    result.unused = unusedKeys.filter((entry) => !ignoreSet.has(entry.key))
+    result.unused = unusedKeys.filter(
+      (entry) => !isIgnored(entry.key, [...config.ignoreKeys, ...config.checks.unusedKeys.ignore]),
+    )
   }
 
   if (config.checks.dynamicKeys.severity !== "off") {
-    const ignoreSet = new Set([...config.ignoreKeys, ...(config.checks.dynamicKeys.ignore ?? [])])
     const dynamicKeys = calcDynamicKeys(sourceFiles, config.checks.dynamicKeys.mode)
 
-    result.dynamicKeys = dynamicKeys.filter((entry) => !ignoreSet.has(entry.key))
+    result.dynamicKeys = dynamicKeys.filter(
+      (entry) => !isIgnored(entry.key, [...config.ignoreKeys, ...config.checks.dynamicKeys.ignore]),
+    )
   }
 
   return result
@@ -230,4 +233,14 @@ function calcDynamicKeys(sourceFiles: SourceFile[], mode: z.infer<typeof dynamic
 
 function isFullyDynamicKey(dynamicKey: DynamicKey): boolean {
   return dynamicKey.every((part) => part === DYNAMIC_PART)
+}
+
+function isIgnored(key: string, ignoreList: string[]): boolean {
+  return ignoreList.some((entry) => matchesGlob(key, entry))
+}
+
+function matchesGlob(key: string, pattern: string): boolean {
+  const regexSrc = escape(pattern).replace(/\\\*/g, ".*")
+
+  return new RegExp(`^${regexSrc}$`).test(key)
 }

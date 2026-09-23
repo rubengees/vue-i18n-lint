@@ -709,6 +709,69 @@ test("unusedKeys.ignore does not suppress a dynamic missing key", () => {
   expect(result.missing?.map((k) => k.key)).toStrictEqual(["status.<dynamic>"])
 })
 
+test("ignoreKeys supports simple glob patterns", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["admin.title", "user.name"])]
+  const srcFile = sourceFile([fileKey("admin.title"), fileKey("user.name"), fileKey("user.email")])
+
+  const result = processFiles(localeFiles, [srcFile], config({ ignoreKeys: ["user.name"] }))
+
+  expect(result.missing).toStrictEqual([expect.objectContaining({ key: "user.email" })])
+  expect(result.unused).toStrictEqual([])
+})
+
+test("per-check ignore supports simple glob patterns", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["x.a", "x.b", "y.z", "z.c"])]
+  const srcFile = sourceFile([fileKey("x.a"), fileKey("z.c")])
+
+  const result = processFiles(
+    localeFiles,
+    [srcFile],
+    config({
+      checks: { unusedKeys: { ignore: ["x.*"] } },
+    }),
+  )
+
+  expect(result.missing).toStrictEqual([])
+  expect(result.unused).toStrictEqual([expect.objectContaining({ key: "y.z" })])
+})
+
+test("dynamicKeys ignore supports simple glob patterns", () => {
+  const srcFile = sourceFile([
+    dynamicFileKey(["status.", DYNAMIC_PART], "src/status.ts"),
+    dynamicFileKey(["order.", DYNAMIC_PART], "src/order.ts"),
+  ])
+
+  const result = processFiles(
+    [],
+    [srcFile],
+    config({
+      checks: { dynamicKeys: { severity: "error", ignore: ["status.*"], mode: "partial" } },
+    }),
+  )
+
+  expect(result.dynamicKeys).toStrictEqual([expect.objectContaining({ key: "order.<dynamic>" })])
+})
+
+test("glob with multiple segments like a.*.c", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["a.b.c", "a.x.c", "a.b.d", "a.b.c.extra"])]
+  const srcFile = sourceFile([fileKey("a.b.d")])
+
+  const result = processFiles(localeFiles, [srcFile], config({ ignoreKeys: ["a.*.c"] }))
+
+  expect(result.unused).toStrictEqual([
+    { key: "a.b.c.extra", files: [{ locale: "en", file: "i18n/en.json", scope: "global" }] },
+  ])
+})
+
+test("key with regex special characters is matched literally", () => {
+  const localeFiles = [localeFile("i18n/en.json", ["input[name]", "status.active"])]
+  const srcFile = sourceFile([fileKey("status.active")])
+
+  const result = processFiles(localeFiles, [srcFile], config({ ignoreKeys: ["input[name]"] }))
+
+  expect(result.unused).toStrictEqual([])
+})
+
 test("does not report dynamic keys by default", () => {
   const srcFile = sourceFile([dynamicFileKey(["status.", DYNAMIC_PART]), dynamicFileKey([DYNAMIC_PART])])
 
