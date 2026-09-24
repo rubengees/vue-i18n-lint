@@ -171,9 +171,6 @@ export default defineConfig({
 })
 ```
 
-Dynamic missing keys are reported with `<dynamic>` as a placeholder (e.g. `status.<dynamic>`).
-Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
-
 ### gitignore
 
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
