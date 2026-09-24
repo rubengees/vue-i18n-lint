@@ -41,6 +41,11 @@
         "minLength": 1
       }
     },
+    "gitignore": {
+      "default": true,
+      "description": "Respect .gitignore when scanning files",
+      "type": "boolean"
+    },
     "checks": {
       "description": "Severity and per-check ignore configuration",
       "type": "object",

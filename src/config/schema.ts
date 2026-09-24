@@ -48,6 +48,7 @@ export const configSchema = z.object({
     .describe("Glob pattern for source files"),
   ignorePatterns: z.array(z.string().nonempty()).default([]).describe("Glob patterns to ignore"),
   ignoreKeys: z.array(z.string().nonempty()).default([]).describe("Keys to ignore in all checks"),
+  gitignore: z.boolean().default(true).describe("Respect .gitignore when scanning files"),
   checks: z
     .object({
       missingKeys: checkSchema("error").describe("Severity and ignore list for missing keys"),
@@ -68,6 +69,7 @@ export type CliArgs = {
   srcPattern?: string | undefined
   ignorePatterns?: string[] | undefined
   ignoreKeys?: string[] | undefined
+  gitignore?: boolean | undefined
   ignoreMissingKeys?: string[] | undefined
   ignoreUnusedKeys?: string[] | undefined
   ignoreDynamicKeys?: string[] | undefined

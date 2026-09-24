@@ -99,6 +99,11 @@ export const lintCommand = buildCommand({
         variadic: ",",
         brief: "Comma-separated keys to ignore in both missing and unused checks",
       },
+      gitignore: {
+        kind: "boolean",
+        optional: true,
+        brief: "Respect .gitignore when scanning files",
+      },
       ignoreMissingKeys: {
         kind: "parsed",
         parse: String,

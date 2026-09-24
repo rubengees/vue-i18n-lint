@@ -28,6 +28,7 @@ function buildCliConfig(cliArgs?: CliArgs): ConfigInput {
     srcPattern: cliArgs?.srcPattern,
     ignorePatterns: cliArgs?.ignorePatterns,
     ignoreKeys: cliArgs?.ignoreKeys,
+    gitignore: cliArgs?.gitignore,
     checks: {
       missingKeys: {
         ignore: cliArgs?.ignoreMissingKeys,

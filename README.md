@@ -178,6 +178,8 @@ Use that string in `ignoreKeys` or `checks.missingKeys.ignore` to suppress them.
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
 in addition to any `ignorePatterns` you configure.
 
+To disable gitignore support, set `gitignore: false` in the config file or use the `--no-gitignore` CLI flag.
+
 ## Ignoring keys
 
 You can suppress specific keys from being reported using `ignoreKeys` (applies to all checks) or per-check

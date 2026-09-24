@@ -937,6 +937,7 @@ function config(overrides?: {
     srcPattern: "",
     ignorePatterns: [],
     ignoreKeys: overrides?.ignoreKeys ?? [],
+    gitignore: true,
     checks: {
       missingKeys: {
         severity: overrides?.checks?.missingKeys?.severity ?? "error",

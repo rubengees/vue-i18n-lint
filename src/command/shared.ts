@@ -12,7 +12,7 @@ export async function collectFiles(path: string, config: ConfigOutput, process: 
   const globOptions = {
     cwd: path,
     ignore: config.ignorePatterns,
-    gitignore: true,
+    gitignore: config.gitignore,
   }
 
   const [rawLocalePaths, rawSrcPaths] = await Promise.all([
