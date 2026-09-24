@@ -82,6 +82,12 @@ export const lintCommand = buildCommand({
   },
   parameters: {
     flags: {
+      config: {
+        kind: "parsed",
+        parse: String,
+        optional: true,
+        brief: "Path to a config file",
+      },
       format: { kind: "enum", values: formatEnum.options, optional: true, brief: "Output format" },
       localePattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for i18n locale files" },
       srcPattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for source files" },

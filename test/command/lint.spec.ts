@@ -11,6 +11,7 @@ import {
 const FIXTURES = "test/fixtures/projects"
 const DEFAULT_LOCALE_PATTERN = "**/locales/*.json"
 const DEFAULT_SRC_PATTERN = "**/*.{ts,cts,mts,js,cjs,mjs,vue}"
+const CUSTOM_CONFIG_PATH = resolve(FIXTURES, "config-flag/custom.config.js")
 
 test("reports no issues when all keys are present", async () => {
   const testProcess = await runTest([
@@ -601,5 +602,13 @@ test("--format json omits dynamic keys when the check is disabled", async () => 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(0)
   expect(output.dynamicKeys).toBeUndefined()
+  expect(testProcess.exitCode).toBeFalsy()
+})
+
+test("--config loads a custom config file instead of the project's config", async () => {
+  const testProcess = await runTest([resolve(FIXTURES, "config-flag"), "--config", CUSTOM_CONFIG_PATH])
+
+  expectStdoutNotContains(testProcess, "Found 1 missing")
+  expectStdoutContains(testProcess, "Found 0 missing and 0 unused keys.")
   expect(testProcess.exitCode).toBeFalsy()
 })

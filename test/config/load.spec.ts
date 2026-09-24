@@ -224,4 +224,25 @@ describe("loadVueI18nLintConfig", () => {
       await expect(loadVueI18nLintConfig(resolve(FIXTURES, "error"))).rejects.toThrow("Failed to load config file")
     })
   })
+
+  describe("custom config path", () => {
+    test("loads config from a custom path", async () => {
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "custom-path"), {
+        config: resolve(FIXTURES, "custom-path/custom.config.js"),
+      })
+
+      expect(config.localePattern).toStrictEqual("custom-locale/**/*.json")
+      expect(config.srcPattern).toStrictEqual("custom-src/**/*.ts")
+    })
+
+    test("cli params override custom config values", async () => {
+      const config = await loadVueI18nLintConfig(resolve(FIXTURES, "custom-path"), {
+        config: resolve(FIXTURES, "custom-path/custom.config.js"),
+        localePattern: "override/**/*.json",
+      })
+
+      expect(config.localePattern).toStrictEqual("override/**/*.json")
+      expect(config.srcPattern).toStrictEqual("custom-src/**/*.ts")
+    })
+  })
 })

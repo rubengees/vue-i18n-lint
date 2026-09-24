@@ -98,6 +98,7 @@ vue-i18n-lint [command] [options] [path]
 
 | Option                    | Description                                                   | Default                            |
 | ------------------------- | ------------------------------------------------------------- | ---------------------------------- |
+| `--config`                | Path to a config file                                         |                                    |
 | `--format`                | Output format: `text`, `json`, or `toon`                      | `text`                             |
 | `--locale-pattern`        | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
 | `--src-pattern`           | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |

@@ -8,7 +8,10 @@ import { processFiles } from "../processor.ts"
 import { isPlainObject, writeLine } from "../utils.ts"
 import { collectFiles } from "./shared.ts"
 
-type Flags = Pick<CliArgs, "localePattern" | "srcPattern" | "ignorePatterns" | "ignoreKeys" | "ignoreUnusedKeys"> & {
+type Flags = Pick<
+  CliArgs,
+  "config" | "localePattern" | "srcPattern" | "ignorePatterns" | "ignoreKeys" | "ignoreUnusedKeys"
+> & {
   dryRun?: boolean
 }
 
@@ -17,6 +20,7 @@ export const removeUnusedCommand = buildCommand({
     const targetPath = path || process.cwd()
 
     const config = await loadVueI18nLintConfig(targetPath, {
+      config: flags.config,
       localePattern: flags.localePattern,
       srcPattern: flags.srcPattern,
       ignorePatterns: flags.ignorePatterns,
@@ -78,6 +82,12 @@ export const removeUnusedCommand = buildCommand({
   },
   parameters: {
     flags: {
+      config: {
+        kind: "parsed",
+        parse: String,
+        optional: true,
+        brief: "Path to a config file",
+      },
       dryRun: { kind: "boolean", optional: true, brief: "Print count without modifying files" },
       localePattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for i18n locale files" },
       srcPattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for source files" },

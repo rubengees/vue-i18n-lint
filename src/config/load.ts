@@ -1,4 +1,4 @@
-import { loadConfig } from "c12"
+import { loadConfig, type LoadConfigOptions } from "c12"
 import { z } from "zod"
 import { merge } from "../utils.ts"
 import { configSchema, type CliArgs, type ConfigInput, type ConfigOutput } from "./schema.ts"
@@ -6,7 +6,7 @@ import { configSchema, type CliArgs, type ConfigInput, type ConfigOutput } from 
 export async function loadVueI18nLintConfig(path: string, cliArgs?: CliArgs): Promise<ConfigOutput> {
   const cliConfig = buildCliConfig(cliArgs)
 
-  const rawFileConfig = (await loadFileConfig(path)) ?? {}
+  const rawFileConfig = (await loadFileConfig(path, cliArgs?.config)) ?? {}
   const parsedFileConfig = configSchema.safeParse({ path, ...rawFileConfig })
   if (!parsedFileConfig.success) {
     throw new Error(`Failed to load config:\n${z.prettifyError(parsedFileConfig.error)}`)
@@ -47,9 +47,18 @@ function buildCliConfig(cliArgs?: CliArgs): ConfigInput {
   }
 }
 
-async function loadFileConfig(path: string) {
+async function loadFileConfig(path: string, configPath?: string) {
   try {
-    const result = await loadConfig({ name: "vue-i18n-lint", cwd: path })
+    const options: LoadConfigOptions = {
+      name: "vue-i18n-lint",
+      cwd: path,
+    }
+
+    if (configPath) {
+      options.configFile = configPath
+    }
+
+    const result = await loadConfig(options)
 
     return result.config
   } catch (e) {
