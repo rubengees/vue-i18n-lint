@@ -43,7 +43,6 @@ src/
   index.ts               # Library entry — exports defineConfig + VueI18nLintConfig
   processor.ts           # Diff logic: missing/unused/typeWarnings
   formatter.ts           # Console output (code frames, tables)
-  filter.ts              # Applies ignore lists
   error.ts               # ParseError + formatErrorMessage
   utils.ts               # merge, writeLine, PrefixSet, position helpers
   types.ts               # Domain types (SourceFile, LocaleFile, FileKey, DynamicKey)
@@ -80,7 +79,7 @@ Configured via `.oxfmtrc.json`, `.oxlintrc.json`, `tsconfig.json`:
 
 ## Architecture Notes
 
-**Pipeline**: `globby` → `collectLocaleFile` / `collectSourceFile` (parallel) → `processFiles` (diff) → `filterResults` (ignores) → `formatter` → exit code.
+**Pipeline**: `globby` → `collectLocaleFile` / `collectSourceFile` (parallel) → `processFiles` (diff + inline filtering) → `formatter` → exit code.
 
 Key concepts:
 
@@ -88,7 +87,7 @@ Key concepts:
 - **Dynamic key matching**: regex built per dynamic key (`^prefix.*suffix$`), cached in a `Map`; combined via alternation for unused-key checks.
 - **Prefix coverage**: `aa.bb` covers `aa.bb.cc` for missing-key checks, not vice versa. A source key `t("a.b.cc")` with only `a.b` in the locale is genuinely missing (the locale value might be a leaf string, not an object). The unused-key check works the same way: a locale key `aa.bb.cc` is covered by source `aa.bb`, but a locale key `aa.bb` is NOT covered by source `aa.bb.cc`. Implemented by `PrefixSet`, which pre-expands all dot-segment prefixes. This asymmetry also applies to dynamic keys — a dynamic regex `^a\.b\..*$` does not match a static locale key `a.b`.
 - **Scope**: locale files are `"global"` (matched by `localePattern`) or `"local"` (`<i18n>` SFC blocks scoped to their component).
-- **Translation function detection**: `TRANSLATION_FUNCTIONS = Set(['t','te','tm','tc','$t','$te','$tm','$tc'])`. A regex fast-path (`/\$?t[emc]?\s*\(/`) gates the full oxc parser.
+- **Translation function detection**: `TRANSLATION_FUNCTIONS = Set(['t','te','tm','tc','$t','$te','$tm','$tc','rt','$rt'])`. A regex fast-path (`/\$?t[emc]?\s*\(/`) gates the full oxc parser.
 - **Errors**: `ParseError` carries `file/line/column`; unparseable files are _skipped_ (logged, exit bumped to 1) — one bad file does not abort the run.
 - **Config**: `c12` loads `vue-i18n-lint.config.{ts,js,json,yaml}`. CLI args take precedence. Merge via `merge` in `utils.ts` (defu-based) where **arrays from higher-priority layers replace, not concatenate**. Final result validated by zod.
 - **CLI**: `@stricli/core` `buildCommand` / `buildRouteMap` / `buildApplication`. `init`, `lint`, and `removeUnused` are proper routes; `lint` is the default command.
