@@ -36,8 +36,5 @@ jobs:
       - name: Verify
         run: pnpm verify
 
-      - name: Check schema
-        run: pnpm generate-schema:check
-
       - name: Build
         run: pnpm build

@@ -35,7 +35,7 @@
     "check": "tsc --noEmit",
     "test": "vitest run",
     "bench": "vitest --run bench",
-    "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm test"
+    "verify": "pnpm format:check && pnpm lint && pnpm check && pnpm generate-schema:check && pnpm test"
   },
   "dependencies": {
     "@babel/code-frame": "^8.0.0",
