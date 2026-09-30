@@ -11,7 +11,7 @@ import {
   outputUnusedKeys,
 } from "../formatter.ts"
 import { processFiles } from "../processor.ts"
-import { writeLine } from "../utils.ts"
+import { createDisposableWriteStream, writeLine } from "../utils.ts"
 import { collectFiles } from "./shared.ts"
 
 export const lintCommand = buildCommand({
@@ -33,42 +33,47 @@ export const lintCommand = buildCommand({
     const dynamicSeverity = config.checks.dynamicKeys.severity
     const dynamicCount = result.dynamicKeys?.length ?? 0
 
+    await using fileWriteStream = flags.output ? await createDisposableWriteStream(flags.output) : undefined
+    const writeStream = fileWriteStream ?? this.process.stdout
+
     if (config.format === "text") {
-      if (parseErrors > 0) writeLine(this.process.stdout)
-      if (result.typeWarnings.length > 0) outputTypeWarnings(this.process, result.typeWarnings)
-      if (result.missing && result.missing.length > 0) outputMissingKeys(this.process, result.missing)
-      if (result.unused && result.unused.length > 0) outputUnusedKeys(this.process, result.unused)
-      if (result.dynamicKeys && result.dynamicKeys.length > 0) outputDynamicKeys(this.process, result.dynamicKeys)
+      if (parseErrors > 0) writeLine(writeStream)
+      if (result.typeWarnings.length > 0) outputTypeWarnings(writeStream, result.typeWarnings)
+      if (result.missing && result.missing.length > 0) outputMissingKeys(writeStream, result.missing)
+      if (result.unused && result.unused.length > 0) outputUnusedKeys(writeStream, result.unused)
+      if (result.dynamicKeys && result.dynamicKeys.length > 0) outputDynamicKeys(writeStream, result.dynamicKeys)
 
       const summaryParts: string[] = []
 
       if (result.missing != null)
-        summaryParts.push(`${formatSummaryPart(result.missing.length, missingSeverity)} missing`)
+        summaryParts.push(`${formatSummaryPart(writeStream, result.missing.length, missingSeverity)} missing`)
 
-      if (result.unused != null) summaryParts.push(`${formatSummaryPart(result.unused.length, unusedSeverity)} unused`)
+      if (result.unused != null)
+        summaryParts.push(`${formatSummaryPart(writeStream, result.unused.length, unusedSeverity)} unused`)
 
-      if (result.dynamicKeys != null) summaryParts.push(`${formatSummaryPart(dynamicCount, dynamicSeverity)} dynamic`)
+      if (result.dynamicKeys != null)
+        summaryParts.push(`${formatSummaryPart(writeStream, dynamicCount, dynamicSeverity)} dynamic`)
 
       if (summaryParts.length > 0) {
         const summary = new Intl.ListFormat("en").format(summaryParts)
 
-        writeLine(this.process.stdout, `Found ${summary} keys.`)
+        writeLine(writeStream, `Found ${summary} keys.`)
       }
 
       const errorSummary =
         parseErrors > 0 ? ` (${parseErrors} file${parseErrors === 1 ? "" : "s"} skipped due to errors)` : ""
 
       writeLine(
-        this.process.stdout,
+        writeStream,
         `Processed ${localeFiles.length} locale files and ${sourceFiles.length} source files in ${elapsed}ms${errorSummary}.`,
       )
     } else {
       const outputData = { missingKeys: result.missing, unusedKeys: result.unused, dynamicKeys: result.dynamicKeys }
 
       if (config.format === "json") {
-        outputJson(this.process, outputData)
+        outputJson(writeStream, outputData)
       } else if (config.format === "toon") {
-        outputToon(this.process, outputData)
+        outputToon(writeStream, outputData)
       }
     }
 
@@ -89,6 +94,12 @@ export const lintCommand = buildCommand({
         brief: "Path to a config file",
       },
       format: { kind: "enum", values: formatEnum.options, optional: true, brief: "Output format" },
+      output: {
+        kind: "parsed",
+        parse: String,
+        optional: true,
+        brief: "Path to a file to write output to instead of stdout",
+      },
       localePattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for i18n locale files" },
       srcPattern: { kind: "parsed", parse: String, optional: true, brief: "Glob pattern for source files" },
       ignorePatterns: {

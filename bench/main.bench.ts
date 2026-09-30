@@ -1,6 +1,7 @@
 import { copyFile, mkdir, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
+import { PassThrough } from "node:stream"
 import { run, type StricliProcess } from "@stricli/core"
 import { afterAll, beforeAll, test } from "vitest"
 import { app } from "../src/app.ts"
@@ -51,8 +52,8 @@ async function generateProject(srcDirs: number, locales: number) {
 
 function makeNoopProcess(): StricliProcess {
   return {
-    stdout: { write() {} },
-    stderr: { write() {} },
+    stdout: new PassThrough(),
+    stderr: new PassThrough(),
   }
 }
 

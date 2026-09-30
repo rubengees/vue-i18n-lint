@@ -1,4 +1,9 @@
-import { resolve } from "node:path"
+import type { WriteStream as FSWriteStream } from "node:fs"
+import { mkdirSync } from "node:fs"
+import { open } from "node:fs/promises"
+import { dirname, resolve } from "node:path"
+import type { Writable } from "node:stream"
+import { finished } from "node:stream/promises"
 import { pathToFileURL } from "node:url"
 import { createDefu } from "defu"
 
@@ -57,8 +62,8 @@ export function offsetToPosition(source: string, offset: number): { line: number
   }
 }
 
-export function writeLine(writer: { write(s: string): void }, line: string = ""): void {
-  writer.write(`${line}\n`)
+export function writeLine(stream: Writable, line: string = ""): void {
+  stream.write(`${line}\n`)
 }
 
 export function formatFilePath(filePath: string, line?: number, column?: number) {
@@ -68,6 +73,48 @@ export function formatFilePath(filePath: string, line?: number, column?: number)
   if (line != null) return `${base}:${line}`
 
   return base
+}
+
+type DisposableWriteStream = FSWriteStream & AsyncDisposable
+
+export async function createDisposableWriteStream(path: string): Promise<DisposableWriteStream> {
+  const dir = dirname(path)
+
+  try {
+    mkdirSync(dir, { recursive: true })
+  } catch (e) {
+    throw new Error(`Failed to create output directory ${formatFilePath(dir)}`, { cause: e })
+  }
+
+  try {
+    const handle = await open(path, "w")
+    const stream = handle.createWriteStream()
+
+    stream.on("error", () => {})
+
+    return Object.assign(stream, {
+      async [Symbol.asyncDispose]() {
+        const destroyAndThrow = (err: unknown) => {
+          stream.destroy()
+          throw new Error(`Failed to write to output file ${formatFilePath(path)}`, { cause: err })
+        }
+
+        if (stream.errored) {
+          destroyAndThrow(stream.errored)
+        }
+
+        stream.end()
+
+        try {
+          await finished(stream)
+        } catch (err) {
+          destroyAndThrow(err)
+        }
+      },
+    })
+  } catch (e) {
+    throw new Error(`Failed to open output file ${formatFilePath(path)}`, { cause: e })
+  }
 }
 
 export function isPlainObject(value: unknown): value is Record<string, unknown> {

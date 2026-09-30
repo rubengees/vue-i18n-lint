@@ -19,13 +19,12 @@ test("outputMissingKeys prints key location and code frame", () => {
   const key: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location }] }
   const testProcess = buildTestProcess()
 
-  outputMissingKeys(testProcess, [key])
+  outputMissingKeys(testProcess.stdout, [key])
 
-  const output = testProcess.getStdout()
   expectStdoutContains(testProcess, "Missing keys (1)")
-  expect(output).toContain("script.ts:5:19")
-  expect(output).toContain('> 5 | const a = i18n.t("a")')
-  expect(output).toContain("    |                   ^ Missing in de")
+  expect(testProcess.stdout.text).toContain("script.ts:5:19")
+  expect(testProcess.stdout.text).toContain('> 5 | const a = i18n.t("a")')
+  expect(testProcess.stdout.text).toContain("    |                   ^ Missing in de")
 })
 
 test("outputMissingKeys still prints location when source file cannot be read", () => {
@@ -33,7 +32,7 @@ test("outputMissingKeys still prints location when source file cannot be read", 
   const key: MissingKey = { key: "a", locales: ["de"], sources: [{ file, location }] }
   const testProcess = buildTestProcess()
 
-  expect(() => outputMissingKeys(testProcess, [key])).not.toThrow()
+  expect(() => outputMissingKeys(testProcess.stdout, [key])).not.toThrow()
   expectStdoutContains(testProcess, "Missing keys (1)")
   expectStdoutContains(testProcess, "does-not-exist.ts")
 })
@@ -42,7 +41,7 @@ test("outputUnusedKeys prints a table of unused keys", () => {
   const key: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
   const testProcess = buildTestProcess()
 
-  outputUnusedKeys(testProcess, [key])
+  outputUnusedKeys(testProcess.stdout, [key])
 
   expectStdoutContains(testProcess, "Unused keys (1)")
   expectStdoutContains(testProcess, "old.key")
@@ -52,7 +51,7 @@ test("outputTypeWarnings prints warnings grouped by file", () => {
   const warning: LocaleTypeWarning = { key: "count", locale: "en", file: "en.json", type: "number" }
   const testProcess = buildTestProcess()
 
-  outputTypeWarnings(testProcess, [warning])
+  outputTypeWarnings(testProcess.stdout, [warning])
 
   expectStdoutContains(testProcess, "Warnings (1)")
   expectStdoutContains(testProcess, "count")
@@ -63,7 +62,7 @@ test("outputDynamicKeys prints each occurrence with a code frame marked as a dyn
   const key: DynamicKeyOccurrence = { key: "<dynamic>", partial: false, source: { file, location } }
   const testProcess = buildTestProcess()
 
-  outputDynamicKeys(testProcess, [key])
+  outputDynamicKeys(testProcess.stdout, [key])
 
   expectStdoutContains(testProcess, "Dynamic keys (1)")
   expectStdoutContains(testProcess, "script.ts:5:19")
@@ -78,7 +77,7 @@ test("outputDynamicKeys marks partial dynamic keys as partial", () => {
   const key: DynamicKeyOccurrence = { key: "status.<dynamic>", partial: true, source: { file, location } }
   const testProcess = buildTestProcess()
 
-  outputDynamicKeys(testProcess, [key])
+  outputDynamicKeys(testProcess.stdout, [key])
 
   expectStdoutContains(testProcess, "Dynamic keys (1)")
   expectStdoutContains(testProcess, "Partial dynamic key")
@@ -93,7 +92,7 @@ test("outputDynamicKeys counts all occurrences, not unique key patterns", () => 
   }))
   const testProcess = buildTestProcess()
 
-  outputDynamicKeys(testProcess, keys)
+  outputDynamicKeys(testProcess.stdout, keys)
 
   expectStdoutContains(testProcess, "Dynamic keys (2)")
 })
@@ -103,7 +102,7 @@ test("outputDynamicKeys still prints location when source file cannot be read", 
   const key: DynamicKeyOccurrence = { key: "status.<dynamic>", partial: true, source: { file, location } }
   const testProcess = buildTestProcess()
 
-  expect(() => outputDynamicKeys(testProcess, [key])).not.toThrow()
+  expect(() => outputDynamicKeys(testProcess.stdout, [key])).not.toThrow()
   expectStdoutContains(testProcess, "Dynamic keys (1)")
   expectStdoutContains(testProcess, "does-not-exist.ts")
 })
@@ -116,9 +115,13 @@ test("outputJson prints machine-readable JSON", () => {
   const unusedKey: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
   const dynamicKey: DynamicKeyOccurrence = { key: "status.<dynamic>", partial: true, source: { file, location: loc } }
 
-  outputJson(testProcess, { missingKeys: [missingKeys], unusedKeys: [unusedKey], dynamicKeys: [dynamicKey] })
+  outputJson(testProcess.stdout, {
+    missingKeys: [missingKeys],
+    unusedKeys: [unusedKey],
+    dynamicKeys: [dynamicKey],
+  })
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output).toStrictEqual({
     missingKeys: [{ key: "a", locales: ["de"], sources: [{ file, location: loc }] }],
@@ -130,9 +133,9 @@ test("outputJson prints machine-readable JSON", () => {
 test("outputJson handles empty results", () => {
   const testProcess = buildTestProcess()
 
-  outputJson(testProcess, { missingKeys: [], unusedKeys: [], dynamicKeys: [] })
+  outputJson(testProcess.stdout, { missingKeys: [], unusedKeys: [], dynamicKeys: [] })
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output).toStrictEqual({ missingKeys: [], unusedKeys: [], dynamicKeys: [] })
 })
@@ -145,9 +148,13 @@ test("outputToon prints machine-readable Toon format", () => {
   const unusedKey: UnusedKey = { key: "old.key", files: [{ locale: "en", file: "en.json", scope: "global" }] }
   const dynamicKey: DynamicKeyOccurrence = { key: "status.<dynamic>", partial: true, source: { file, location: loc } }
 
-  outputToon(testProcess, { missingKeys: [missingKeys], unusedKeys: [unusedKey], dynamicKeys: [dynamicKey] })
+  outputToon(testProcess.stdout, {
+    missingKeys: [missingKeys],
+    unusedKeys: [unusedKey],
+    dynamicKeys: [dynamicKey],
+  })
 
-  const output = decode(testProcess.getStdout())
+  const output = decode(testProcess.stdout.text)
 
   expect(output).toStrictEqual({
     missingKeys: [{ key: "a", locales: ["de"], sources: [{ file, location: loc }] }],
@@ -159,9 +166,9 @@ test("outputToon prints machine-readable Toon format", () => {
 test("outputToon handles empty results", () => {
   const testProcess = buildTestProcess()
 
-  outputToon(testProcess, { missingKeys: [], unusedKeys: [], dynamicKeys: [] })
+  outputToon(testProcess.stdout, { missingKeys: [], unusedKeys: [], dynamicKeys: [] })
 
-  const output = decode(testProcess.getStdout())
+  const output = decode(testProcess.stdout.text)
 
   expect(output).toStrictEqual({ missingKeys: [], unusedKeys: [], dynamicKeys: [] })
 })

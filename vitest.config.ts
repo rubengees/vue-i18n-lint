@@ -6,5 +6,8 @@ export default defineConfig({
     benchmark: {
       suppressExportGetterWarnings: true,
     },
+    env: {
+      FORCE_COLOR: "0", // Work around IDEs setting this to 1, causing issues with some tests.
+    },
   },
 })

@@ -1,16 +1,18 @@
-import { stripVTControlCharacters } from "node:util"
+import { Writable } from "node:stream"
 import { run, type StricliProcess } from "@stricli/core"
 import { decode } from "@toon-format/toon"
 import { expect } from "vitest"
 import { app } from "../src/app.ts"
 import { isPlainObject } from "../src/utils.ts"
 
-export type TestProcess = StricliProcess & {
-  readonly getStdout: () => string
-  readonly getStderr: () => string
+type TestProcessStreams = {
+  readonly stdout: RecordingWritable
+  readonly stderr: RecordingWritable
 }
 
-export async function runTest(args: string[]) {
+export type TestProcess = StricliProcess & TestProcessStreams
+
+export async function runTest(args: string[]): Promise<TestProcess> {
   const testProcess = buildTestProcess()
 
   await run(app, args, { process: testProcess })
@@ -19,39 +21,38 @@ export async function runTest(args: string[]) {
 }
 
 export function buildTestProcess(): TestProcess {
-  const stdoutChunks: string[] = []
-  const stderrChunks: string[] = []
+  const stdout = new RecordingWritable()
+  const stderr = new RecordingWritable()
 
   return {
-    stdout: {
-      write(s: string) {
-        stdoutChunks.push(s)
-      },
-    },
-    stderr: {
-      write(s: string) {
-        stderrChunks.push(s)
-      },
-    },
-    getStdout() {
-      return stripVTControlCharacters(stdoutChunks.join(""))
-    },
-    getStderr() {
-      return stripVTControlCharacters(stderrChunks.join(""))
-    },
+    stdout,
+    stderr,
+  }
+}
+
+class RecordingWritable extends Writable {
+  chunks: Buffer[] = []
+
+  _write(chunk: Buffer, _enc: BufferEncoding, cb: () => void) {
+    this.chunks.push(chunk)
+    cb()
+  }
+
+  get text() {
+    return Buffer.concat(this.chunks).toString("utf8")
   }
 }
 
 export function expectStdoutContains(testProcess: TestProcess, text: string): void {
-  expect(testProcess.getStdout()).toContain(text)
+  expect(testProcess.stdout.text).toContain(text)
 }
 
 export function expectStdoutNotContains(testProcess: TestProcess, text: string): void {
-  expect(testProcess.getStdout()).not.toContain(text)
+  expect(testProcess.stdout.text).not.toContain(text)
 }
 
 export function expectStderrContains(testProcess: TestProcess, text: string): void {
-  expect(testProcess.getStderr()).toContain(text)
+  expect(testProcess.stderr.text).toContain(text)
 }
 
 export function decodeToonObject(input: string): Record<string, unknown> {

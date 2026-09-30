@@ -66,6 +66,7 @@ export const configSchema = z.object({
 export type CliArgs = {
   config?: string | undefined
   format?: z.infer<typeof formatEnum> | undefined
+  output?: string | undefined
   localePattern?: string | undefined
   srcPattern?: string | undefined
   ignorePatterns?: string[] | undefined

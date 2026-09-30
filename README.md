@@ -100,6 +100,7 @@ vue-i18n-lint [command] [options] [path]
 | ------------------------- | ------------------------------------------------------------- | ---------------------------------- |
 | `--config`                | Path to a config file                                         |                                    |
 | `--format`                | Output format: `text`, `json`, or `toon`                      | `text`                             |
+| `--output`                | Write output to a file instead of stdout                      |                                    |
 | `--locale-pattern`        | Glob pattern for i18n locale files                            | `**/locales/*.json`                |
 | `--src-pattern`           | Glob pattern for source files                                 | `**/*.{ts,cts,mts,js,cjs,mjs,vue}` |
 | `--ignore-patterns`       | Comma-separated glob patterns to ignore                       |                                    |
@@ -271,4 +272,4 @@ npx vue-i18n-lint remove-unused --dry-run
 
 ## Requirements
 
-- Node.js >= 22
+- Node.js >= 22.6.0

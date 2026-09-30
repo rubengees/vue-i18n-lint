@@ -1,5 +1,8 @@
-import { resolve } from "node:path"
-import { expect, test } from "vitest"
+import { mkdtempSync } from "fs"
+import { cpSync, readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join, resolve } from "node:path"
+import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import {
   decodeToonObject,
   expectStderrContains,
@@ -304,7 +307,7 @@ test("--format json outputs machine-readable JSON for missing keys", async () =>
     "json",
   ])
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output.missingKeys).toHaveLength(1)
   expect(output.missingKeys[0]?.key).toStrictEqual("missing.key")
@@ -324,7 +327,7 @@ test("--format json outputs machine-readable JSON for unused keys", async () => 
     "json",
   ])
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(1)
@@ -343,7 +346,7 @@ test("--format json with no issues", async () => {
     "json",
   ])
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(0)
@@ -361,7 +364,7 @@ test("--format toon outputs machine-readable Toon format for missing keys", asyn
     "toon",
   ])
 
-  const output = decodeToonObject(testProcess.getStdout())
+  const output = decodeToonObject(testProcess.stdout.text)
 
   expect(output.missingKeys).toMatchObject([{ key: "missing.key", locales: ["en"] }])
   expect(output.unusedKeys).toMatchObject([])
@@ -379,7 +382,7 @@ test("--format toon outputs machine-readable Toon format for unused keys", async
     "toon",
   ])
 
-  const output = decodeToonObject(testProcess.getStdout())
+  const output = decodeToonObject(testProcess.stdout.text)
 
   expect(output.missingKeys).toMatchObject([])
   expect(output.unusedKeys).toMatchObject([{ key: "unused" }])
@@ -397,7 +400,7 @@ test("--format toon with no issues", async () => {
     "toon",
   ])
 
-  const output = decodeToonObject(testProcess.getStdout())
+  const output = decodeToonObject(testProcess.stdout.text)
 
   expect(output.missingKeys).toMatchObject([])
   expect(output.unusedKeys).toMatchObject([])
@@ -574,7 +577,7 @@ test("--format json includes dynamic keys", async () => {
     "json",
   ])
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(0)
@@ -597,7 +600,7 @@ test("--format json omits dynamic keys when the check is disabled", async () => 
     "json",
   ])
 
-  const output = JSON.parse(testProcess.getStdout())
+  const output = JSON.parse(testProcess.stdout.text)
 
   expect(output.missingKeys).toHaveLength(0)
   expect(output.unusedKeys).toHaveLength(0)
@@ -611,4 +614,72 @@ test("--config loads a custom config file instead of the project's config", asyn
   expectStdoutNotContains(testProcess, "Found 1 missing")
   expectStdoutContains(testProcess, "Found 0 missing and 0 unused keys.")
   expect(testProcess.exitCode).toBeFalsy()
+})
+
+describe("output flag", () => {
+  let tempDir: string
+
+  beforeEach(() => {
+    tempDir = mkdtempSync(join(tmpdir(), "vue-i18n-lint-output-flag-"))
+
+    cpSync(resolve(FIXTURES, "output-flag"), tempDir, { recursive: true })
+  })
+
+  afterEach(() => {
+    rmSync(tempDir, { recursive: true, force: true })
+  })
+
+  test("--output writes output to file", async () => {
+    const outputPath = resolve(tempDir, "output.txt")
+
+    const testProcess = await runTest([
+      tempDir,
+      "--locale-pattern",
+      DEFAULT_LOCALE_PATTERN,
+      "--src-pattern",
+      DEFAULT_SRC_PATTERN,
+      "--output",
+      outputPath,
+    ])
+
+    const fileContent = readFileSync(outputPath, { encoding: "utf-8" })
+    expect(fileContent).toContain("Missing keys (1):")
+    expect(fileContent).toContain("missing.key")
+    expect(fileContent).toContain("Found 1 missing and 0 unused keys.")
+    expect(fileContent).toContain("Processed")
+    expect(testProcess.exitCode).toStrictEqual(1)
+  })
+
+  test("creates parent directories when they do not exist", async () => {
+    const nestedPath = resolve(tempDir, "reports", "deep", "lint.txt")
+
+    const testProcess = await runTest([
+      tempDir,
+      "--locale-pattern",
+      DEFAULT_LOCALE_PATTERN,
+      "--src-pattern",
+      DEFAULT_SRC_PATTERN,
+      "--output",
+      nestedPath,
+    ])
+
+    const fileContent = readFileSync(nestedPath, { encoding: "utf-8" })
+    expect(fileContent).toContain("Missing keys (1):")
+    expect(testProcess.exitCode).toStrictEqual(1)
+  })
+
+  test("fails when output path is a directory", async () => {
+    const testProcess = await runTest([
+      tempDir,
+      "--locale-pattern",
+      DEFAULT_LOCALE_PATTERN,
+      "--src-pattern",
+      DEFAULT_SRC_PATTERN,
+      "--output",
+      tempDir,
+    ])
+
+    expectStderrContains(testProcess, "Failed to open output file")
+    expect(testProcess.exitCode).toStrictEqual(1)
+  })
 })
