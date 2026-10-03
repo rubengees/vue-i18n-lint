@@ -47,7 +47,7 @@ bunx vue-i18n-lint [command] [options] [path]
 
 ## Installation
 
-The cli can also be installed and run locally in your project:
+The CLI can also be installed and run locally in your project:
 
 ```sh
 npm install -D vue-i18n-lint
@@ -172,7 +172,7 @@ export default defineConfig({
 })
 ```
 
-### gitignore
+### .gitignore
 
 Files matched by any `.gitignore` in your project are automatically excluded when scanning locale and source files,
 in addition to any `ignorePatterns` you configure.
@@ -246,7 +246,7 @@ Each check (`missingKeys`, `unusedKeys`, `dynamicKeys`) supports a `severity` se
 npx vue-i18n-lint init [path]
 ```
 
-This command creates a config file with the defaults in the specified path
+This command creates a config file with default settings in the specified path
 (or current working directory if not specified). The file format is auto-detected: If a `tsconfig.json` exists, a
 TypeScript config file is created; otherwise, a JavaScript config file is created.
 
@@ -268,7 +268,7 @@ npx vue-i18n-lint remove-unused --dry-run
 ```
 
 > [!NOTE]
-> The remove command is naively implemented. Files are reconstructed so comments or special formatting are lost.
+> The `remove-unused` command is naively implemented. Files are reconstructed, so comments and special formatting are lost.
 
 ## Requirements
 
