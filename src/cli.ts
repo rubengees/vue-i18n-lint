@@ -1,10 +1,14 @@
-import { run } from "@stricli/core"
+import { run, type StricliProcess } from "@stricli/core"
 import { app } from "./app.ts"
 
-await run(app, process.argv.slice(2), {
-  process: {
-    stdout: process.stdout,
-    stderr: process.stderr,
-    env: process.env,
-  },
-})
+const stricliProcess: StricliProcess = {
+  stdout: process.stdout,
+  stderr: process.stderr,
+  env: process.env,
+}
+
+await run(app, process.argv.slice(2), { process: stricliProcess })
+
+if (stricliProcess.exitCode != null) {
+  process.exitCode = stricliProcess.exitCode
+}
