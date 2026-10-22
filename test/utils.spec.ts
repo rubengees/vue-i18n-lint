@@ -1,4 +1,5 @@
 import { resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { expect, test } from "vitest"
 import { formatFilePath, mapGetOrInsert, newPrefixSet, offsetToPosition } from "../src/utils.ts"
 
@@ -69,21 +70,22 @@ test("offsetToPosition returns the correct line and column for a multi-line stri
 })
 
 test("formatFilePath returns a file:// URL without line or column", () => {
-  expect(formatFilePath("/some/file.ts")).toStrictEqual("file:///some/file.ts")
+  expect(formatFilePath("/some/file.ts")).toStrictEqual(pathToFileURL(resolve("/some/file.ts")).href)
 })
 
 test("formatFilePath appends line when only line is given", () => {
-  expect(formatFilePath("/some/file.ts", 10)).toStrictEqual("file:///some/file.ts:10")
+  expect(formatFilePath("/some/file.ts", 10)).toStrictEqual(`${pathToFileURL(resolve("/some/file.ts")).href}:10`)
 })
 
 test("formatFilePath appends line and column when both are given", () => {
-  expect(formatFilePath("/some/file.ts", 10, 5)).toStrictEqual("file:///some/file.ts:10:5")
+  expect(formatFilePath("/some/file.ts", 10, 5)).toStrictEqual(`${pathToFileURL(resolve("/some/file.ts")).href}:10:5`)
 })
 
 test("formatFilePath resolves relative paths", () => {
-  expect(formatFilePath("src/file.ts")).toStrictEqual(`file://${resolve("src/file.ts")}`)
+  expect(formatFilePath("src/file.ts")).toStrictEqual(pathToFileURL(resolve("src/file.ts")).href)
 })
 
 test("formatFilePath percent-encodes special characters like brackets", () => {
-  expect(formatFilePath("/some/[slug]/file.ts")).toStrictEqual("file:///some/%5Bslug%5D/file.ts")
+  expect(formatFilePath("/some/[slug]/file.ts")).toStrictEqual(pathToFileURL(resolve("/some/[slug]/file.ts")).href)
+  expect(formatFilePath("/some/[slug]/file.ts")).toContain("%5Bslug%5D")
 })

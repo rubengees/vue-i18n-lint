@@ -1,0 +1,4 @@
+# Keep line endings as LF on every platform, including Windows checkouts where
+# git defaults to converting to CRLF. The formatter, generated schema check,
+# and fixture-based offset assertions all assume LF.
+* text=auto eol=lf

@@ -1,5 +1,6 @@
 import { expect, test } from "vitest"
 import { formatErrorMessage, ParseError } from "../src/error.ts"
+import { formatFilePath } from "../src/utils.ts"
 
 test("formatErrorMessage returns string representation for non-Error values", () => {
   expect(formatErrorMessage("something went wrong")).toStrictEqual("something went wrong")
@@ -19,7 +20,7 @@ test("formatErrorMessage chains cause for a plain Error with cause", () => {
 test("formatErrorMessage includes the file path for a ParseError", () => {
   const error = new ParseError("failed", "/some/file.ts")
 
-  expect(formatErrorMessage(error)).toContain("file:///some/file.ts")
+  expect(formatErrorMessage(error)).toContain(formatFilePath("/some/file.ts"))
   expect(formatErrorMessage(error)).toContain("failed")
 })
 
@@ -27,8 +28,8 @@ test("formatErrorMessage includes line but not column when only line is given", 
   const withLine = formatErrorMessage(new ParseError("failed", "/some/file.ts", { line: 5 }))
   const withLineAndColumn = formatErrorMessage(new ParseError("failed", "/some/file.ts", { line: 5, column: 7 }))
 
-  expect(withLine).toContain("file:///some/file.ts:5")
-  expect(withLineAndColumn).toContain("file:///some/file.ts:5:7")
+  expect(withLine).toContain(`${formatFilePath("/some/file.ts")}:5`)
+  expect(withLineAndColumn).toContain(`${formatFilePath("/some/file.ts")}:5:7`)
   expect(withLine).not.toContain(":5:7")
 })
 
