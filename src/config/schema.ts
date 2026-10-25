@@ -38,6 +38,9 @@ const dynamicKeysCheckSchema = z
   ])
   .default({ severity: "off", ignore: [], mode: "full" })
 
+/**
+ * Runtime schema used to validate vue-i18n-lint configuration.
+ */
 export const configSchema = z.object({
   format: formatEnum.default("text").describe("Output format for lint results"),
   localePattern: z.string().nonempty().default("**/locales/*.json").describe("Glob pattern for i18n locale files"),
@@ -61,7 +64,7 @@ export const configSchema = z.object({
       dynamicKeys: { severity: "off", ignore: [], mode: "full" },
     })
     .describe("Severity and per-check ignore configuration"),
-})
+}) satisfies z.ZodType<ConfigInput>
 
 export type CliArgs = {
   config?: string | undefined
@@ -81,5 +84,53 @@ export type CliArgs = {
   dynamicKeysMode?: z.infer<typeof dynamicKeysModeEnum> | undefined
 }
 
-export type ConfigInput = z.input<typeof configSchema>
+type CheckInput =
+  | boolean
+  | {
+      /** Severity level for this check */
+      severity?: "error" | "warning" | "off" | undefined
+      /** Keys to ignore in this check */
+      ignore?: string[] | undefined
+    }
+
+type DynamicKeysCheckInput =
+  | boolean
+  | {
+      /** Severity level for this check */
+      severity?: "error" | "warning" | "off" | undefined
+      /** Keys to ignore in this check */
+      ignore?: string[] | undefined
+      /** Which dynamic keys to report: Fully dynamic, or any with dynamic parts */
+      mode?: "full" | "partial" | undefined
+    }
+
+/**
+ * Configuration accepted by `defineConfig`.
+ */
+export type ConfigInput = {
+  /** Output format for lint results */
+  format?: "text" | "json" | "toon" | undefined
+  /** Glob pattern for i18n locale files */
+  localePattern?: string | undefined
+  /** Glob pattern for source files */
+  srcPattern?: string | undefined
+  /** Glob patterns to ignore */
+  ignorePatterns?: string[] | undefined
+  /** Keys to ignore in all checks */
+  ignoreKeys?: string[] | undefined
+  /** Respect .gitignore when scanning files */
+  gitignore?: boolean | undefined
+  /** Severity and per-check ignore configuration */
+  checks?:
+    | {
+        /** Severity and ignore list for missing keys */
+        missingKeys?: CheckInput
+        /** Severity and ignore list for unused keys */
+        unusedKeys?: CheckInput
+        /** Severity, ignore list and reporting mode for dynamic keys */
+        dynamicKeys?: DynamicKeysCheckInput
+      }
+    | undefined
+}
+
 export type ConfigOutput = z.output<typeof configSchema>
